@@ -79,6 +79,17 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
       <div><h2>Joannagrams</h2><p>Chain yarn-ball letters into words, crochet a granny square, then join the blanket.</p></div>
       <span class="pill" id="s-jg">Today</span>
     </a>
+    <a class="card" href="whistlestop.html">
+      <svg viewBox="0 0 72 72" aria-hidden="true">
+        <g stroke="var(--line)" stroke-width="2" stroke-dasharray="2 4"><path d="M12,12H60V60H12Z M36,12V60 M12,36H60"/></g>
+        <path d="M12,60V36H36V12H60" fill="none" stroke="var(--ink)" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle cx="12" cy="60" r="7" fill="var(--surface)" stroke="var(--f0)" stroke-width="3"/>
+        <circle cx="36" cy="36" r="4.5" fill="var(--surface)" stroke="var(--ink)" stroke-width="2"/>
+        <g transform="translate(48,12)"><rect x="-10" y="-7" width="20" height="14" rx="4" fill="var(--f0)"/><circle cx="6" cy="0" r="2.5" fill="var(--f2)"/></g>
+      </svg>
+      <div><h2>Whistlestop</h2><p>Lay track from station to terminus, obeying every sign on the line.</p></div>
+      <span class="pill" id="s-ws">Today</span>
+    </a>
     <div class="soon">
       <svg viewBox="0 0 72 72" aria-hidden="true"><g fill="var(--felt)"><rect x="4" y="24" width="12" height="12" rx="2"/><rect x="18" y="24" width="12" height="12" rx="2"/><rect x="32" y="24" width="12" height="12" rx="2"/><rect x="46" y="24" width="12" height="12" rx="2"/><rect x="32" y="10" width="12" height="12" rx="2"/><rect x="32" y="38" width="12" height="12" rx="2"/><rect x="32" y="52" width="12" height="12" rx="2"/></g></svg>
       <div><h2>Crosslight</h2><p>Coming soon: a word grid where every guess lights up the crossings.</p></div>
@@ -94,7 +105,7 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
 const t=new Date();document.getElementById('date').textContent=t.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
 const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
 const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
-[['hexstitch-daily-v2','s-hex'],['shadowbox-daily-v3','s-sb'],['joannagrams-daily','s-jg']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
+[['hexstitch-daily-v2','s-hex'],['shadowbox-daily-v3','s-sb'],['joannagrams-daily','s-jg'],['whistlestop-daily','s-ws']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
   if(s&&s.iso===iso){if(s.st.solved||s.st.metaDone){el.textContent='Solved';el.classList.add('done')}else if(s.st.started||(s.st.found&&s.st.found.length))el.textContent='In progress'}});
 </script>
 </body>

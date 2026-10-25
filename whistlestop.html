@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>*{box-sizing:border-box}:root{color-scheme:light;padding-block:env(safe-area-inset-top,0px) env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}a.eyebrow{display:block;text-decoration:none}a.eyebrow:hover{color:var(--ink)}</style>
+<title>Whistlestop</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one column — header, the railway board you draw on, sign legend, result. Railway-map palette. */
+:root{
+  --bg:#E6EBEE; --surface:#F6F8F9; --ink:#1C2530; --muted:#5A6772; --felt:#D3DADF; --line:#A9B5BE;
+  --ok:#2C7A4C; --bad:#C2372A;
+  --field:#DCE7D6; --field2:#D2DFCB; --rail:#3B414A; --ballast:#BDB6A9; --sleeper:#8A6A4F; --loco:#B5432F; --lamp:#F2B632;
+  --k0:#2C4B88; --k1:#4D8257; --k2:#C98A12;
+  --display:"Fredoka",ui-rounded,"Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121820; --surface:#1A222B; --ink:#E4EAEE; --muted:#93A1AC; --felt:#26323C; --line:#4A5966;
+  --ok:#62C38A; --bad:#FF6D5C;
+  --field:#1F2A22; --field2:#24301F; --rail:#C9CFD6; --ballast:#4B4740; --sleeper:#7A5E46; --loco:#D2583F; --lamp:#F5C04E;
+  --k0:#5A7FD0; --k1:#68A873; --k2:#E3A93A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121820; --surface:#1A222B; --ink:#E4EAEE; --muted:#93A1AC; --felt:#26323C; --line:#4A5966;
+  --ok:#62C38A; --bad:#FF6D5C;
+  --field:#1F2A22; --field2:#24301F; --rail:#C9CFD6; --ballast:#4B4740; --sleeper:#7A5E46; --loco:#D2583F; --lamp:#F5C04E;
+  --k0:#5A7FD0; --k1:#68A873; --k2:#E3A93A; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.eyebrow{font:600 12px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+h1{font-family:var(--display);font-weight:600;font-size:34px;line-height:1;margin:0;letter-spacing:-.01em}
+h1 span{color:var(--loco)}
+.sub{color:var(--muted);font-size:13px;margin-top:4px}
+.tabs{display:flex;background:var(--felt);border-radius:999px;padding:3px}
+.tabs button{font:600 14px var(--display);border:0;background:none;color:var(--muted);padding:6px 14px;border-radius:999px;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--surface);color:var(--ink)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.timer{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink);font-size:15px}
+.btn{font:600 13px var(--display);border:1.5px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 12px;border-radius:10px;cursor:pointer}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+:focus-visible{outline:2.5px solid var(--k0);outline-offset:2px}
+.theme{font:600 12px var(--display);letter-spacing:.1em;text-transform:uppercase;background:var(--loco);color:#fff;padding:3px 10px;border-radius:999px}
+.board{background:var(--surface);border-radius:18px;padding:10px;position:relative}
+.board svg{display:block;width:100%;height:auto;max-height:66vh;touch-action:none;user-select:none;-webkit-user-select:none}
+.loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:600 16px var(--display);color:var(--muted)}
+.fieldbg{fill:var(--field)}
+.sq{fill:var(--field2)}
+.slot{stroke:var(--line);stroke-width:2.2;stroke-dasharray:2 5;stroke-linecap:round}
+.gapmark{stroke:var(--line);stroke-width:2.2;stroke-linecap:round}
+.rubble{fill:var(--line)}
+.ballast{fill:none;stroke:var(--ballast);stroke-width:18;stroke-linecap:round;stroke-linejoin:round}
+.sleepers{fill:none;stroke:var(--sleeper);stroke-width:16;stroke-dasharray:3 6}
+.rails{fill:none;stroke:var(--rail);stroke-width:10;stroke-linecap:round;stroke-linejoin:round}
+.railgap{fill:none;stroke:var(--ballast);stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+.stopc{fill:var(--surface);stroke:var(--ink);stroke-width:2.6}
+.buf rect{fill:var(--bad)}.buf .w{fill:var(--surface)}
+.sigbox{fill:var(--rail)}.lamp{fill:var(--lamp)}.pole{stroke:var(--rail);stroke-width:3;stroke-linecap:round}
+.k0{fill:var(--k0)}.k1{fill:var(--k1)}.k2{fill:var(--k2)}
+.door{fill:var(--surface)}
+.plat rect{fill:var(--surface);stroke:var(--ink);stroke-width:2}
+.plat text{font:600 17px var(--display);fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.plat line{stroke:var(--ink);stroke-width:2}
+.bad .stopc,.bad .plat rect{stroke:var(--bad);stroke-width:3.6}
+.bad{animation:blink .5s ease-in-out 3}
+@keyframes blink{50%{opacity:.25}}
+.ring{fill:var(--surface);stroke:var(--loco);stroke-width:5}
+.bar2{fill:var(--k0)}
+.term{fill:var(--rail)}
+.loco .body{fill:var(--loco)}.loco .cab{fill:var(--rail)}.loco .win{fill:var(--lamp)}.loco .chim{fill:var(--rail)}
+.car .body{fill:var(--k0)}.car .win{fill:var(--surface)}
+.puff{fill:var(--surface);opacity:.85}
+.legend{background:var(--surface);border-radius:14px;padding:12px 16px}
+.legend summary{font:600 15px var(--display);cursor:pointer}
+.legend ul{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.legend li{display:flex;gap:12px;align-items:center}
+.legend li svg{flex:none;width:44px;height:44px}
+.legend li.off{display:none}
+.hint{font-size:13px;color:var(--muted);text-align:center;min-height:1.5em}
+.hint.bad{color:var(--bad)}
+.win{background:var(--surface);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;border:2px solid var(--ok)}
+.win h2{font:600 22px var(--display);margin:0}
+.win pre{font-family:var(--body);margin:0;white-space:pre-wrap;background:var(--bg);padding:10px 12px;border-radius:10px;font-size:15px;line-height:1.4;user-select:all}
+@media (prefers-reduced-motion:reduce){.bad{animation:none}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <a class="eyebrow" href="./">← The Puzz</a>
+      <h1>Whistle<span>stop</span></h1>
+      <div class="sub" id="sub"></div>
+    </div>
+    <div class="tabs" role="group" aria-label="Mode">
+      <button id="tDaily" aria-pressed="true">Daily</button>
+      <button id="tEndless" aria-pressed="false">Endless</button>
+    </div>
+  </header>
+  <div class="bar">
+    <div class="row" id="endlessCtl" hidden>
+      <select class="btn" id="themeSel" aria-label="Line">
+        <option value="mixed">Mixed line</option><option value="stops">Stops &amp; buffers</option><option value="signals">Signals</option>
+        <option value="stations">Stations</option><option value="tickets">Tickets</option><option value="platforms">Platforms</option>
+      </select>
+      <select class="btn" id="sizeSel" aria-label="Board size"><option value="4">4 × 4</option><option value="5">5 × 5</option></select>
+      <button class="btn" id="newBtn">New route</button>
+    </div>
+    <span class="theme" id="themeTag"></span>
+    <div class="row"><button class="btn" id="clearBtn">Clear track</button><span class="timer" id="timer">0:00</span></div>
+  </div>
+  <div class="board"><svg id="svg" aria-label="Railway board. Drag from the station to lay track."></svg><div class="loading" id="loading" hidden>Laying track…</div></div>
+  <div class="hint" id="hint"></div>
+  <section class="win" id="win" hidden></section>
+  <details class="legend" id="legend">
+    <summary>Signs on the line</summary>
+    <ul>
+      <li data-k="base"><svg viewBox="-24 -24 48 48" id="lg-start"></svg><span>Drag from the <b>station</b> to the <b>terminus</b> poking off the edge. Track can't cross itself. Drag back to take track up, or use the arrow keys.</span></li>
+      <li data-k="stop"><svg viewBox="-24 -24 48 48" id="lg-stop"></svg><span><b>Stop.</b> The train must call here, at a junction or along a stretch of track.</span></li>
+      <li data-k="buf"><svg viewBox="-24 -24 48 48" id="lg-buf"></svg><span><b>Buffers.</b> The line can't pass this junction.</span></li>
+      <li data-k="gap"><svg viewBox="-24 -24 48 48" id="lg-gap"></svg><span><b>Broken track.</b> No line along this stretch.</span></li>
+      <li data-k="sig"><svg viewBox="-24 -24 48 48" id="lg-sig"></svg><span><b>Signal.</b> The route runs along exactly as many sides of this square as the signal has lamps.</span></li>
+      <li data-k="stn"><svg viewBox="-24 -24 48 48" id="lg-stn"></svg><span><b>Stations.</b> Your route cuts the map into areas. Each area may only hold stations of one company colour.</span></li>
+      <li data-k="tkt"><svg viewBox="-24 -24 48 48" id="lg-tkt"></svg><span><b>Tickets.</b> Every ticket must share its area with exactly one other ticket of the same colour.</span></li>
+      <li data-k="plat"><svg viewBox="-24 -24 48 48" id="lg-plat"></svg><span><b>Platform board.</b> The area holding this board is exactly that many squares.</span></li>
+    </ul>
+  </details>
+</div>
+
+<script>
+// ---- Whistlestop engine: Witness-style route puzzles with railway signs ----
+function hseed(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19}h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return (h^h>>>16)>>>0}
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+// Geometry. W x H squares, (W+1) x (H+1) junctions.
+// Horizontal edge h(x,y) joins (x,y)-(x+1,y): id y*W+x.  Vertical v(x,y) joins (x,y)-(x,y+1): id HN + y*(W+1)+x.
+function geom(W,H){
+  const NW=W+1,NN=NW*(H+1),HN=W*(H+1),NE=HN+NW*H,adj=Array.from({length:NN},()=>[]),ends=[];
+  for(let y=0;y<=H;y++)for(let x=0;x<W;x++){const e=y*W+x,a=y*NW+x,b=a+1;adj[a].push([b,e]);adj[b].push([a,e]);ends[e]=[a,b]}
+  for(let y=0;y<H;y++)for(let x=0;x<=W;x++){const e=HN+y*NW+x,a=y*NW+x,b=a+NW;adj[a].push([b,e]);adj[b].push([a,e]);ends[e]=[a,b]}
+  const cellEdges=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)cellEdges.push([y*W+x,(y+1)*W+x,HN+y*NW+x,HN+y*NW+x+1]);
+  // which two squares an edge separates (-1 = outside)
+  const sep=[];for(let e=0;e<NE;e++){if(e<HN){const y=Math.floor(e/W),x=e%W;sep[e]=[y>0?(y-1)*W+x:-1,y<H?y*W+x:-1]}else{const k=e-HN,y=Math.floor(k/NW),x=k%NW;sep[e]=[x>0?y*W+x-1:-1,x<W?y*W+x:-1]}}
+  const boundary=n=>{const x=n%NW,y=Math.floor(n/NW);return x===0||y===0||x===W||y===H};
+  return{W,H,NW,NN,HN,NE,adj,ends,cellEdges,sep,boundary};
+}
+
+// Regions: squares joined unless the route runs between them
+function regions(G,used){
+  const n=G.W*G.H,par=[...Array(n).keys()],f=a=>{while(par[a]!==a)a=par[a]=par[par[a]];return a};
+  for(let e=0;e<G.NE;e++){if(used[e])continue;const[a,b]=G.sep[e];if(a>=0&&b>=0)par[f(a)]=f(b)}
+  return [...Array(n).keys()].map(f);
+}
+
+// Clue kinds:
+//  stop  {t:'stop', node} | {t:'stop', edge}
+//  buf   {t:'buf', node}            junction the route may not touch
+//  gap   {t:'gap', edge}            missing track
+//  sig   {t:'sig', cell, k}         route runs along exactly k sides
+//  stn   {t:'stn', cell, col}       one company colour per area
+//  tkt   {t:'tkt', cell, col}       exactly two of this colour per area
+//  plat  {t:'plat', cell, k}        area has exactly k squares
+function checkRoute(G,P,route,clues,why){
+  const used=new Uint8Array(G.NE),vis=new Uint8Array(G.NN);route.nodes.forEach(n=>vis[n]=1);route.edges.forEach(e=>used[e]=1);
+  let ok=true;const bad=why?[]:null;const fail=c=>{ok=false;if(bad)bad.push(c)};
+  let reg=null;const R=()=>reg||(reg=regions(G,used));
+  for(const c of clues){
+    if(c.t==='stop'){if(c.node!==undefined?!vis[c.node]:!used[c.edge])fail(c)}
+    else if(c.t==='buf'){if(vis[c.node])fail(c)}
+    else if(c.t==='gap'){if(used[c.edge])fail(c)}
+    else if(c.t==='sig'){if(G.cellEdges[c.cell].filter(e=>used[e]).length!==c.k)fail(c)}
+    else if(c.t==='plat'){const r=R(),id=r[c.cell];if(r.filter(x=>x===id).length!==c.k)fail(c)}
+  }
+  const stn=clues.filter(c=>c.t==='stn');
+  if(stn.length){const r=R(),seen={};for(const c of stn){const id=r[c.cell];if(seen[id]===undefined)seen[id]=c.col;else if(seen[id]!==c.col)ok=false}
+    if(bad&&!ok){for(const c of stn){const id=r[c.cell];if(stn.some(d=>r[d.cell]===id&&d.col!==c.col))bad.push(c)}}}
+  const tk=clues.filter(c=>c.t==='tkt');
+  if(tk.length){const r=R();for(const c of tk){if(tk.filter(d=>d.col===c.col&&r[d.cell]===r[c.cell]).length!==2)fail(c)}}
+  return why?bad:ok;
+}
+
+// Enumerate routes start -> end that satisfy the clues (up to limit)
+function solve(G,P,clues,limit,maxNodes=400000){
+  const vis=new Uint8Array(G.NN),used=new Uint8Array(G.NE),sigK=new Int8Array(G.W*G.H).fill(-1),sigN=new Int8Array(G.W*G.H);
+  const blocked=new Uint8Array(G.NN),broken=new Uint8Array(G.NE),edgeSig=Array.from({length:G.NE},()=>[]);
+  for(const c of clues){if(c.t==='buf')blocked[c.node]=1;else if(c.t==='gap')broken[c.edge]=1;else if(c.t==='sig')sigK[c.cell]=c.k}
+  G.cellEdges.forEach((es,cell)=>{if(sigK[cell]>=0)es.forEach(e=>edgeSig[e].push(cell))});
+  const sigCells=[...sigK.keys()].filter(c=>sigK[c]>=0);
+  const nodes=[P.start],edges=[],sols=[];let count=0,aborted=false;vis[P.start]=1;
+  (function dfs(n){
+    if(++count>maxNodes){aborted=true;return true}
+    if(n===P.end){
+      for(const c of sigCells)if(sigN[c]!==sigK[c])return false;
+      const route={nodes:nodes.slice(),edges:edges.slice()};
+      if(checkRoute(G,P,route,clues)){sols.push(route);return sols.length>=limit}
+      return false}
+    for(const[m,e]of G.adj[n]){
+      if(vis[m]||blocked[m]||broken[e])continue;
+      let okk=true;for(const c of edgeSig[e])if(sigN[c]+1>sigK[c]){okk=false;break}
+      if(!okk)continue;
+      vis[m]=1;used[e]=1;nodes.push(m);edges.push(e);for(const c of edgeSig[e])sigN[c]++;
+      const stop=dfs(m);
+      vis[m]=0;used[e]=0;nodes.pop();edges.pop();for(const c of edgeSig[e])sigN[c]--;
+      if(stop)return true}
+    return false})(P.start);
+  return{count:aborted?Infinity:sols.length,sols};
+}
+
+const THEMES={
+  stops:['stop','buf','gap'],
+  signals:['sig','stop','buf'],
+  stations:['stn','stop','gap'],
+  tickets:['tkt','stop','buf'],
+  platforms:['plat','stop','gap'],
+  mixed:['stop','buf','gap','sig','stn','tkt','plat'],
+};
+
+function tryGen(rand,W,H,theme){
+  const ri=k=>Math.floor(rand()*k),pick=a=>a[ri(a.length)],G=geom(W,H);
+  // 1. a long random route between two boundary junctions
+  const bnodes=[...Array(G.NN).keys()].filter(G.boundary);
+  const start=pick(bnodes);const vis=new Uint8Array(G.NN);let path=[start];vis[start]=1;
+  let best=null;const target=Math.floor(G.NN*(0.55+rand()*0.25));
+  (function walk(n,depth){ if(best)return; let guard=0;
+    if(path.length>=target&&G.boundary(n)&&n!==start){best=path.slice();return}
+    const opts=G.adj[n].filter(([m])=>!vis[m]).sort(()=>rand()-0.5);
+    for(const[m]of opts){if(++guard>2)break;vis[m]=1;path.push(m);walk(m,depth+1);if(best)return;path.pop();vis[m]=0}
+  })(start,0);
+  if(!best)return null;
+  const end=best[best.length-1];
+  const sx=start%G.NW,sy=Math.floor(start/G.NW),ex=end%G.NW,ey=Math.floor(end/G.NW);
+  if(Math.abs(sx-ex)+Math.abs(sy-ey)<Math.max(W,H)-1)return null;
+  const edgeOf=(a,b)=>G.adj[a].find(([m])=>m===b)[1];
+  const sol={nodes:best,edges:best.slice(1).map((n,k)=>edgeOf(best[k],n))};
+  const used=new Uint8Array(G.NE);sol.edges.forEach(e=>used[e]=1);
+  const onRoute=new Set(best),reg=regions(G,used),nReg=new Set(reg).size;
+  if(['stations','tickets','platforms'].includes(theme)&&nReg<3)return null;
+  const P={W,H,start,end,theme,clues:[]};
+  // 2. candidate pool from the solution
+  const kinds=THEMES[theme],pool=[];
+  if(kinds.includes('stop')){best.slice(1,-1).forEach(n=>pool.push({t:'stop',node:n}));sol.edges.forEach(e=>pool.push({t:'stop',edge:e}))}
+  if(kinds.includes('buf'))for(let n=0;n<G.NN;n++)if(!onRoute.has(n))pool.push({t:'buf',node:n});
+  if(kinds.includes('gap'))for(let e=0;e<G.NE;e++)if(!used[e])pool.push({t:'gap',edge:e});
+  if(kinds.includes('sig'))for(let c=0;c<W*H;c++){const k=G.cellEdges[c].filter(e=>used[e]).length;if(k>0)pool.push({t:'sig',cell:c,k})}
+  if(kinds.includes('stn')){const ids=[...new Set(reg)],col={};ids.forEach((id,k)=>col[id]=k%3===0?0:ri(3));for(let c=0;c<W*H;c++)pool.push({t:'stn',cell:c,col:col[reg[c]]})}
+  if(kinds.includes('plat'))for(let c=0;c<W*H;c++){const k=reg.filter(x=>x===reg[c]).length;if(k<=9)pool.push({t:'plat',cell:c,k})}
+  if(kinds.includes('tkt')){for(let a=0;a<W*H;a++)for(let b=a+1;b<W*H;b++)if(reg[a]===reg[b])for(let col=0;col<3;col++)pool.push({t:'tkt2',cells:[a,b],col})}
+  const W8={stop:3,buf:3,gap:2,sig:5,stn:5,tkt2:6,plat:5};
+  const themeMain={signals:'sig',stations:'stn',tickets:'tkt2',platforms:'plat'}[theme];
+  if(themeMain)W8[themeMain]=12;
+  const cellTaken=c=>P.clues.some(o=>o.cell===c);
+  const expand=c=>c.t==='tkt2'?c.cells.map(cell=>({t:'tkt',cell,col:c.col})):[c];
+  const fits=c=>{ if((c.cell!==undefined&&cellTaken(c.cell))||(c.cells&&c.cells.some(cellTaken)))return false;
+    if(c.node!==undefined&&P.clues.some(o=>o.node===c.node))return false;if(c.edge!==undefined&&P.clues.some(o=>o.edge===c.edge))return false;
+    return checkRoute(G,P,sol,[...P.clues,...expand(c)])};
+  const add=list=>{let tot=list.reduce((s,c)=>s+W8[c.t],0),x=rand()*tot;for(const c of list){x-=W8[c.t];if(x<=0){P.clues.push(...expand(c));return}}P.clues.push(...expand(list[list.length-1]))};
+  // seed with a couple of theme signs so the day's idea shows up
+  if(themeMain){const seeds=pool.filter(c=>c.t===themeMain);for(let k=0;k<2;k++){const f=seeds.filter(fits);if(f.length)add(f)}}
+  for(let it=0;it<60;it++){
+    const r=solve(G,P,P.clues,2,250000);
+    if(r.count===1)break;if(r.count===0)return null;
+    let cand;
+    if(r.count===Infinity)cand=pool.filter(c=>['stop','buf','gap','sig'].includes(c.t)&&fits(c));
+    else{const alt=r.sols.find(s=>s.edges.join()!==sol.edges.join());cand=pool.filter(c=>fits(c)&&!checkRoute(G,P,alt,[...P.clues,...expand(c)]))}
+    if(!cand.length)return null;add(cand);
+  }
+  if(solve(G,P,P.clues,2).count!==1)return null;
+  // trim signs that aren't needed (ticket pairs go together)
+  const groups=[];P.clues.forEach(c=>{if(c.t==='tkt'){const g=groups.find(g=>g[0].t==='tkt'&&g[0].col===c.col&&g.length===1&&regions(G,used)[g[0].cell]===regions(G,used)[c.cell]);if(g){g.push(c);return}}groups.push([c])});
+  for(const g of groups.sort(()=>rand()-0.5)){const rest=P.clues.filter(c=>!g.includes(c));if(themeMain&&g[0].t===({tkt2:'tkt'}[themeMain]||themeMain)&&rest.filter(c=>c.t===g[0].t).length<2)continue;
+    if(solve(G,P,rest,2).count===1)P.clues=rest}
+  P.sol=sol;return P;
+}
+function generate(seed,W,H,theme){for(let a=0;a<200;a++){const P=tryGen(mulberry(hseed(seed+'#'+a)),W,H,theme);if(P){P.seed=seed;return P}}return null}
+
+</script>
+<script>
+const S=70,M=40,$=id=>document.getElementById(id);
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const THEME_NAMES={stops:'Stops & buffers',signals:'Signals',stations:'Stations',tickets:'Tickets',platforms:'Platforms',mixed:'Mixed line'};
+const DAY_THEMES=['mixed','stops','signals','stations','tickets','platforms','mixed'];
+let G,P,st,mode='daily',route=[],drawing=false,partial=null,badClues=[],timerInt=null,anim=null;
+
+const np=n=>({x:M+(n%G.NW)*S,y:M+Math.floor(n/G.NW)*S});
+const cc=c=>({x:M+(c%G.W)*S+S/2,y:M+Math.floor(c/G.W)*S+S/2});
+const em=e=>{const[a,b]=G.ends[e];const p=np(a),q=np(b);return{x:(p.x+q.x)/2,y:(p.y+q.y)/2,a:p,b:q}};
+const edgeOf=(a,b)=>{const f=G.adj[a].find(([m])=>m===b);return f?f[1]:-1};
+
+// ---- sign drawings (centred at 0,0) ----
+const D={
+  stop:()=>`<circle class="stopc" r="7.5"/>`,
+  buf:()=>`<g class="buf"><rect x="-11" y="-6" width="22" height="12" rx="3"/><rect class="w" x="-5" y="-6" width="4" height="12"/><rect class="w" x="3" y="-6" width="4" height="12"/></g>`,
+  sig:k=>{let s=`<line class="pole" x1="0" y1="6" x2="0" y2="22"/><rect class="sigbox" x="-8" y="${-4-k*9}" width="16" height="${k*9+8}" rx="5"/>`;for(let i=0;i<k;i++)s+=`<circle class="lamp" cx="0" cy="${-k*9+i*9+4.5}" r="3.4"/>`;return `<g transform="translate(0,-4)">${s}</g>`},
+  stn:col=>`<path class="k${col}" d="M-13,13V-2L0,-13L13,-2V13Z"/><rect class="door" x="-3.5" y="3" width="7" height="10" rx="1.5"/>`,
+  tkt:col=>`<path class="k${col}" d="M-15,-9H15V-3A3,3 0 0 0 15,3V9H-15V3A3,3 0 0 0 -15,-3Z"/><line x1="6" y1="-7" x2="6" y2="7" stroke="var(--surface)" stroke-width="1.5" stroke-dasharray="2 2"/>`,
+  plat:k=>`<g class="plat"><line x1="-7" y1="8" x2="-7" y2="20"/><line x1="7" y1="8" x2="7" y2="20"/><rect x="-14" y="-12" width="28" height="22" rx="4"/><text y="-1">${k}</text></g>`,
+};
+function startSVG(){return `<circle class="ring" r="15"/><rect class="bar2" x="-20" y="-4.5" width="40" height="9" rx="2"/>`}
+
+function dayInfo(){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
+  const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`,wk=t.getDay();
+  return{num:Math.round((t-s)/864e5)+1,iso,theme:DAY_THEMES[wk],N:(wk===0||wk===6)?5:4,label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
+
+function load(m,code){
+  mode=m;$('tDaily').setAttribute('aria-pressed',m==='daily');$('tEndless').setAttribute('aria-pressed',m==='endless');$('endlessCtl').hidden=m!=='endless';
+  stopTimer();if(anim)cancelAnimationFrame(anim);$('win').hidden=true;$('loading').hidden=false;$('svg').innerHTML='';
+  setTimeout(()=>{
+    let saved=null,theme,N,seed;
+    if(m==='daily'){const d=dayInfo();theme=d.theme;N=d.N;seed='whistlestop-'+d.iso;P=generate(seed,N,N,theme);P.label=`#${d.num} · ${d.label}`;P.iso=d.iso;
+      $('sub').textContent='Daily line '+P.label;saved=store.get('whistlestop-daily');if(saved&&saved.iso!==d.iso)saved=null}
+    else{const c=code||Math.random().toString(36).slice(2,7);theme=$('themeSel').value;N=+$('sizeSel').value;
+      P=generate('ws-endless-'+c+theme+N,N,N,theme);P.code=c+Object.keys(THEME_NAMES).indexOf(theme)+N;P.label='Endless · '+P.code;$('sub').textContent='Endless mode · route '+P.code;
+      try{history.replaceState(null,'','#'+P.code)}catch(e){}}
+    G=geom(P.W,P.H);
+    st=saved?saved.st:{route:[P.start],tries:[],elapsed:0,started:false,solved:false};
+    route=st.route.slice();partial=null;badClues=[];
+    $('themeTag').textContent=THEME_NAMES[P.theme];
+    const kinds=new Set(P.clues.map(c=>c.t));document.querySelectorAll('.legend li').forEach(li=>{const k=li.dataset.k;li.classList.toggle('off',k!=='base'&&!kinds.has(k))});
+    $('loading').hidden=true;render();tick();
+    if(st.solved)showWin(false);else if(st.started)startTimer();
+    hint(route.length>1?'':'Drag from the station roundel to start laying track.');
+  },30);
+}
+function persist(){st.route=route.slice();if(mode==='daily')store.set('whistlestop-daily',{iso:P.iso,st})}
+
+function render(){
+  const Wd=M*2+G.W*S,Hd=M*2+G.H*S;$('svg').setAttribute('viewBox',`0 0 ${Wd} ${Hd}`);
+  let s=`<rect class="fieldbg" x="${M-8}" y="${M-8}" width="${G.W*S+16}" height="${G.H*S+16}" rx="14"/>`;
+  for(let c=0;c<G.W*G.H;c++){const p=cc(c);if((c%G.W+Math.floor(c/G.W))%2)s+=`<rect class="sq" x="${p.x-S/2+3}" y="${p.y-S/2+3}" width="${S-6}" height="${S-6}" rx="8"/>`}
+  const gaps=new Set(P.clues.filter(c=>c.t==='gap').map(c=>c.edge));
+  for(let e=0;e<G.NE;e++){const m=em(e);
+    if(gaps.has(e)){const ax=m.a.x+(m.b.x-m.a.x)*.32,ay=m.a.y+(m.b.y-m.a.y)*.32,bx=m.a.x+(m.b.x-m.a.x)*.68,by=m.a.y+(m.b.y-m.a.y)*.68;
+      s+=`<line class="gapmark" x1="${m.a.x}" y1="${m.a.y}" x2="${ax}" y2="${ay}"/><line class="gapmark" x1="${bx}" y1="${by}" x2="${m.b.x}" y2="${m.b.y}"/><circle class="rubble" cx="${m.x-3}" cy="${m.y+2}" r="2.2"/><circle class="rubble" cx="${m.x+3}" cy="${m.y-2}" r="1.6"/>`}
+    else s+=`<line class="slot" x1="${m.a.x}" y1="${m.a.y}" x2="${m.b.x}" y2="${m.b.y}"/>`}
+  // terminus stub, pointing off the board
+  const ep=np(P.end),ex=P.end%G.NW,ey=Math.floor(P.end/G.NW);let dx=ex===0?-1:ex===G.W?1:0,dy=dx?0:(ey===0?-1:1);
+  s+=`<line class="slot" x1="${ep.x}" y1="${ep.y}" x2="${ep.x+dx*26}" y2="${ep.y+dy*26}" style="stroke-dasharray:none;stroke-width:5"/><rect class="term" x="${ep.x+dx*26-7}" y="${ep.y+dy*26-7}" width="14" height="14" rx="3"/>`;
+  // track
+  const pts=route.map(np);if(partial)pts.push(partial);
+  if(pts.length>1){const d=pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+    s+=`<polyline class="ballast" points="${d}"/><polyline class="sleepers" points="${d}"/><polyline class="rails" points="${d}"/><polyline class="railgap" points="${d}"/>`}
+  // signs
+  const isBad=c=>badClues.includes(c);
+  P.clues.forEach(c=>{let p,svg;
+    if(c.t==='gap')return;
+    if(c.t==='stop'){p=c.node!==undefined?np(c.node):em(c.edge);svg=D.stop()}
+    else if(c.t==='buf'){p=np(c.node);svg=D.buf()}
+    else{p=cc(c.cell);svg=c.t==='sig'?D.sig(c.k):c.t==='stn'?D.stn(c.col):c.t==='tkt'?D.tkt(c.col):D.plat(c.k)}
+    s+=`<g class="${isBad(c)?'bad':''}" transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)})" pointer-events="none">${svg}</g>`});
+  const sp=np(P.start);s+=`<g transform="translate(${sp.x},${sp.y})">${startSVG()}</g>`;
+  s+=`<g id="train">${trainSVG(pts)}</g>`;
+  $('svg').innerHTML=s;
+}
+// locomotive at the head of the line, one carriage behind
+function along(pts,back){let rem=back;for(let k=pts.length-1;k>0;k--){const a=pts[k-1],b=pts[k],L=Math.hypot(b.x-a.x,b.y-a.y);if(L>=rem){const t=rem/L;return{x:b.x+(a.x-b.x)*t,y:b.y+(a.y-b.y)*t,ang:Math.atan2(b.y-a.y,b.x-a.x)}}rem-=L}
+  const a=pts[0],b=pts[1]||{x:a.x+1,y:a.y};return{x:a.x,y:a.y,ang:Math.atan2(b.y-a.y,b.x-a.x)}}
+function trainSVG(pts){if(pts.length<2)return'';const total=pts.slice(1).reduce((s,p,k)=>s+Math.hypot(p.x-pts[k].x,p.y-pts[k].y),0);
+  const h=along(pts,0);let s='';
+  if(total>34){const c=along(pts,34);s+=`<g class="car" transform="translate(${c.x.toFixed(1)},${c.y.toFixed(1)}) rotate(${(c.ang*180/Math.PI).toFixed(1)})"><rect class="body" x="-13" y="-9" width="26" height="18" rx="4"/><rect class="win" x="-8" y="-5" width="6" height="10" rx="1.5"/><rect class="win" x="2" y="-5" width="6" height="10" rx="1.5"/></g>`}
+  s+=`<g class="loco" transform="translate(${h.x.toFixed(1)},${h.y.toFixed(1)}) rotate(${(h.ang*180/Math.PI).toFixed(1)})"><rect class="body" x="-14" y="-9" width="26" height="18" rx="5"/><rect class="cab" x="-16" y="-10" width="11" height="20" rx="3"/><rect class="win" x="-14" y="-6" width="6" height="12" rx="1.5"/><circle class="chim" cx="6" cy="0" r="4"/><circle class="win" cx="13" cy="0" r="2.6"/></g>`;
+  return s}
+
+// ---- drawing ----
+function svgPt(e){const r=$('svg').getBoundingClientRect(),vb=$('svg').viewBox.baseVal;return{x:(e.clientX-r.left)/r.width*vb.width,y:(e.clientY-r.top)/r.height*vb.height}}
+const blockedN=n=>P.clues.some(c=>c.t==='buf'&&c.node===n);
+const brokenE=e=>P.clues.some(c=>c.t==='gap'&&c.edge===e);
+const canGo=(h,m)=>{const e=edgeOf(h,m);return e>=0&&!route.includes(m)&&!blockedN(m)&&!brokenE(e)};
+function steer(p){
+  partial=null;
+  for(let guard=0;guard<40;guard++){
+    const h=route[route.length-1],H=np(h);if(h===P.end&&route.length>1){ // allow backing out of the terminus
+      const prev=route[route.length-2],Q=np(prev),vx=Q.x-H.x,vy=Q.y-H.y,L=S,t=((p.x-H.x)*vx+(p.y-H.y)*vy)/(L*L);if(t>0.5){route.pop();continue}return}
+    let best=null;
+    for(const[m]of G.adj[h]){const Q=np(m),vx=Q.x-H.x,vy=Q.y-H.y,t=((p.x-H.x)*vx+(p.y-H.y)*vy)/(S*S),px=H.x+vx*t,py=H.y+vy*t,d=Math.hypot(p.x-px,p.y-py);
+      if(t<=0.05||d>S*0.5)continue;const back=route.length>1&&m===route[route.length-2];
+      if(back||canGo(h,m))if(!best||t>best.t)best={m,t,back,vx,vy}}
+    if(!best)return;
+    if(best.back){if(best.t>0.5){route.pop();continue}return}
+    if(best.t>0.9){route.push(best.m);if(!st.started){st.started=true;startTimer()}if(best.m===P.end)return;continue}
+    partial={x:H.x+best.vx*best.t,y:H.y+best.vy*best.t};return}
+}
+$('svg').addEventListener('pointerdown',e=>{if(st.solved||!P)return;const p=svgPt(e),h=np(route[route.length-1]),s0=np(P.start);
+  if(Math.hypot(p.x-h.x,p.y-h.y)<28){drawing=true}else if(Math.hypot(p.x-s0.x,p.y-s0.y)<28){route=[P.start];drawing=true}else return;
+  badClues=[];e.preventDefault();try{$('svg').setPointerCapture(e.pointerId)}catch(err){}steer(p);render()});
+$('svg').addEventListener('pointermove',e=>{if(!drawing)return;steer(svgPt(e));render()});
+const up=()=>{if(!drawing)return;drawing=false;partial=null;render();persist();arrive()};
+$('svg').addEventListener('pointerup',up);$('svg').addEventListener('pointercancel',up);
+document.addEventListener('keydown',e=>{if(!P||st.solved)return;const dir={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];if(!dir)return;e.preventDefault();
+  const h=route[route.length-1],x=h%G.NW+dir[0],y=Math.floor(h/G.NW)+dir[1];if(x<0||y<0||x>G.W||y>G.H)return;const m=y*G.NW+x;badClues=[];
+  if(route.length>1&&m===route[route.length-2])route.pop();else if(h!==P.end&&canGo(h,m)){route.push(m);if(!st.started){st.started=true;startTimer()}}
+  render();persist();arrive()});
+$('clearBtn').onclick=()=>{if(st.solved)return;route=[P.start];badClues=[];render();persist();hint('')};
+
+function arrive(){
+  if(route[route.length-1]!==P.end){hint(route.length>1?'Keep going. The terminus pokes off the edge of the map.':'');return}
+  const r={nodes:route.slice(),edges:route.slice(1).map((n,k)=>edgeOf(route[k],n))};
+  const bad=checkRoute(G,P,r,P.clues,true);
+  if(bad.length){st.tries.push(0);badClues=bad;persist();render();hint(`That route breaks ${bad.length} sign${bad.length>1?'s':''}. They’re flashing.`,'bad');return}
+  st.tries.push(1);st.solved=true;stopTimer();persist();hint('');showWin(true);
+}
+function hint(t,cls=''){$('hint').textContent=t;$('hint').className='hint '+cls}
+
+// ---- win: the train runs the whole line ----
+function runTrain(){const pts=route.map(np),total=pts.slice(1).reduce((s,p,k)=>s+Math.hypot(p.x-pts[k].x,p.y-pts[k].y),0);
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const t0=performance.now(),dur=Math.min(4200,total*7);
+  const step=now=>{const f=Math.min(1,(now-t0)/dur),dist=total*(1-f);
+    // positions measured back from the end
+    const sub=[];let acc=0;sub.push(pts[0]);
+    for(let k=1;k<pts.length;k++){const L=Math.hypot(pts[k].x-pts[k-1].x,pts[k].y-pts[k-1].y);if(acc+L>=total-dist){const t=(total-dist-acc)/L;sub.push({x:pts[k-1].x+(pts[k].x-pts[k-1].x)*t,y:pts[k-1].y+(pts[k].y-pts[k-1].y)*t});break}sub.push(pts[k]);acc+=L}
+    const g=$('train');if(g)g.innerHTML=trainSVG(sub.length>1?sub:pts.slice(0,2))+(f<1?`<circle class="puff" cx="${sub[sub.length-1].x+6*Math.sin(now/90)}" cy="${sub[sub.length-1].y-16-6*((now/300)%1)}" r="${4+3*((now/300)%1)}"/>`:'');
+    if(f<1)anim=requestAnimationFrame(step)};
+  anim=requestAnimationFrame(step)}
+const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+function shareText(){const strip=st.tries.map(t=>t?'🟩':'🟥').join('');const fails=st.tries.filter(t=>!t).length;
+  return `The Puzz · Whistlestop ${P.label} 🚂\n${THEME_NAMES[P.theme]} · ${P.W}×${P.H} · ⏱ ${fmt(st.elapsed)}\n${fails?fails+' wrong route'+(fails>1?'s':''):'Right first time'} 🚂${strip}`}
+function showWin(animate){const w=$('win');w.hidden=false;
+  w.innerHTML=`<h2>All aboard!</h2><pre id="shareTxt">${shareText()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New route</button>':'<span class="sub">A new line opens at midnight.</span>'}</div>`;
+  $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected · copy it'};
+    try{navigator.clipboard.writeText(shareText()).then(ok,fb)}catch(err){fb()}};
+  if($('nextBtn'))$('nextBtn').onclick=()=>load('endless');
+  render();if(animate)runTrain()}
+function startTimer(){stopTimer();const t0=Date.now()-st.elapsed*1000;timerInt=setInterval(()=>{st.elapsed=Math.floor((Date.now()-t0)/1000);tick();if(st.elapsed%5===0)persist()},500)}
+function stopTimer(){clearInterval(timerInt);timerInt=null}
+function tick(){$('timer').textContent=fmt(st&&st.elapsed||0)}
+
+$('tDaily').onclick=()=>load('daily');$('tEndless').onclick=()=>load('endless');$('newBtn').onclick=()=>load('endless');
+$('themeSel').onchange=()=>load('endless');$('sizeSel').onchange=()=>load('endless');
+// legend icons
+$('lg-start').innerHTML=`<g transform="scale(.9)">${startSVG()}</g>`;
+$('lg-stop').innerHTML=`<line x1="-22" y1="0" x2="22" y2="0" class="slot"/>${D.stop()}`;
+$('lg-buf').innerHTML=D.buf();
+$('lg-gap').innerHTML=`<line class="gapmark" x1="-22" y1="0" x2="-7" y2="0"/><line class="gapmark" x1="7" y1="0" x2="22" y2="0"/><circle class="rubble" cx="-2" cy="2" r="2.2"/><circle class="rubble" cx="3" cy="-2" r="1.6"/>`;
+$('lg-sig').innerHTML=D.sig(2);$('lg-stn').innerHTML=D.stn(0);$('lg-tkt').innerHTML=D.tkt(2);$('lg-plat').innerHTML=D.plat(4);
+
+(function boot(){const h=(location.hash||'').slice(1),m=/^([a-z0-9]{5})([0-5])([45])$/.exec(h);
+  if(m){$('themeSel').value=Object.keys(THEME_NAMES)[+m[2]];$('sizeSel').value=m[3];load('endless',m[1])}
+  else{load('daily');if(!store.get('whistlestop-seen')){$('legend').open=true;store.set('whistlestop-seen',1)}}})();
+</script>
+
+</body>
+</html>
