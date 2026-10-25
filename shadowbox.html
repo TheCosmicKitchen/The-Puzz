@@ -75,6 +75,11 @@ h1 span{color:var(--f1)}
 .patches{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-start}
 .patch{display:inline-flex;padding:4px;border-radius:8px;border:1.5px solid transparent;position:relative}
 .patch.ok{opacity:.35;border-color:var(--ok)}
+#fragBox{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--felt);padding-top:10px}
+.frag{display:inline-flex;padding:5px;border-radius:9px;border:1.5px solid var(--felt);background:var(--bg)}
+.frag.ok{opacity:.35;border-color:var(--ok)}.frag.bad{border-color:var(--bad);border-width:2.5px}
+.fe{fill:none;stroke:var(--line);stroke-width:1.2;stroke-dasharray:2 3}
+.fn{fill:var(--felt)}
 .basket{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--surface);border-radius:18px;padding:10px}
 .pc{position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:1;max-width:100%;border:2px solid transparent;border-radius:12px;background:var(--bg);cursor:pointer;padding:0}
 .pc svg{width:70%;height:70%}
@@ -120,7 +125,8 @@ details li svg{flex:none;width:44px;height:44px}
     </div>
   </div>
   <div class="board"><svg id="svg" aria-label="Puzzle board"></svg></div>
-  <section class="patchbox"><div class="ph" id="patchHead">Patches</div><div class="patches" id="patches"></div></section>
+  <section class="patchbox"><div class="ph" id="patchHead">Patches</div><div class="patches" id="patches"></div>
+    <div id="fragBox"><div class="ph" id="fragHead">Fragments</div><div class="patches" id="frags"></div></div></section>
   <div class="hint" id="hint"></div>
   <div class="basket" id="basket" role="group" aria-label="Pieces"></div>
   <section class="win" id="win" hidden></section>
@@ -129,10 +135,10 @@ details li svg{flex:none;width:44px;height:44px}
     <ul>
       <li><svg viewBox="-24 -24 48 48" id="r1"></svg><span>Place every piece from the tray. Each piece has a colour and a shape. Together the patches and the clues allow exactly one answer.</span></li>
       <li><svg viewBox="-24 -24 48 48" id="r2"></svg><span><b>Patches.</b> The shapes beside the board are every colour patch in the finished box, as they’ll look on the board (no rotating). Squares of the same colour that touch belong to the same patch, so two patches of one colour never touch. Work out where each one fits. Finished patches fade out.</span></li>
-      <li><svg viewBox="-24 -24 48 48" id="r3"></svg><span><b>Fence.</b> A dashed area holds exactly the shapes on its tag, in any order.</span></li>
+      <li><svg viewBox="-24 -24 48 48" id="r7"></svg><span><b>Fragments.</b> A small snapshot of the finished box, the right way up. Each filled square shows a shape, a colour, or both, and dotted squares can hold anything. That exact arrangement appears somewhere in the box.</span></li>
+      <li><svg viewBox="-24 -24 48 48" id="r3"></svg><span><b>Sets.</b> A dashed area on the board holds exactly the shapes on its tag, in any order.</span></li>
       <li><svg viewBox="-24 -24 48 48" id="r4"></svg><span><b>Tally.</b> A number at the end of a row or column says how many pieces in that line have that colour or shape. A 0 means none.</span></li>
-      <li><svg viewBox="-24 -24 48 48" id="r5"></svg><span><b>Links.</b> A round badge compares colour, a diamond badge compares shape. <b>=</b> means the same, <b>≠</b> means different.</span></li>
-      <li><svg viewBox="-24 -24 48 48" id="r6"></svg><span><b>Peek</b> pins one correct piece for you. Your result shows how many peeks you used.</span></li>
+            <li><svg viewBox="-24 -24 48 48" id="r6"></svg><span><b>Peek</b> pins one correct piece for you. Your result shows how many peeks you used.</span></li>
     </ul>
   </details>
 </div>
@@ -157,9 +163,15 @@ function patchesOf(cols,N){const seen=new Array(N*N).fill(false),out=[];
     const shape=comp.map(j=>[Math.floor(j/N)-r0,j%N-c0]);out.push({color:cols[i],shape,cells:comp,key:cols[i]+':'+JSON.stringify(shape)})}
   return out}
 
-// clue kinds (all on the board): g fence, n tally, l link, f pin
+// fragment: a few squares at fixed relative offsets; each square specifies a shape, a colour, or both.
+// True when that arrangement appears somewhere on the board (translation only).
+const specOk=(p,sp)=>(sp.s===undefined||shpOf(p)===sp.s)&&(sp.col===undefined||colOf(p)===sp.col);
+function fragPlacements(cells,N){const mr=Math.max(...cells.map(o=>o.r)),mc=Math.max(...cells.map(o=>o.c)),out=[];
+  for(let r=0;r+mr<N;r++)for(let c=0;c+mc<N;c++)out.push(cells.map(o=>[(r+o.r)*N+c+o.c,o]));return out}
+// clue kinds: r fragment (off board), g set/fence, n tally, l link, f pin
 function clueTrue(c,b){
   if(c.t==='g'){const n=[0,0,0,0];c.cells.forEach(i=>n[shpOf(b[i])]++);return n.every((x,k)=>x===c.need[k])}
+  if(c.t==='r') return c.pl.some(pl=>pl.every(([i,sp])=>specOk(b[i],sp)));
   if(c.t==='n') return c.cells.filter(i=>propOf(b[i],c.prop)===c.val).length===c.k;
   if(c.t==='l') return (propOf(b[c.a],c.prop)===propOf(b[c.b],c.prop))===c.same;
   return true;
@@ -169,12 +181,12 @@ function clueTrue(c,b){
 function layouts(P,cap){
   const N=P.N,n=N*N,grid=new Array(n).fill(-1),owner=new Array(n).fill(-1),used=new Array(P.patches.length).fill(false),out=[];
   const pinCol=new Array(n).fill(-1);P.clues.forEach(c=>{if(c.t==='f')pinCol[c.i]=colOf(P.sol[c.i])});
-  const colClues=P.clues.filter(c=>(c.t==='n'||c.t==='l')&&c.prop==='c');
+  const colClues=P.clues.filter(c=>(c.t==='n'||c.t==='l')&&c.prop==='c'),frags=P.clues.filter(c=>c.t==='r');
   let over=false;
   (function rec(){
     if(out.length>=cap){over=true;return}
     const e=grid.indexOf(-1);
-    if(e<0){ if(colClues.every(c=>c.t==='n'?c.cells.filter(i=>grid[i]===c.val).length===c.k:(grid[c.a]===grid[c.b])===c.same)) out.push(grid.slice()); return }
+    if(e<0){ if(colClues.every(c=>c.t==='n'?c.cells.filter(i=>grid[i]===c.val).length===c.k:(grid[c.a]===grid[c.b])===c.same)&&frags.every(f=>f.pl.some(pl=>pl.every(([i,sp])=>sp.col===undefined||grid[i]===sp.col)))) out.push(grid.slice()); return }
     const er=Math.floor(e/N),ec=e%N,tried=new Set();
     for(let k=0;k<P.patches.length;k++){if(used[k])continue;const pt=P.patches[k];if(tried.has(pt.key))continue;tried.add(pt.key);
       const [ar,ac]=pt.shape[0],cells=[];let ok=true;
@@ -196,7 +208,10 @@ function solveShapes(P,layout,limit,maxNodes){
   const N=P.N,n=N*N,tray=P.tray.slice(),asg=new Array(n).fill(-1),dom=new Array(n).fill(0);
   for(let i=0;i<n;i++)for(let s=0;s<NS;s++)dom[i]|=1<<(layout[i]*4+s);
   const per=Array.from({length:n},()=>[]);
-  const cs=P.clues.filter(c=>c.t!=='f'&&!((c.t==='n'||c.t==='l')&&c.prop==='c')).map(c=>({c,cnt:[0,0,0,0],m:0,f:0}));
+  const cs=P.clues.filter(c=>c.t!=='f'&&c.t!=='r'&&!((c.t==='n'||c.t==='l')&&c.prop==='c')).map(c=>({c,cnt:[0,0,0,0],m:0,f:0}));
+  const frs=P.clues.filter(c=>c.t==='r').map(c=>c.pl.filter(pl=>pl.every(([i,sp])=>sp.col===undefined||layout[i]===sp.col)));
+  if(frs.some(f=>!f.length))return{sols:[],aborted:false,nodes:0};
+  const fper=Array.from({length:n},()=>[]);frs.forEach((f,k)=>{new Set(f.flat().map(x=>x[0])).forEach(i=>fper[i].push(k))});
   P.clues.forEach(c=>{if(c.t==='f')dom[c.i]&=1<<P.sol[c.i]});
   cs.forEach(s=>{const c=s.c;if(c.t==='l'){per[c.a].push(s);per[c.b].push(s)}else c.cells.forEach(i=>per[i].push(s))});
   const ok=(s,i,p)=>{const c=s.c;
@@ -205,7 +220,8 @@ function solveShapes(P,layout,limit,maxNodes){
     if(c.t==='l'){const o=i===c.a?c.b:c.a;if(asg[o]<0)return true;return (propOf(asg[o],c.prop)===propOf(p,c.prop))===c.same}
     return true};
   const apply=(s,p,d)=>{const c=s.c;if(c.t==='g')s.cnt[shpOf(p)]+=d;else if(c.t==='n'){s.f+=d;if(propOf(p,c.prop)===c.val)s.m+=d}};
-  const can=(i,p)=>{if(!(dom[i]>>p&1)||tray[p]<=0)return false;for(const s of per[i])if(!ok(s,i,p))return false;return true};
+  const fragOk=i=>{for(const k of fper[i])if(!frs[k].some(pl=>pl.every(([j,sp])=>asg[j]<0||specOk(asg[j],sp))))return false;return true};
+  const can=(i,p)=>{if(!(dom[i]>>p&1)||tray[p]<=0)return false;for(const s of per[i])if(!ok(s,i,p))return false;asg[i]=p;const fo=fragOk(i);asg[i]=-1;return fo};
   const put=(i,p)=>{asg[i]=p;tray[p]--;per[i].forEach(s=>apply(s,p,1))};
   const take=(i,p)=>{asg[i]=-1;tray[p]++;per[i].forEach(s=>apply(s,p,-1))};
   const sols=[];let nodes=0,aborted=false;
@@ -251,20 +267,29 @@ function tryGen(rand,N){
   for(let i=0;i<n;i++)for(let rep=0;rep<2;rep++){const g=grow(i,2+ri(2));const need=[0,0,0,0];g.forEach(j=>need[shpOf(sol[j])]++);pool.push({t:'g',cells:g,need})}
   for(const line of ['r','c'])for(let idx=0;idx<N;idx++){const cells=Array.from({length:N},(_,k)=>line==='r'?idx*N+k:k*N+idx);
     for(const prop of ['c','s'])for(let val=0;val<4;val++){const k=cells.filter(i=>propOf(sol[i],prop)===val).length;pool.push({t:'n',line,idx,cells,prop,val,k})}}
-  for(let i=0;i<n;i++)for(const j of nbOf(i,N))if(j>i)for(const prop of ['c','s'])pool.push({t:'l',a:i,b:j,prop,same:propOf(sol[i],prop)===propOf(sol[j],prop)});
-  const W={g:4,n:3,l:2};
+  for(let i=0;i<n;i++)for(let rep=0;rep<4;rep++){
+    const k=rand()<0.6?2:3,cells=[{r:0,c:0,i}];let guard=0;
+    while(cells.length<k&&guard++<30){const r=Math.floor(i/N)+ri(3),c=i%N+ri(5)-2;if(r>=N||c<0||c>=N)continue;const j=r*N+c;if(cells.some(o=>o.i===j))continue;cells.push({r:r-Math.floor(i/N),c:c-i%N,i:j})}
+    if(cells.length<2)continue;
+    const r0=Math.min(...cells.map(o=>o.r)),c0=Math.min(...cells.map(o=>o.c));
+    const spec=cells.map(o=>{const p=sol[o.i],x=rand(),sp={r:o.r-r0,c:o.c-c0};if(x<0.62)sp.s=shpOf(p);else if(x<0.84){sp.s=shpOf(p);sp.col=colOf(p)}else sp.col=colOf(p);return sp});
+    if(spec.every(sp=>sp.s===undefined))spec[0].s=shpOf(sol[cells[0].i]);
+    spec.sort((a,b)=>a.r-b.r||a.c-b.c);
+    const key=JSON.stringify(spec);if(pool.some(c=>c.key===key))continue;
+    pool.push({t:'r',cells:spec,pl:fragPlacements(spec,N),key})}
+  const W={g:3,n:2,r:6};
   const P={N,sol,tray,patches,clues:[]};
   const conflicts=c=>{
     if(c.t==='g')return P.clues.some(o=>o.t==='g'&&o.cells.some(i=>c.cells.includes(i)));
     if(c.t==='n')return P.clues.filter(o=>o.t==='n'&&o.line===c.line&&o.idx===c.idx).length>=2;
-    if(c.t==='l')return P.clues.some(o=>o.t==='l'&&o.a===c.a&&o.b===c.b);
+    if(c.t==='r')return P.clues.filter(o=>o.t==='r').length>=7;
     return false};
   const add=list=>{let tot=list.reduce((s,c)=>s+W[c.t],0),x=rand()*tot;for(const c of list){x-=W[c.t];if(x<=0){P.clues.push(c);return}}P.clues.push(list[list.length-1])};
   for(let it=0;it<70;it++){
     const r=solve(P,2);
     if(r.count===1)break;if(r.count===0)return null;
     if(r.count===Infinity){
-      const cand=pool.filter(c=>!conflicts(c)&&(!r.tooManyLayouts||((c.t==='n'||c.t==='l')&&c.prop==='c')));if(!cand.length)return null;add(cand);continue}
+      const cand=pool.filter(c=>!conflicts(c)&&(!r.tooManyLayouts||(c.t==='n'&&c.prop==='c')||(c.t==='r'&&c.cells.some(sp=>sp.col!==undefined))));if(!cand.length)return null;add(cand);continue}
     const alt=r.sols.find(s=>s.some((v,i)=>v!==sol[i]));
     const kill=pool.filter(c=>!clueTrue(c,alt)&&!conflicts(c));
     if(!kill.length){const free=[...Array(n).keys()].filter(i=>alt[i]!==sol[i]&&!P.clues.some(c=>c.t==='f'&&c.i===i));if(!free.length)return null;P.clues.push({t:'f',i:pick(free)});continue}
@@ -279,7 +304,6 @@ function tryGen(rand,N){
   return P;
 }
 function generate(seed,N){for(let a=0;a<300;a++){const P=tryGen(mulberry(hseed(seed+'#'+a)),N);if(P){P.seed=seed;return P}}return null}
-
 
 </script>
 <script>
@@ -303,10 +327,10 @@ function dayInfo(){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.
 function load(m,seedOverride){
   mode=m;$('tDaily').setAttribute('aria-pressed',m==='daily');$('tEndless').setAttribute('aria-pressed',m==='endless');
   $('endlessCtl').hidden=m!=='endless';$('dailyInfo').hidden=m!=='daily';let saved=null;
-  if(m==='daily'){const d=dayInfo();P=generate('shadowbox2-'+d.iso,d.N);P.label=`#${d.num} · ${d.label}`;P.iso=d.iso;
+  if(m==='daily'){const d=dayInfo();P=generate('shadowbox3-'+d.iso,d.N);P.label=`#${d.num} · ${d.label}`;P.iso=d.iso;
     $('sub').textContent='Daily '+P.label;$('dailyInfo').textContent=d.N===5?'Weekend box · 5 × 5':'Weekday box · 4 × 4';
-    saved=store.get('shadowbox-daily-v2');if(saved&&saved.iso!==d.iso)saved=null}
-  else{const N=+$('size').value,seed=seedOverride||Math.random().toString(36).slice(2,7);P=generate('sb2-endless-'+seed+'-'+N,N);
+    saved=store.get('shadowbox-daily-v3');if(saved&&saved.iso!==d.iso)saved=null}
+  else{const N=+$('size').value,seed=seedOverride||Math.random().toString(36).slice(2,7);P=generate('sb3-endless-'+seed+'-'+N,N);
     P.code=seed+N;P.label='Endless · '+P.code;$('seedTxt').textContent=P.code;$('sub').textContent='Endless mode · a new box every time';
     try{history.replaceState(null,'','#'+P.code)}catch(e){}}
   P.n=P.N*P.N;P.pinned=new Array(P.n).fill(false);P.clues.forEach(c=>{if(c.t==='f')P.pinned[c.i]=true});
@@ -314,7 +338,7 @@ function load(m,seedOverride){
   st.peeks.forEach(i=>P.pinned[i]=true);
   $('win').hidden=true;sel=firstAvail(0);render();tick();if(st.solved)showWin();
 }
-function persist(){if(mode==='daily')store.set('shadowbox-daily-v2',{iso:P.iso,st})}
+function persist(){if(mode==='daily')store.set('shadowbox-daily-v3',{iso:P.iso,st})}
 function remaining(){const r=P.tray.slice();st.board.forEach(p=>{if(p>=0)r[p]--});return r}
 function firstAvail(f){const r=remaining();for(let k=0;k<16;k++){const p=(f+k)%16;if(r[p]>0)return p}return f}
 
@@ -322,6 +346,8 @@ function firstAvail(f){const r=remaining();for(let k=0;k<16;k++){const p=(f+k)%1
 function status(c){const b=st.board,pv=(p,pr)=>pr==='c'?p>>2:p&3;
   if(c.t==='g'){const n=[0,0,0,0];let f=0;c.cells.forEach(i=>{if(b[i]>=0){n[b[i]&3]++;f++}});if(n.some((x,k)=>x>c.need[k]))return'bad';return f===c.cells.length?'ok':''}
   if(c.t==='n'){let m=0,f=0;c.cells.forEach(i=>{if(b[i]>=0){f++;if(pv(b[i],c.prop)===c.val)m++}});if(m>c.k||m+c.cells.length-f<c.k)return'bad';return f===c.cells.length?'ok':''}
+  if(c.t==='r'){const fit=pl=>pl.every(([i,sp])=>b[i]<0||specOk(b[i],sp));
+    if(c.pl.some(pl=>pl.every(([i,sp])=>b[i]>=0&&specOk(b[i],sp))))return'ok';return c.pl.some(fit)?'':'bad'}
   if(c.t==='l'){if(b[c.a]<0||b[c.b]<0)return'';return (pv(b[c.a],c.prop)===pv(b[c.b],c.prop))===c.same?'ok':'bad'}
   return''}
 
@@ -371,7 +397,18 @@ function patchPanel(){const done=donePatches(),used={};
   $('patches').innerHTML=order.map(pt=>{const u=used[pt.key]=(used[pt.key]||0)+1,ok=u<=(done[pt.key]||0);
     const h=Math.max(...pt.shape.map(o=>o[0]))+1,w=Math.max(...pt.shape.map(o=>o[1]))+1,z=13;
     return `<span class="patch ${ok?'ok':''}" title="${pt.shape.length} ${CN[pt.color]}"><svg viewBox="-1 -1 ${w*z+2} ${h*z+2}" width="${w*z+2}" height="${h*z+2}">${pt.shape.map(([r,c])=>`<rect x="${c*z+.5}" y="${r*z+.5}" width="${z-1}" height="${z-1}" rx="2.5" class="c${pt.color}"/>`).join('')}</svg></span>`}).join('');
-  const n=Object.values(done).reduce((a,b)=>a+b,0);$('patchHead').textContent=`Patches · ${Math.min(n,P.patches.length)} of ${P.patches.length} in place`}
+  const n=Object.values(done).reduce((a,b)=>a+b,0);$('patchHead').textContent=`Patches · ${Math.min(n,P.patches.length)} of ${P.patches.length} in place`;
+  const fr=P.clues.filter(c=>c.t==='r');$('fragBox').hidden=!fr.length;
+  $('fragHead').textContent=`Fragments · ${fr.filter(c=>status(c)==='ok').length} of ${fr.length} found`;
+  $('frags').innerHTML=fr.map(c=>fragSVG(c,status(c))).join('')}
+function fragSVG(c,stt){const z=24,h=Math.max(...c.cells.map(o=>o.r))+1,w=Math.max(...c.cells.map(o=>o.c))+1;let s='';
+  for(let r=0;r<h;r++)for(let k=0;k<w;k++){const sp=c.cells.find(o=>o.r===r&&o.c===k),x=k*z+z/2,y=r*z+z/2;
+    if(!sp){s+=`<rect class="fe" x="${x-z/2+2}" y="${y-z/2+2}" width="${z-4}" height="${z-4}" rx="4"/>`;continue}
+    const fill=sp.col!==undefined?`c${sp.col}`:'fn';
+    s+=`<rect class="${fill}" x="${x-z/2+1}" y="${y-z/2+1}" width="${z-2}" height="${z-2}" rx="5"/>`;
+    if(sp.s!==undefined)s+=`<g transform="translate(${x},${y})">${glyph(sp.s,z*.22,sp.col!==undefined?'gly':'ink')}</g>`}
+  const label=c.cells.map(sp=>[sp.col!==undefined?CN[sp.col]:'',sp.s!==undefined?SN[sp.s]:'any shape'].join(' ').trim()).join(', ');
+  return `<span class="frag ${stt}" aria-label="Fragment: ${label}"><svg viewBox="0 0 ${w*z} ${h*z}" width="${w*z}" height="${h*z}">${s}</svg></span>`}
 
 function placeAt(i){
   if(st.solved)return;if(P.pinned[i]){flash(i);return}
@@ -423,7 +460,7 @@ $('r1').innerHTML=piece(6,40);
 $('r2').innerHTML=[[0,0],[1,0],[1,1]].map(([r,c])=>`<rect x="${c*15-15+.5}" y="${r*15-15+.5}" width="14" height="14" rx="3" class="c3"/>`).join('');
 $('r3').innerHTML=`<rect x="-20" y="-16" width="40" height="36" class="cage"/><g class="tag" transform="translate(-18,-22)"><rect width="32" height="15" rx="7.5"/><g transform="translate(9.5,7.5)">${glyph(1,4.3,'ink')}</g><g transform="translate(22.5,7.5)">${glyph(0,4.3,'ink')}</g></g>`;
 $('r4').innerHTML=`<g class="cnt" transform="translate(-17,0)"><rect x="0" y="-11" width="34" height="22" rx="11"/><g transform="translate(11,0)">${glyph(2,5.2,'ink')}</g><text x="25" y="0.5">2</text></g>`;
-$('r5').innerHTML=`<g class="lk" transform="translate(-11,0)"><circle class="bd" r="9"/>${[0,1,2,3].map(k=>{const a0=k*Math.PI/2-Math.PI/2,a1=a0+Math.PI/2;return `<path d="M${(9*Math.cos(a0)).toFixed(2)},${(9*Math.sin(a0)).toFixed(2)}A9,9 0 0 1 ${(9*Math.cos(a1)).toFixed(2)},${(9*Math.sin(a1)).toFixed(2)}" fill="none" class="s${k}" stroke-width="2.6"/>`}).join('')}<text>=</text></g><g class="lk" transform="translate(12,0)"><rect class="bd" x="-7.5" y="-7.5" width="15" height="15" transform="rotate(45)"/><text>≠</text></g>`;
+$('r7').innerHTML=fragSVG({cells:[{r:0,c:0,s:1},{r:1,c:1,s:3,col:1}]},'').replace(/<span[^>]*>|<\/span>/g,'').replace(/<svg[^>]*>/,'<g transform="translate(-24,-24)">').replace('</svg>','</g>');
 $('r6').innerHTML=piece(9,40)+`<circle class="pin" cx="13" cy="-13" r="4"/>`;
 
 (function boot(){const h=(location.hash||'').slice(1);
