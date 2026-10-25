@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>*{box-sizing:border-box}:root{color-scheme:light;padding-block:env(safe-area-inset-top,0px) env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}a.eyebrow{display:block;text-decoration:none}a.eyebrow:hover{color:var(--ink)}</style>
+<title>Shadowbox</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one centred column — The Puzz eyebrow, board with clue margins, piece basket, rules. */
+:root{
+  --bg:#E6EBEE; --surface:#F6F8F9; --ink:#1C2530; --muted:#5A6772; --felt:#D3DADF; --line:#A9B5BE;
+  --ok:#2C7A4C; --bad:#C2372A; --glyph:#FFFFFF;
+  --f0:#B5432F; --f1:#2C4B88; --f2:#D69720; --f3:#4D8257;
+  --display:"Fredoka",ui-rounded,"Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121820; --surface:#1A222B; --ink:#E4EAEE; --muted:#93A1AC; --felt:#26323C; --line:#3B4954;
+  --ok:#62C38A; --bad:#FF6D5C; --glyph:#F4F7F9;
+  --f0:#D2583F; --f1:#4C70C4; --f2:#E7AE3A; --f3:#66A271; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121820; --surface:#1A222B; --ink:#E4EAEE; --muted:#93A1AC; --felt:#26323C; --line:#3B4954;
+  --ok:#62C38A; --bad:#FF6D5C; --glyph:#F4F7F9;
+  --f0:#D2583F; --f1:#4C70C4; --f2:#E7AE3A; --f3:#66A271; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.eyebrow{font:600 12px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+h1{font-family:var(--display);font-weight:600;font-size:34px;line-height:1;margin:0;letter-spacing:-.01em}
+h1 span{color:var(--f1)}
+.sub{color:var(--muted);font-size:13px;margin-top:4px}
+.tabs{display:flex;background:var(--felt);border-radius:999px;padding:3px}
+.tabs button{font:600 14px var(--display);border:0;background:none;color:var(--muted);padding:6px 14px;border-radius:999px;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--surface);color:var(--ink)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.timer{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink);font-size:15px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{font:600 13px var(--display);border:1.5px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 12px;border-radius:10px;cursor:pointer}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+:focus-visible{outline:2.5px solid var(--f1);outline-offset:2px}
+.board{background:var(--surface);border-radius:18px;padding:12px;touch-action:manipulation}
+.board svg{display:block;width:100%;height:auto;max-height:64vh;user-select:none;-webkit-user-select:none}
+.cell{cursor:pointer}
+.cell .base{fill:var(--bg);stroke:var(--line);stroke-width:1}
+.cell:hover .base{stroke:var(--ink);stroke-width:1.6}
+.c0{fill:var(--f0)}.c1{fill:var(--f1)}.c2{fill:var(--f2)}.c3{fill:var(--f3)}
+.s0{stroke:var(--f0)}.s1{stroke:var(--f1)}.s2{stroke:var(--f2)}.s3{stroke:var(--f3)}
+.wash{fill-opacity:.3}
+.wash.bad{fill-opacity:.55}
+.gly{fill:none;stroke:var(--glyph);stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round}
+.ink{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cage{fill:none;stroke:var(--ink);stroke-width:1.8;stroke-dasharray:4 3.5;stroke-linecap:round}
+.cage.bad{stroke:var(--bad);stroke-width:2.6}
+.tag rect{fill:var(--surface);stroke:var(--ink);stroke-width:1.2}
+.tag.bad rect{stroke:var(--bad);stroke-width:2}
+.tag.bad .ink{stroke:var(--bad)}
+.lk .bd{fill:var(--surface);stroke:var(--ink);stroke-width:1.3}
+.lk text,.cnt text{font:700 11px var(--body);fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.lk.bad .bd{stroke:var(--bad);stroke-width:2.4}.lk.bad text{fill:var(--bad)}
+.cnt rect{fill:var(--felt)}
+.cnt text{font-size:13px;font-family:var(--display)}
+.cnt.bad rect{fill:var(--bad)}.cnt.bad text{fill:var(--surface)}
+.cnt.bad .ink{stroke:var(--surface)}
+.cnt.done{opacity:.45}
+.pin{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}
+.nope .base{stroke:var(--bad);stroke-width:3}
+@media (prefers-reduced-motion:no-preference){.pop{animation:pop .16s ease-out;transform-box:fill-box;transform-origin:center}@keyframes pop{from{transform:scale(.65)}to{transform:scale(1)}}}
+.basket{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--surface);border-radius:18px;padding:10px}
+.pc{position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:1;max-width:100%;border:2px solid transparent;border-radius:12px;background:var(--bg);cursor:pointer;padding:0}
+.pc svg{width:70%;height:70%}
+.pc[aria-pressed="true"]{border-color:var(--ink)}
+.pc:disabled{opacity:.22;cursor:default}
+.pc .n{position:absolute;right:4px;bottom:2px;font:600 13px var(--display);color:var(--ink);font-variant-numeric:tabular-nums}
+.win{background:var(--surface);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;border:2px solid var(--ok)}
+.win h2{font:600 22px var(--display);margin:0}
+.win pre{font-family:var(--body);margin:0;white-space:pre-wrap;background:var(--bg);padding:10px 12px;border-radius:10px;font-size:15px;line-height:1.35;user-select:all}
+details{background:var(--surface);border-radius:14px;padding:12px 16px}
+summary{font:600 15px var(--display);cursor:pointer}
+details ul{margin:10px 0 2px;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+details li{display:flex;gap:12px;align-items:center}
+details li svg{flex:none;width:44px;height:44px}
+.hint{font-size:13px;color:var(--muted);text-align:center;min-height:1.5em}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <a class="eyebrow" href="./">← The Puzz</a>
+      <h1>Shadow<span>box</span></h1>
+      <div class="sub" id="sub"></div>
+    </div>
+    <div class="tabs" role="group" aria-label="Mode">
+      <button id="tDaily" aria-pressed="true">Daily</button>
+      <button id="tEndless" aria-pressed="false">Endless</button>
+    </div>
+  </header>
+  <div class="bar">
+    <div class="row" id="endlessCtl" hidden>
+      <select class="btn" id="size" aria-label="Board size"><option value="4">4 × 4</option><option value="5" selected>5 × 5</option></select>
+      <button class="btn" id="newBtn">New puzzle</button>
+      <span>seed <b id="seedTxt"></b></span>
+    </div>
+    <div id="dailyInfo"></div>
+    <div class="row">
+      <button class="btn" id="peekBtn">Peek <span id="peekN"></span></button>
+      <button class="btn" id="resetBtn">Clear</button>
+      <span class="timer" id="timer">0:00</span>
+    </div>
+  </div>
+  <div class="board"><svg id="svg" aria-label="Puzzle board"></svg></div>
+  <div class="hint" id="hint"></div>
+  <div class="basket" id="basket" role="group" aria-label="Pieces"></div>
+  <section class="win" id="win" hidden></section>
+  <details id="rules">
+    <summary>How to play</summary>
+    <ul>
+      <li><svg viewBox="-24 -24 48 48" id="r1"></svg><span>Place every piece from the tray. Each piece has a colour and a shape. The clues are glimpses of the finished box, and together they allow exactly one answer.</span></li>
+      <li><svg viewBox="-24 -24 48 48" id="r2"></svg><span><b>Wash.</b> Tinted squares are all that colour.</span></li>
+      <li><svg viewBox="-24 -24 48 48" id="r3"></svg><span><b>Fence.</b> A dashed area holds exactly the shapes on its tag, in any order.</span></li>
+      <li><svg viewBox="-24 -24 48 48" id="r4"></svg><span><b>Tally.</b> A number at the end of a row or column says how many pieces in that line have that colour or shape. A 0 means none.</span></li>
+      <li><svg viewBox="-24 -24 48 48" id="r5"></svg><span><b>Links.</b> A round badge compares colour, a diamond badge compares shape. <b>=</b> means the same, <b>≠</b> means different.</span></li>
+      <li><svg viewBox="-24 -24 48 48" id="r6"></svg><span><b>Peek</b> pins one correct piece for you. Your result shows how many peeks you used.</span></li>
+    </ul>
+  </details>
+</div>
+
+<script>
+// ---- Shadowbox engine: colour x shape pieces, projection clues ----
+const NC=4, NS=4, NP=16; // piece p = colour*4 + shape
+const colOf=p=>p>>2, shpOf=p=>p&3;
+function hseed(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19}h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return (h^h>>>16)>>>0}
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const propOf=(p,prop)=>prop==='c'?colOf(p):shpOf(p);
+
+// clue kinds:
+//  w  wash:  {t:'w',cells,color}          every cell in the area is this colour
+//  g  cage:  {t:'g',cells,need:[4]}       the area holds exactly these shapes
+//  n  count: {t:'n',line:'r'|'c',idx,cells,prop,val,k}  k pieces in the line have prop=val
+//  l  link:  {t:'l',a,b,prop,same}        neighbours share / differ in prop
+//  f  pin:   {t:'f',i}                    piece shown outright
+function clueTrue(c,b){
+  if(c.t==='w') return c.cells.every(i=>colOf(b[i])===c.color);
+  if(c.t==='g'){const n=[0,0,0,0];c.cells.forEach(i=>n[shpOf(b[i])]++);return n.every((x,k)=>x===c.need[k])}
+  if(c.t==='n') return c.cells.filter(i=>propOf(b[i],c.prop)===c.val).length===c.k;
+  if(c.t==='l') return (propOf(b[c.a],c.prop)===propOf(b[c.b],c.prop))===c.same;
+  return true;
+}
+
+function solve(P,limit,maxNodes=120000){
+  const N=P.N, n=N*N, tray=P.tray.slice(), asg=new Array(n).fill(-1), dom=new Array(n).fill(0xFFFF);
+  const per=Array.from({length:n},()=>[]);
+  const cs=P.clues.map(c=>({c,cnt:[0,0,0,0],m:0,f:0}));
+  cs.forEach(s=>{const c=s.c;
+    if(c.t==='w') c.cells.forEach(i=>{let m=0;for(let p=0;p<NP;p++)if(colOf(p)===c.color)m|=1<<p;dom[i]&=m});
+    else if(c.t==='f') dom[c.i]&=1<<P.sol[c.i];
+    else if(c.t==='l'){per[c.a].push(s);per[c.b].push(s)}
+    else c.cells.forEach(i=>per[i].push(s));});
+  const ok=(s,i,p)=>{const c=s.c;
+    if(c.t==='g'){const sh=shpOf(p);return s.cnt[sh]+1<=c.need[sh]}
+    if(c.t==='n'){const hit=propOf(p,c.prop)===c.val?1:0;const m=s.m+hit,f=s.f+1;return m<=c.k&&m+(c.cells.length-f)>=c.k}
+    if(c.t==='l'){const o=i===c.a?c.b:c.a;if(asg[o]<0)return true;return (propOf(asg[o],c.prop)===propOf(p,c.prop))===c.same}
+    return true};
+  const apply=(s,p,d)=>{const c=s.c;if(c.t==='g')s.cnt[shpOf(p)]+=d;else if(c.t==='n'){s.f+=d;if(propOf(p,c.prop)===c.val)s.m+=d}};
+  const can=(i,p)=>{if(!(dom[i]>>p&1)||tray[p]<=0)return false;for(const s of per[i])if(!ok(s,i,p))return false;return true};
+  const put=(i,p)=>{asg[i]=p;tray[p]--;per[i].forEach(s=>apply(s,p,1))};
+  const take=(i,p)=>{asg[i]=-1;tray[p]++;per[i].forEach(s=>apply(s,p,-1))};
+  const sols=[];let nodes=0,aborted=false;
+  (function rec(){
+    if(++nodes>maxNodes){aborted=true;return true}
+    let best=-1,bo=null;
+    for(let i=0;i<n;i++)if(asg[i]<0){const o=[];for(let p=0;p<NP;p++)if(can(i,p))o.push(p);
+      if(!o.length)return false;if(!bo||o.length<bo.length){best=i;bo=o;if(o.length===1)break}}
+    if(best<0){sols.push(asg.slice());return sols.length>=limit}
+    for(const p of bo){put(best,p);const stop=rec();take(best,p);if(stop)return true}
+    return false})();
+  return {count:aborted?Infinity:sols.length,sols,nodes};
+}
+
+function tryGen(rand,N){
+  const ri=k=>Math.floor(rand()*k), pick=a=>a[ri(a.length)], n=N*N;
+  const nb=i=>{const r=Math.floor(i/N),c=i%N,o=[];if(r>0)o.push(i-N);if(r<N-1)o.push(i+N);if(c>0)o.push(i-1);if(c<N-1)o.push(i+1);return o};
+  // solution: colours a bit clumpy so washes appear naturally
+  const sol=new Array(n).fill(-1);
+  for(let i=0;i<n;i++){const ns=nb(i).filter(j=>sol[j]>=0);let col=ri(NC);if(ns.length&&rand()<0.4)col=colOf(sol[pick(ns)]);sol[i]=col*4+ri(NS)}
+  const tray=new Array(NP).fill(0);sol.forEach(p=>tray[p]++);
+  if(new Set(sol.map(colOf)).size<4||new Set(sol.map(shpOf)).size<4)return null;
+  // candidate pool
+  const pool=[];
+  const grow=(start,max,pred)=>{const s=[start];while(s.length<max){const fr=[];s.forEach(i=>nb(i).forEach(j=>{if(!s.includes(j)&&pred(j))fr.push(j)}));if(!fr.length)break;s.push(pick(fr))}return s.sort((a,b)=>a-b)};
+  for(let i=0;i<n;i++)for(let rep=0;rep<2;rep++){
+    const w=grow(i,2+ri(3),j=>colOf(sol[j])===colOf(sol[i]));if(w.length>=2)pool.push({t:'w',cells:w,color:colOf(sol[i])});
+    const g=grow(i,2+ri(2),()=>true);const need=[0,0,0,0];g.forEach(j=>need[shpOf(sol[j])]++);if(g.length>=2)pool.push({t:'g',cells:g,need});}
+  for(const line of ['r','c'])for(let idx=0;idx<N;idx++){const cells=Array.from({length:N},(_,k)=>line==='r'?idx*N+k:k*N+idx);
+    for(const prop of ['c','s'])for(let val=0;val<4;val++){const k=cells.filter(i=>propOf(sol[i],prop)===val).length;pool.push({t:'n',line,idx,cells,prop,val,k})}}
+  for(let i=0;i<n;i++)for(const j of nb(i))if(j>i)for(const prop of ['c','s'])pool.push({t:'l',a:i,b:j,prop,same:propOf(sol[i],prop)===propOf(sol[j],prop)});
+  const W={w:3,g:4,n:2,l:2};
+  const P={N,sol,tray,clues:[]};
+  const conflicts=c=>{
+    const area=x=>x.t==='w'||x.t==='g';
+    if(area(c)) return P.clues.some(o=>o.t===c.t&&o.cells.some(i=>c.cells.includes(i)));
+    if(c.t==='n') return P.clues.filter(o=>o.t==='n'&&o.line===c.line&&o.idx===c.idx).length>=2;
+    if(c.t==='l') return P.clues.some(o=>o.t==='l'&&o.a===c.a&&o.b===c.b);
+    return false};
+  for(let it=0;it<80;it++){
+    const r=solve(P,2);
+    if(r.count===1)break; if(r.count===0)return null;
+    let kill;
+    if(r.count===Infinity){ kill=pool.filter(c=>!conflicts(c)); }
+    else{const alt=r.sols.find(s=>s.some((v,i)=>v!==sol[i]));kill=pool.filter(c=>!clueTrue(c,alt)&&!conflicts(c));}
+    if(!kill.length){const free=[...Array(n).keys()].filter(i=>!P.clues.some(c=>c.t==='f'&&c.i===i));if(!free.length)return null;P.clues.push({t:'f',i:pick(free)});continue}
+    let tot=kill.reduce((s,c)=>s+W[c.t],0),x=rand()*tot;for(const c of kill){x-=W[c.t];if(x<=0){P.clues.push(c);break}}
+    if(x>0)P.clues.push(kill[kill.length-1]);
+  }
+  if(solve(P,2).count!==1)return null;
+  const order=P.clues.map((_,i)=>i).sort(()=>rand()-0.5);
+  for(const k of order){const c=P.clues[k];P.clues[k]=null;if(solve({...P,clues:P.clues.filter(Boolean)},2).count!==1)P.clues[k]=c}
+  P.clues=P.clues.filter(Boolean);
+  if(P.clues.filter(c=>c.t==='f').length>Math.ceil(n/6))return null;
+  P.nodes=solve(P,2).nodes;
+  return P;
+}
+function generate(seed,N){for(let a=0;a<300;a++){const P=tryGen(mulberry(hseed(seed+'#'+a)),N);if(P){P.seed=seed;return P}}return null}
+
+
+</script>
+<script>
+const CN=['Red','Blue','Gold','Green'], SN=['circle','cross','triangle','square'];
+const Z=60; // cell size
+const $=id=>document.getElementById(id);
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function glyph(s,r,cls){ // shape glyph centred at 0,0
+  if(s===0)return `<circle class="${cls}" r="${r}"/>`;
+  if(s===1){const a=r*.82;return `<path class="${cls}" d="M${-a},${-a}L${a},${a}M${a},${-a}L${-a},${a}"/>`}
+  if(s===2){const h=r*1.05;return `<path class="${cls}" d="M0,${-h}L${h*.95},${h*.7}L${-h*.95},${h*.7}Z"/>`}
+  const a=r*.85;return `<rect class="${cls}" x="${-a}" y="${-a}" width="${2*a}" height="${2*a}" rx="1.5"/>`;
+}
+const piece=(p,sz=Z-12)=>`<rect x="${-sz/2}" y="${-sz/2}" width="${sz}" height="${sz}" rx="${sz*.18}" class="c${p>>2}"/>${glyph(p&3,sz*.24,'gly')}`;
+
+let P,st,mode='daily',sel=0,timerInt=null,last=-1,nope=-1;
+function dayInfo(){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
+  const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`,wk=t.getDay();
+  return{num:Math.round((t-s)/864e5)+1,iso,N:(wk===0||wk===6)?5:4,label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
+
+function load(m,seedOverride){
+  mode=m;$('tDaily').setAttribute('aria-pressed',m==='daily');$('tEndless').setAttribute('aria-pressed',m==='endless');
+  $('endlessCtl').hidden=m!=='endless';$('dailyInfo').hidden=m!=='daily';let saved=null;
+  if(m==='daily'){const d=dayInfo();P=generate('shadowbox-'+d.iso,d.N);P.label=`#${d.num} · ${d.label}`;P.iso=d.iso;
+    $('sub').textContent='Daily '+P.label;$('dailyInfo').textContent=d.N===5?'Weekend box · 5 × 5':'Weekday box · 4 × 4';
+    saved=store.get('shadowbox-daily');if(saved&&saved.iso!==d.iso)saved=null}
+  else{const N=+$('size').value,seed=seedOverride||Math.random().toString(36).slice(2,7);P=generate('sb-endless-'+seed+'-'+N,N);
+    P.code=seed+N;P.label='Endless · '+P.code;$('seedTxt').textContent=P.code;$('sub').textContent='Endless mode · a new box every time';
+    try{history.replaceState(null,'','#'+P.code)}catch(e){}}
+  P.n=P.N*P.N;P.pinned=new Array(P.n).fill(false);P.clues.forEach(c=>{if(c.t==='f')P.pinned[c.i]=true});
+  st=saved?saved.st:{board:P.pinned.map((b,i)=>b?P.sol[i]:-1),peeks:[],log:[],elapsed:0,started:false,solved:false};
+  st.peeks.forEach(i=>P.pinned[i]=true);
+  $('win').hidden=true;sel=firstAvail(0);render();tick();if(st.solved)showWin();
+}
+function persist(){if(mode==='daily')store.set('shadowbox-daily',{iso:P.iso,st})}
+function remaining(){const r=P.tray.slice();st.board.forEach(p=>{if(p>=0)r[p]--});return r}
+function firstAvail(f){const r=remaining();for(let k=0;k<16;k++){const p=(f+k)%16;if(r[p]>0)return p}return f}
+
+// clue status against the partial board: 'bad' (already broken), 'ok' (complete and true) or ''
+function status(c){const b=st.board,pv=(p,pr)=>pr==='c'?p>>2:p&3;
+  if(c.t==='w'){if(c.cells.some(i=>b[i]>=0&&(b[i]>>2)!==c.color))return'bad';return c.cells.every(i=>b[i]>=0)?'ok':''}
+  if(c.t==='g'){const n=[0,0,0,0];let f=0;c.cells.forEach(i=>{if(b[i]>=0){n[b[i]&3]++;f++}});if(n.some((x,k)=>x>c.need[k]))return'bad';return f===c.cells.length?'ok':''}
+  if(c.t==='n'){let m=0,f=0;c.cells.forEach(i=>{if(b[i]>=0){f++;if(pv(b[i],c.prop)===c.val)m++}});if(m>c.k||m+c.cells.length-f<c.k)return'bad';return f===c.cells.length?'ok':''}
+  if(c.t==='l'){if(b[c.a]<0||b[c.b]<0)return'';return (pv(b[c.a],c.prop)===pv(b[c.b],c.prop))===c.same?'ok':'bad'}
+  return''}
+
+function render(){
+  const N=P.N,lines=['r','c'].map(l=>Array.from({length:N},(_,i)=>P.clues.filter(c=>c.t==='n'&&c.line===l&&c.idx===i)));
+  const anyR=lines[0].some(a=>a.length),anyC=lines[1].some(a=>a.length);
+  const W=N*Z+(anyR?78:4),H=N*Z+(anyC?62:4);
+  let s='';const xy=i=>[(i%N)*Z,Math.floor(i/N)*Z];
+  // washes (under everything)
+  P.clues.filter(c=>c.t==='w').forEach(c=>{const bad=status(c)==='bad';c.cells.forEach(i=>{const[x,y]=xy(i);s+=`<rect x="${x+1}" y="${y+1}" width="${Z-2}" height="${Z-2}" class="c${c.color} wash ${bad?'bad':''}" pointer-events="none"/>`})});
+  for(let i=0;i<P.n;i++){const[x,y]=xy(i),v=st.board[i],wash=P.clues.some(c=>c.t==='w'&&c.cells.includes(i));
+    s+=`<g class="cell ${nope===i?'nope':''}" data-i="${i}" transform="translate(${x+Z/2},${y+Z/2})" role="button" aria-label="Row ${Math.floor(i/N)+1}, column ${i%N+1}: ${v>=0?CN[v>>2]+' '+SN[v&3]:'empty'}">`;
+    s+=`<rect class="base" x="${-Z/2+1}" y="${-Z/2+1}" width="${Z-2}" height="${Z-2}" rx="4" ${wash?'fill-opacity="0"':''}/>`;
+    if(v>=0)s+=`<g class="${last===i?'pop':''}">${piece(v)}</g>`;
+    if(P.pinned[i])s+=`<circle class="pin" cx="${Z/2-9}" cy="${-Z/2+9}" r="4"/>`;
+    s+='</g>'}
+  // fences
+  P.clues.filter(c=>c.t==='g').forEach(c=>{const bad=status(c)==='bad'?' bad':'',set=new Set(c.cells),d=[],q=5;
+    c.cells.forEach(i=>{const[x,y]=xy(i),r=Math.floor(i/N),cl=i%N;
+      const up=r>0&&set.has(i-N),dn=r<N-1&&set.has(i+N),lf=cl>0&&set.has(i-1),rt=cl<N-1&&set.has(i+1);
+      const x0=x+(lf?0:q),x1=x+Z-(rt?0:q),y0=y+(up?0:q),y1=y+Z-(dn?0:q);
+      if(!up)d.push(`M${x0},${y0}H${x1}`);if(!dn)d.push(`M${x0},${y1}H${x1}`);if(!lf)d.push(`M${x0},${y0}V${y1}`);if(!rt)d.push(`M${x1},${y0}V${y1}`)});
+    s+=`<path class="cage${bad}" d="${d.join('')}" pointer-events="none"/>`;
+    const sh=[];c.need.forEach((k,j)=>{for(let t=0;t<k;t++)sh.push(j)});const top=Math.min(...c.cells),[tx,ty]=xy(top),w=sh.length*13+6;
+    s+=`<g class="tag${bad}" transform="translate(${tx+3},${ty-6})" pointer-events="none"><rect width="${w}" height="15" rx="7.5"/>${sh.map((j,k)=>`<g transform="translate(${9.5+k*13},7.5)">${glyph(j,4.3,'ink')}</g>`).join('')}</g>`});
+  // links
+  P.clues.filter(c=>c.t==='l').forEach(c=>{const[ax,ay]=xy(c.a),[bx,by]=xy(c.b),cx=(ax+bx)/2+Z/2,cy=(ay+by)/2+Z/2,bad=status(c)==='bad'?' bad':'';
+    const bd=c.prop==='c'?`<circle class="bd" r="9"/>${[0,1,2,3].map(k=>{const a0=k*Math.PI/2-Math.PI/2,a1=a0+Math.PI/2,R=9;return `<path d="M${(R*Math.cos(a0)).toFixed(2)},${(R*Math.sin(a0)).toFixed(2)}A${R},${R} 0 0 1 ${(R*Math.cos(a1)).toFixed(2)},${(R*Math.sin(a1)).toFixed(2)}" fill="none" class="s${k}" stroke-width="2.6"/>`}).join('')}`
+      :`<rect class="bd" x="-7.5" y="-7.5" width="15" height="15" transform="rotate(45)"/>`;
+    s+=`<g class="lk${bad}" transform="translate(${cx},${cy})" pointer-events="none">${bd}<text>${c.same?'=':'≠'}</text></g>`});
+  // tallies
+  const chip=(c,x,y)=>{const stt=status(c);const ic=c.prop==='c'?`<circle r="6" class="c${c.val}"/>`:glyph(c.val,5.2,'ink');
+    return `<g class="cnt ${stt==='bad'?'bad':stt==='ok'?'done':''}" transform="translate(${x},${y})"><rect x="0" y="-11" width="34" height="22" rx="11"/><g transform="translate(11,0)">${ic}</g><text x="25" y="0.5">${c.k}</text></g>`};
+  lines[0].forEach((arr,r)=>arr.forEach((c,k)=>{s+=chip(c,N*Z+6+k*37,r*Z+Z/2)}));
+  lines[1].forEach((arr,cl)=>arr.forEach((c,k)=>{s+=chip(c,cl*Z+Z/2-17,N*Z+16+k*26)}));
+  const svg=$('svg');svg.setAttribute('viewBox',`-4 -10 ${W+4} ${H+10}`);svg.innerHTML=s;last=-1;
+  const rem=remaining();
+  $('basket').innerHTML=Array.from({length:16},(_,p)=>`<button class="pc" data-p="${p}" aria-pressed="${sel===p}" ${rem[p]<=0?'disabled':''} aria-label="${CN[p>>2]} ${SN[p&3]}, ${rem[p]} left"><svg viewBox="-26 -26 52 52">${piece(p,46)}</svg><span class="n">${rem[p]>0?rem[p]:''}</span></button>`).join('');
+  $('peekN').textContent=st.peeks.length?`(${st.peeks.length})`:'';
+  const empty=st.board.filter(v=>v<0).length;
+  $('hint').textContent=st.solved?'':empty?`${empty} squares to fill · tap a placed piece to take it back`:'The box is full, but a clue is broken. Look for red.';
+}
+function placeAt(i){
+  if(st.solved)return;if(P.pinned[i]){flash(i);return}
+  const cur=st.board[i];
+  if(cur===sel){st.board[i]=-1;render();persist();return}
+  if(remaining()[sel]<=0){if(cur>=0){st.board[i]=-1;render();persist()}return}
+  if(!st.started){st.started=true;startTimer()}
+  st.board[i]=sel;st.log.push(i);last=i;if(remaining()[sel]<=0)sel=firstAvail(sel);
+  check();render();persist();
+}
+function flash(i){nope=i;render();setTimeout(()=>{nope=-1;render()},380)}
+function peek(){
+  if(st.solved)return;
+  const cand=[...Array(P.n).keys()].filter(i=>!P.pinned[i]&&st.board[i]!==P.sol[i]);if(!cand.length)return;
+  const i=cand[Math.floor(Math.random()*cand.length)],p=P.sol[i];
+  // free up the right piece if it is sitting somewhere else
+  if(remaining()[p]<=0&&st.board[i]!==p){const j=st.board.findIndex((v,k)=>v===p&&!P.pinned[k]);if(j>=0)st.board[j]=-1}
+  st.board[i]=p;P.pinned[i]=true;st.peeks.push(i);last=i;
+  if(!st.started){st.started=true;startTimer()}
+  check();render();persist();
+}
+function check(){if(st.board.some(v=>v<0))return;if(P.clues.some(c=>c.t!=='f'&&status(c)!=='ok'))return;st.solved=true;stopTimer();showWin()}
+const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+function shareText(){
+  const cnt={};st.log.forEach(i=>cnt[i]=(cnt[i]||0)+1);const pk=new Set(st.peeks),pin=new Set(P.clues.filter(c=>c.t==='f').map(c=>c.i));
+  let g='';for(let r=0;r<P.N;r++){for(let c=0;c<P.N;c++){const i=r*P.N+c;g+=pk.has(i)?'🔍':pin.has(i)?'⬜':cnt[i]>1?'🟨':'🟦'}g+='\n'}
+  const head=mode==='daily'?`Shadowbox ${P.label}`:`Shadowbox Endless · ${P.code}`;
+  return `The Puzz · ${head}\n⏱ ${fmt(st.elapsed)} · ${st.peeks.length?'🔍 '+st.peeks.length+' peek'+(st.peeks.length>1?'s':''):'no peeks'}\n${g.trim()}`}
+function showWin(){const w=$('win');w.hidden=false;
+  w.innerHTML=`<h2>Box solved</h2><pre id="shareTxt">${shareText()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">Next puzzle</button>':'<span class="sub">A new box arrives at midnight.</span>'}</div>`;
+  $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected · copy it'};
+    try{navigator.clipboard.writeText(shareText()).then(ok,fb)}catch(err){fb()}};
+  if($('nextBtn'))$('nextBtn').onclick=()=>load('endless');render()}
+function startTimer(){stopTimer();const t0=Date.now()-st.elapsed*1000;timerInt=setInterval(()=>{st.elapsed=Math.floor((Date.now()-t0)/1000);tick();if(st.elapsed%5===0)persist()},500)}
+function stopTimer(){clearInterval(timerInt);timerInt=null}
+function tick(){$('timer').textContent=fmt(st.elapsed||0)}
+
+$('svg').addEventListener('click',e=>{const g=e.target.closest('[data-i]');if(g)placeAt(+g.dataset.i)});
+$('basket').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(b&&!b.disabled){sel=+b.dataset.p;render()}});
+$('peekBtn').onclick=peek;
+$('resetBtn').onclick=()=>{if(st.solved)return;st.board=st.board.map((v,i)=>P.pinned[i]?v:-1);render();persist()};
+$('tDaily').onclick=()=>{stopTimer();load('daily');if(st.started&&!st.solved)startTimer()};
+$('tEndless').onclick=()=>{stopTimer();load('endless')};
+$('newBtn').onclick=()=>{stopTimer();load('endless')};
+$('size').onchange=()=>{stopTimer();load('endless')};
+
+$('r1').innerHTML=piece(6,40);
+$('r2').innerHTML=`<rect x="-22" y="-22" width="44" height="44" rx="4" class="c3 wash"/>`;
+$('r3').innerHTML=`<rect x="-20" y="-16" width="40" height="36" class="cage"/><g class="tag" transform="translate(-18,-22)"><rect width="32" height="15" rx="7.5"/><g transform="translate(9.5,7.5)">${glyph(1,4.3,'ink')}</g><g transform="translate(22.5,7.5)">${glyph(0,4.3,'ink')}</g></g>`;
+$('r4').innerHTML=`<g class="cnt" transform="translate(-17,0)"><rect x="0" y="-11" width="34" height="22" rx="11"/><g transform="translate(11,0)">${glyph(2,5.2,'ink')}</g><text x="25" y="0.5">2</text></g>`;
+$('r5').innerHTML=`<g class="lk" transform="translate(-11,0)"><circle class="bd" r="9"/>${[0,1,2,3].map(k=>{const a0=k*Math.PI/2-Math.PI/2,a1=a0+Math.PI/2;return `<path d="M${(9*Math.cos(a0)).toFixed(2)},${(9*Math.sin(a0)).toFixed(2)}A9,9 0 0 1 ${(9*Math.cos(a1)).toFixed(2)},${(9*Math.sin(a1)).toFixed(2)}" fill="none" class="s${k}" stroke-width="2.6"/>`}).join('')}<text>=</text></g><g class="lk" transform="translate(12,0)"><rect class="bd" x="-7.5" y="-7.5" width="15" height="15" transform="rotate(45)"/><text>≠</text></g>`;
+$('r6').innerHTML=piece(9,40)+`<circle class="pin" cx="13" cy="-13" r="4"/>`;
+
+(function boot(){const h=(location.hash||'').slice(1);
+  if(/^[a-z0-9]{5}[45]$/.test(h)){$('size').value=h[5];load('endless',h.slice(0,5))}
+  else{load('daily');if(!store.get('shadowbox-daily-seen')){$('rules').open=true;store.set('shadowbox-daily-seen',1)}if(st.started&&!st.solved)startTimer()}})();
+</script>
+
+</body>
+</html>

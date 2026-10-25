@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>*{box-sizing:border-box}:root{color-scheme:light;padding-block:env(safe-area-inset-top,0px) env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}a.eyebrow{display:block;text-decoration:none}a.eyebrow:hover{color:var(--ink)}</style>
+<title>Hexstitch</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one centred column — header, quilt board, fabric basket, rules. */
+:root{
+  --bg:#E6EBEE; --surface:#F6F8F9; --ink:#1C2530; --muted:#5A6772; --felt:#CDD5DB; --line:#A9B5BE;
+  --ok:#2C7A4C; --bad:#C2372A; --weave:rgba(255,255,255,.42);
+  --f0:#B5432F; --f1:#2C4B88; --f2:#D69720; --f3:#4D8257;
+  --display:"Fredoka",ui-rounded,"Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121820; --surface:#1A222B; --ink:#E4EAEE; --muted:#93A1AC; --felt:#26323C; --line:#3B4954;
+  --ok:#62C38A; --bad:#FF6D5C; --weave:rgba(255,255,255,.3);
+  --f0:#D2583F; --f1:#4C70C4; --f2:#E7AE3A; --f3:#66A271; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121820; --surface:#1A222B; --ink:#E4EAEE; --muted:#93A1AC; --felt:#26323C; --line:#3B4954;
+  --ok:#62C38A; --bad:#FF6D5C; --weave:rgba(255,255,255,.3);
+  --f0:#D2583F; --f1:#4C70C4; --f2:#E7AE3A; --f3:#66A271; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:600;font-size:34px;line-height:1;margin:0;letter-spacing:-.01em}
+h1 span{color:var(--f0)}
+.eyebrow{font:600 12px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.sub{color:var(--muted);font-size:13px;margin-top:4px}
+.tabs{display:flex;background:var(--felt);border-radius:999px;padding:3px}
+.tabs button{font:600 14px var(--display);border:0;background:none;color:var(--muted);padding:6px 14px;border-radius:999px;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--surface);color:var(--ink)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.bar .timer{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink);font-size:15px}
+.endless{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.btn{font:600 13px var(--display);border:1.5px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 12px;border-radius:10px;cursor:pointer}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+select.btn{padding-right:8px}
+:focus-visible{outline:2.5px solid var(--f1);outline-offset:2px}
+.board{background:var(--surface);border-radius:18px;padding:10px;touch-action:manipulation}
+.board svg{display:block;width:100%;height:auto;max-height:62vh;user-select:none;-webkit-user-select:none}
+.cell{cursor:pointer}
+.cell .base{fill:var(--bg);stroke:var(--line);stroke-width:1.2;stroke-dasharray:3 3}
+.cell:hover .base{stroke:var(--ink)}
+.tile .stitch{fill:none;stroke:var(--weave);stroke-width:1.3;stroke-dasharray:3 2.5}
+.c0{fill:var(--f0)}.c1{fill:var(--f1)}.c2{fill:var(--f2)}.c3{fill:var(--f3)}
+.weave{fill:var(--weave)}
+.goal .gb{fill:var(--felt);stroke:var(--line);stroke-width:1.5}
+.goal .pip{fill:var(--ink)}
+.goal.ok .gb{stroke:var(--ok);stroke-width:3}
+.goal.bad .gb{stroke:var(--bad);stroke-width:3}
+.goal{cursor:pointer}
+.focusring .base,.focusring .tile-out{stroke:var(--ink)!important;stroke-width:2.6!important;stroke-dasharray:none!important}
+.tile-out{fill:none;stroke:transparent;stroke-width:0}
+.pin{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}
+.xm line{stroke:var(--ink);stroke-width:2;stroke-linecap:round}
+.xm .sw{stroke:var(--surface);stroke-width:1}
+.st circle{fill:var(--surface);stroke:var(--ink);stroke-width:1.3}
+.st text{font:700 10px var(--body);fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.st.bad circle{stroke:var(--bad);stroke-width:2.2}.st.bad text{fill:var(--bad)}
+.nope .base,.nope .tile-out{stroke:var(--bad)!important;stroke-width:3!important;stroke-dasharray:none!important}
+@media (prefers-reduced-motion:no-preference){
+  .pop{animation:pop .18s ease-out}
+  @keyframes pop{from{transform:scale(.6)}to{transform:scale(1)}}
+  .pop{transform-box:fill-box;transform-origin:center}
+}
+.basket{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.basket .pairs{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
+.basket .lbl{grid-column:1/-1;font:600 12px var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.fab.dom{flex:1 1 92px;max-width:140px}
+.fab.dom svg{width:72px;height:48px}
+.seam{stroke:var(--surface);stroke-width:3.2}
+.pairline{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linecap:round}
+.goal .hole{fill:none;stroke:var(--ink);stroke-width:1.3}
+.goal .fillp{stroke:var(--surface);stroke-width:1}
+.goal.bad .hole{stroke:var(--bad)}
+.fab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px 6px;border:2px solid transparent;border-radius:14px;background:var(--surface);cursor:pointer;color:var(--ink);font:inherit}
+.fab[aria-pressed="true"]{border-color:var(--ink)}
+.fab:disabled{opacity:.35;cursor:default}
+.fab svg{width:40px;height:44px}
+.fab .n{font:600 16px var(--display);font-variant-numeric:tabular-nums}
+.fab .nm{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.win{background:var(--surface);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;border:2px solid var(--ok)}
+.win h2{font:600 22px var(--display);margin:0}
+.win pre{font-family:var(--body);margin:0;white-space:pre-wrap;word-break:break-word;background:var(--bg);padding:10px 12px;border-radius:10px;font-size:15px;line-height:1.45;user-select:all}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+details{background:var(--surface);border-radius:14px;padding:12px 16px}
+summary{font:600 15px var(--display);cursor:pointer}
+details ul{margin:10px 0 2px;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+details li{display:flex;gap:12px;align-items:center}
+details li svg{flex:none;width:38px;height:38px}
+.hint{font-size:13px;color:var(--muted);text-align:center;min-height:1.5em}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <a class="eyebrow" href="./">← The Puzz</a>
+      <h1>Hex<span>stitch</span></h1>
+      <div class="sub" id="sub"></div>
+    </div>
+    <div class="tabs" role="group" aria-label="Mode">
+      <button id="tDaily" aria-pressed="true">Daily</button>
+      <button id="tEndless" aria-pressed="false">Endless</button>
+    </div>
+  </header>
+
+  <div class="bar">
+    <div class="endless" id="endlessCtl" hidden>
+      <select class="btn" id="size" aria-label="Puzzle size">
+        <option value="3">Small · 3 patterns</option>
+        <option value="4" selected>Medium · 4 patterns</option>
+        <option value="5">Large · 5 patterns</option>
+      </select>
+      <button class="btn" id="newBtn">New puzzle</button>
+      <span>seed <b id="seedTxt"></b></span>
+    </div>
+    <div id="dailyInfo"></div>
+    <div class="row">
+      <button class="btn" id="resetBtn">Clear board</button>
+      <span class="timer" id="timer">0:00</span>
+    </div>
+  </div>
+
+  <div class="board"><svg id="svg" aria-label="Puzzle board"></svg></div>
+  <div class="hint" id="hint"></div>
+  <div class="basket" id="basket" role="group" aria-label="Fabric basket"></div>
+  <section class="win" id="win" hidden></section>
+
+  <details id="rules">
+    <summary>How to play</summary>
+    <ul>
+      <li><svg viewBox="-20 -20 40 40" id="r1"></svg><span>Fill every empty hex from the basket. The basket holds exactly the pieces you need, no more.</span></li>
+      <li><svg viewBox="-20 -20 40 40" id="r2"></svg><span>Each pattern hex asks how its six neighbours group. Every row of holes is one fabric, and each row is a different fabric. As you sew neighbours in, the holes fill with the fabrics you used, so you can see what is still missing. This one wants three of one fabric, two of another and one of a third.</span></li>
+      <li><svg viewBox="-30 -20 60 40" id="r6"></svg><span><b>Stitched pairs.</b> Hexes outlined together take a two-fabric piece from the basket. Pieces never rotate: a pair with red on the left only fits a slot pointing the same way, red end first.</span></li>
+      <li><svg viewBox="-20 -20 40 40" id="r3"></svg><span>A crossed swatch means that fabric can't go in that hex.</span></li>
+      <li><svg viewBox="-20 -20 40 40" id="r4"></svg><span>A stitch on an edge links two hexes: <b>=</b> means same fabric, <b>≠</b> means different fabrics.</span></li>
+      <li><svg viewBox="-20 -20 40 40" id="r5"></svg><span>Pinned tiles are already sewn in and can't move. Tap a pattern hex to outline its neighbours.</span></li>
+    </ul>
+  </details>
+</div>
+
+<script>
+// ---- Hexstitch engine: seeded generator + uniqueness solver ----
+const DIRS = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
+const NCOL = 4;
+function hseed(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19}h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return (h^h>>>16)>>>0}
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const hdist=(a,b)=>{const dq=a.q-b.q,dr=a.r-b.r;return (Math.abs(dq)+Math.abs(dr)+Math.abs(dq+dr))/2};
+function ring(c,k){const out=[];for(let q=-k;q<=k;q++)for(let r=-k;r<=k;r++){const p={q:c.q+q,r:c.r+r};if(hdist(p,c)===k)out.push(p)}return out}
+
+function solve(P, limit, maxNodes=150000){
+  const n=P.cells.length, ex=new Array(n).fill(0), st=P.cells.map(()=>[]);
+  const pairOf=new Array(n).fill(-1); P.pairs.forEach((p,k)=>{pairOf[p.a]=k;pairOf[p.b]=k});
+  const fixU=new Set();
+  for(const c of P.clues){ if(c.t==='x') ex[c.i]|=1<<c.c; else if(c.t==='f') fixU.add(pairOf[c.i]>=0?'p'+pairOf[c.i]:'s'+c.i); else {st[c.a].push([c.b,c.same]);st[c.b].push([c.a,c.same]);} }
+  const cg=P.cells.map(()=>[]); P.goals.forEach((g,gi)=>g.nb.forEach(i=>cg[i].push(gi)));
+  const gc=P.goals.map(()=>new Array(NCOL).fill(0)), asg=new Array(n).fill(-1), trayS=P.tray.slice(), trayD={...P.trayD};
+  const sols=[]; let nodes=0, aborted=false;
+  const feas=gi=>{const cur=gc[gi].filter(x=>x).sort((a,b)=>b-a),pat=P.goals[gi].pat;if(cur.length>pat.length)return false;for(let k=0;k<cur.length;k++)if(cur[k]>pat[k])return false;return true};
+  const canCell=(i,c)=>{ if(ex[i]>>c&1)return false;
+    for(const [j,same] of st[i]) if(asg[j]>=0&&((asg[j]===c)!==same))return false;
+    for(const gi of cg[i]){gc[gi][c]++;const ok=feas(gi);gc[gi][c]--;if(!ok)return false}
+    return true };
+  const put=(i,c)=>{asg[i]=c;for(const gi of cg[i])gc[gi][c]++};
+  const take=(i)=>{const c=asg[i];asg[i]=-1;for(const gi of cg[i])gc[gi][c]--};
+  const units=[]; for(let i=0;i<n;i++) if(pairOf[i]<0) units.push({s:i,key:'s'+i}); P.pairs.forEach((p,k)=>units.push({p,key:'p'+k}));
+  const opts=u=>{const o=[];
+    if(u.s!==undefined){ for(let c=0;c<NCOL;c++) if(trayS[c]>0&&canCell(u.s,c)) o.push(c); }
+    else { for(const k in trayD){ if(trayD[k]<=0) continue; const ax=k>>4; if(ax!==u.p.ax) continue; const ca=k>>2&3, cb=k&3;
+      if(!canCell(u.p.a,ca)) continue; put(u.p.a,ca); const ok=canCell(u.p.b,cb); take(u.p.a); if(ok) o.push(+k); } }
+    return o};
+  const apply=(u,v)=>{ if(u.s!==undefined){put(u.s,v);trayS[v]--} else {put(u.p.a,v>>2&3);put(u.p.b,v&3);trayD[v]--} u.v=v };
+  const undo=u=>{ if(u.s!==undefined){take(u.s);trayS[u.v]++} else {take(u.p.a);take(u.p.b);trayD[u.v]++} u.v=undefined };
+  for(const u of units) if(fixU.has(u.key)){ const v=u.s!==undefined?P.sol[u.s]:u.p.key; if(!opts(u).includes(v)) return {count:0,sols,nodes}; apply(u,v); u.fixed=true; }
+  function rec(){
+    if(++nodes>maxNodes){aborted=true;return true}
+    let best=null,bo=null;
+    for(const u of units) if(u.v===undefined){ const o=opts(u); if(!o.length) return false; if(!bo||o.length<bo.length){best=u;bo=o;if(o.length===1)break} }
+    if(!best){ sols.push(asg.slice()); return sols.length>=limit }
+    for(const v of bo){ apply(best,v); const stop=rec(); undo(best); if(stop) return true }
+    return false;
+  }
+  rec();
+  return {count: aborted?Infinity:sols.length, sols, nodes};
+}
+
+function tryGen(rand, nGoals, pairFrac){
+  const ri=n=>Math.floor(rand()*n), pick=a=>a[ri(a.length)];
+  const goals=[{q:0,r:0}]; let guard=0;
+  while(goals.length<nGoals&&guard++<300){
+    const g=pick(goals), c=pick(ring(g, rand()<0.75?2:3));
+    if(goals.every(o=>hdist(o,c)>=2) && hdist(c,{q:0,r:0})<=3) goals.push(c);
+  }
+  if(goals.length<nGoals) return null;
+  const key=(q,r)=>q+','+r, cm=new Map(), cells=[];
+  goals.forEach(g=>DIRS.forEach(([dq,dr])=>{const q=g.q+dq,r=g.r+dr,k=key(q,r);if(!cm.has(k)){cm.set(k,cells.length);cells.push({q,r})}}));
+  goals.forEach(g=>g.nb=DIRS.map(([dq,dr])=>cm.get(key(g.q+dq,g.r+dr))));
+  cells.forEach(c=>c.adj=DIRS.map(([dq,dr])=>cm.get(key(c.q+dq,c.r+dr))).filter(x=>x!==undefined));
+  const sol=cells.map(()=>ri(NCOL));
+  for(const g of goals){const cnt=new Array(NCOL).fill(0);g.nb.forEach(i=>cnt[sol[i]]++);g.pat=cnt.filter(x=>x).sort((a,b)=>b-a);if(g.pat[0]>=5)return null}
+  if(new Set(goals.map(g=>g.pat.join())).size<Math.min(goals.length,3)) return null; // variety
+  // stitched pairs: two neighbouring hexes sewn into one piece with a fixed direction (E, NE or SE from its first hex)
+  const pairs=[], used=new Set(), want=Math.round(cells.length*pairFrac/2);
+  const idx=cells.map((_,i)=>i).sort(()=>rand()-0.5);
+  for(const i of idx){ if(pairs.length>=want) break; if(used.has(i)) continue;
+    const opts=[]; [0,1,5].forEach(ax=>{const [dq,dr]=DIRS[ax];const j=cm.get(key(cells[i].q+dq,cells[i].r+dr));if(j!==undefined&&!used.has(j))opts.push({a:i,b:j,ax})});
+    if(!opts.length) continue; const p=pick(opts); used.add(p.a);used.add(p.b); p.key=p.ax*16+sol[p.a]*4+sol[p.b]; pairs.push(p); }
+  const tray=new Array(NCOL).fill(0), trayD={}; cells.forEach((_,i)=>{if(!used.has(i))tray[sol[i]]++});
+  pairs.forEach(p=>trayD[p.key]=(trayD[p.key]||0)+1);
+  const P={cells,goals,tray,trayD,pairs,sol,clues:[]};
+  const hasSt=(i,j)=>P.clues.some(s=>s.t==='s'&&((s.a===i&&s.b===j)||(s.a===j&&s.b===i)));
+  for(let k=0;k<60;k++){
+    const r=solve(P,2);
+    if(r.count===1) break; if(r.count===0||r.count===Infinity) return null;
+    const alt=r.sols.find(s=>s.some((v,i)=>v!==sol[i]));
+    const diffs=cells.map((_,i)=>i).filter(i=>alt[i]!==sol[i]);
+    const opts=[];
+    for(const i of diffs){
+      if(!P.clues.some(c=>(c.t==='x'||c.t==='f')&&c.i===i)) opts.push({t:'x',i,c:alt[i]});
+      for(const j of cells[i].adj){const same=sol[i]===sol[j]; if((alt[i]===alt[j])!==same&&!hasSt(i,j)) opts.push({t:'s',a:i,b:j,same})}
+    }
+    const fixable=diffs.filter(i=>!P.clues.some(c=>c.t==='f'&&c.i===i));
+    if(opts.length && rand()<0.9) P.clues.push(pick(opts));
+    else if(fixable.length) P.clues.push({t:'f',i:pick(fixable)});
+    else return null;
+  }
+  if(solve(P,2).count!==1) return null;
+  // minimise: drop any clue that isn't needed
+  const order=P.clues.map((_,i)=>i).sort(()=>rand()-0.5);
+  for(const idx of order){ const c=P.clues[idx]; P.clues[idx]=null; const keep=P.clues.filter(Boolean);
+    const test={...P,clues:keep}; if(solve(test,2).count!==1) P.clues[idx]=c; }
+  P.clues=P.clues.filter(Boolean);
+  // drop exclusion clues on fixed cells (redundant visual noise)
+  P.nodes=solve(P,2).nodes;
+  return P;
+}
+
+function generate(seed, nGoals, pairFrac=0.4){
+  for(let a=0;a<400;a++){ const P=tryGen(mulberry(hseed(seed+'#'+a)), nGoals, pairFrac); if(P){P.seed=seed;return P} }
+  return null;
+}
+
+
+</script>
+<script>
+const FAB=[{n:'Madder'},{n:'Indigo'},{n:'Saffron'},{n:'Sage'}];
+const R=30, S3=Math.sqrt(3);
+const $=id=>document.getElementById(id);
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const pos=c=>({x:R*S3*(c.q+c.r/2),y:R*1.5*c.r});
+const hexPts=(r,cx=0,cy=0)=>Array.from({length:6},(_,k)=>{const a=Math.PI/180*(60*k+30);return (cx+r*Math.cos(a)).toFixed(2)+','+(cy+r*Math.sin(a)).toFixed(2)}).join(' ');
+const PATDEFS=`<defs>
+<pattern id="w0" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="1.25" class="weave"/></pattern>
+<pattern id="w1" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2" height="6" class="weave"/></pattern>
+<pattern id="w2" width="8" height="8" patternUnits="userSpaceOnUse"><rect x="3.3" y="1.5" width="1.4" height="5" class="weave"/><rect x="1.5" y="3.3" width="5" height="1.4" class="weave"/></pattern>
+<pattern id="w3" width="8" height="6" patternUnits="userSpaceOnUse"><rect y="1" width="8" height="1.2" class="weave"/><rect y="3.4" width="8" height="1.2" class="weave"/></pattern>
+</defs>`;
+const tileSVG=(c,r=R-2.5,cx=0,cy=0)=>`<g class="tile"><polygon points="${hexPts(r,cx,cy)}" class="c${c}"/><polygon points="${hexPts(r,cx,cy)}" fill="url(#w${c})"/><polygon points="${hexPts(r-4,cx,cy)}" class="stitch"/></g>`;
+const xmarkSVG=c=>`<g class="xm"><polygon class="sw c${c}" points="${hexPts(10)}"/><polygon points="${hexPts(10)}" fill="url(#w${c})"/><line x1="-10" y1="10" x2="10" y2="-10"/></g>`;
+// direction vectors (unit = one hex step) for pair axes
+const axVec=ax=>{const [dq,dr]=DIRS[ax];return pos({q:dq,r:dr})};
+function dominoSVG(key,r){const ax=key>>4,v=axVec(ax),k=r/(R-2.5)*1.0;const dx=v.x*k/2,dy=v.y*k/2;
+  return `${tileSVG(key>>2&3,r,-dx,-dy)}${tileSVG(key&3,r,dx,dy)}<line class="pairline" x1="${(-dx*.35).toFixed(1)}" y1="${(-dy*.35).toFixed(1)}" x2="${(dx*.35).toFixed(1)}" y2="${(dy*.35).toFixed(1)}" stroke-dasharray="2.5 2.5"/>`}
+// pattern hex: rows of holes that fill with the fabrics you've placed
+function pipsSVG(pat,cnt){
+  const cur=cnt?cnt.map((n,c)=>({n,c})).filter(o=>o.n).sort((a,b)=>b.n-a.n):[];
+  const rows=pat.length,gap=8.5;let s='';
+  pat.forEach((k,ri)=>{const y=(ri-(rows-1)/2)*gap,g=cur[ri];
+    for(let j=0;j<k;j++){const x=((j-(k-1)/2)*7.5).toFixed(2);
+      s+=g&&j<g.n?`<circle class="fillp c${g.c}" cx="${x}" cy="${y}" r="3"/>`:`<circle class="hole" cx="${x}" cy="${y}" r="2.6"/>`}});
+  return s}
+
+let P=null, st=null, mode='daily', sel='s0', focusGoal=-1, timerInt=null, lastPlaced=-1, nopeCell=-1, msg='';
+
+function dayInfo(){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
+  const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`,wk=t.getDay();
+  return {num:Math.round((t-s)/864e5)+1,iso,n:(wk===0||wk===6)?4:3,label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
+
+function load(newMode,seedOverride){
+  mode=newMode; $('tDaily').setAttribute('aria-pressed',mode==='daily');$('tEndless').setAttribute('aria-pressed',mode==='endless');
+  $('endlessCtl').hidden=mode!=='endless'; $('dailyInfo').hidden=mode!=='daily';
+  let saved=null;
+  if(mode==='daily'){const d=dayInfo();P=generate('hexstitch2-'+d.iso,d.n);P.label=`#${d.num} · ${d.label}`;P.iso=d.iso;
+    $('sub').textContent=`Daily ${P.label}`; $('dailyInfo').textContent=d.n===4?'Weekend size · 4 patterns':'Weekday size · 3 patterns';
+    saved=store.get('hexstitch-daily-v2'); if(saved&&saved.iso!==d.iso) saved=null;}
+  else{const n=+$('size').value, seed=seedOverride||Math.random().toString(36).slice(2,7);
+    P=generate('endless2-'+seed+'-'+n,n); P.code=seed+n; P.label='Endless · '+P.code;
+    $('seedTxt').textContent=P.code; $('sub').textContent='Endless mode · a fresh quilt every time';
+    try{history.replaceState(null,'','#'+P.code)}catch(e){}}
+  const n=P.cells.length;
+  P.pairOf=new Array(n).fill(-1);P.pairs.forEach((p,k)=>{P.pairOf[p.a]=k;P.pairOf[p.b]=k});
+  P.fixed=new Array(n).fill(-1);P.excl=new Array(n).fill(0);P.stitches=[];
+  P.clues.forEach(c=>{if(c.t==='f'){const k=P.pairOf[c.i];(k>=0?[P.pairs[k].a,P.pairs[k].b]:[c.i]).forEach(i=>P.fixed[i]=P.sol[i])}else if(c.t==='x')P.excl[c.i]|=1<<c.c;else P.stitches.push(c)});
+  st=saved?saved.st:{board:P.fixed.slice(),log:[],elapsed:0,started:false,solved:false};
+  focusGoal=-1; msg=''; $('win').hidden=true; lastPlaced=-1; sel=firstAvail();
+  render(); tick(); if(st.solved) showWin();
+}
+function persist(){ if(mode==='daily') store.set('hexstitch-daily-v2',{iso:P.iso,st}) }
+const pairKey=p=>p.ax*16+st.board[p.a]*4+st.board[p.b];
+function remaining(){const s=P.tray.slice(),d={...P.trayD};
+  st.board.forEach((c,i)=>{if(c>=0&&P.pairOf[i]<0)s[c]--});
+  P.pairs.forEach(p=>{if(st.board[p.a]>=0)d[pairKey(p)]--});return {s,d}}
+const avail=(r,key)=>key[0]==='s'?r.s[+key.slice(1)]>0:(r.d[+key.slice(1)]||0)>0;
+function firstAvail(prefer){const r=remaining();if(prefer&&avail(r,prefer))return prefer;
+  for(let c=0;c<4;c++)if(r.s[c]>0)return 's'+c;for(const k in r.d)if(r.d[k]>0)return 'd'+k;return 's0'}
+
+function goalCounts(gi){const cnt=[0,0,0,0];let filled=0;P.goals[gi].nb.forEach(i=>{if(st.board[i]>=0){cnt[st.board[i]]++;filled++}});return {cnt,filled}}
+function goalStatus(gi){const g=P.goals[gi],{cnt,filled}=goalCounts(gi);
+  const cur=cnt.filter(x=>x).sort((a,b)=>b-a);let ok=cur.length<=g.pat.length;for(let k=0;ok&&k<cur.length;k++)if(cur[k]>g.pat[k])ok=false;
+  if(!ok)return 'bad'; return filled===6?'ok':''}
+function stitchBad(s){const a=st.board[s.a],b=st.board[s.b];return a>=0&&b>=0&&((a===b)!==s.same)}
+function sharedEdge(a,b){const pa=pos(P.cells[a]),pb=pos(P.cells[b]),mx=(pa.x+pb.x)/2,my=(pa.y+pb.y)/2,vx=pb.x-pa.x,vy=pb.y-pa.y,l=Math.hypot(vx,vy),h=(R-1.5)/2;
+  return {mx,my,x1:mx-vy/l*h,y1:my+vx/l*h,x2:mx+vy/l*h,y2:my-vx/l*h,pa,pb}}
+
+function render(){
+  const pts=[...P.cells,...P.goals].map(pos);const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+  const m=R+6,minx=Math.min(...xs)-m,miny=Math.min(...ys)-m,w=Math.max(...xs)+m-minx,h=Math.max(...ys)+m-miny;
+  const svg=$('svg');svg.setAttribute('viewBox',`${minx.toFixed(1)} ${miny.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`);
+  const ring=focusGoal>=0?new Set(P.goals[focusGoal].nb):new Set();
+  const lastSet=lastPlaced>=0?new Set(P.pairOf[lastPlaced]>=0?[P.pairs[P.pairOf[lastPlaced]].a,P.pairs[P.pairOf[lastPlaced]].b]:[lastPlaced]):new Set();
+  const nopeSet=nopeCell>=0?new Set(P.pairOf[nopeCell]>=0?[P.pairs[P.pairOf[nopeCell]].a,P.pairs[P.pairOf[nopeCell]].b]:[nopeCell]):new Set();
+  let s=PATDEFS;
+  P.cells.forEach((c,i)=>{const p=pos(c),v=st.board[i],fx=P.fixed[i]>=0;
+    const cls=['cell',ring.has(i)?'focusring':'',nopeSet.has(i)?'nope':''].join(' ');
+    s+=`<g class="${cls}" data-i="${i}" transform="translate(${p.x.toFixed(2)},${p.y.toFixed(2)})" role="button" aria-label="Hex ${i+1}${P.pairOf[i]>=0?' (stitched pair)':''}${v>=0?', '+FAB[v].n:', empty'}">`;
+    s+=`<polygon class="base" points="${hexPts(R-1.5)}"/>`;
+    if(v>=0) s+=`<g class="${lastSet.has(i)?'pop':''}">${tileSVG(v)}</g>`;
+    else{ for(let c2=0;c2<4;c2++) if(P.excl[i]>>c2&1) s+=xmarkSVG(c2); }
+    if(fx) s+=`<circle class="pin" r="4"/>`;
+    s+=`<polygon class="tile-out" points="${hexPts(R-2.5)}"/></g>`;});
+  // stitched pairs: erase the shared border so the slot reads as one piece, then sew a thread across it
+  P.pairs.forEach(p=>{const e=sharedEdge(p.a,p.b),filled=st.board[p.a]>=0;
+    s+=`<line x1="${e.x1.toFixed(1)}" y1="${e.y1.toFixed(1)}" x2="${e.x2.toFixed(1)}" y2="${e.y2.toFixed(1)}" stroke="var(${filled?'--surface':'--bg'})" stroke-width="${filled?2:4}" pointer-events="none"/>`;
+    const t=0.32,ax1=e.mx+(e.pa.x-e.mx)*t,ay1=e.my+(e.pa.y-e.my)*t,bx1=e.mx+(e.pb.x-e.mx)*t,by1=e.my+(e.pb.y-e.my)*t;
+    if(filled){s+=`<line class="tile stitch" x1="${ax1.toFixed(1)}" y1="${ay1.toFixed(1)}" x2="${bx1.toFixed(1)}" y2="${by1.toFixed(1)}" style="stroke:var(--weave);stroke-width:2;stroke-dasharray:3 2" pointer-events="none"/>`}
+    else{const fa=pos(P.cells[p.a]),fb=pos(P.cells[p.b]);s+=`<line class="pairline" x1="${(fa.x+(fb.x-fa.x)*.28).toFixed(1)}" y1="${(fa.y+(fb.y-fa.y)*.28).toFixed(1)}" x2="${(fb.x-(fb.x-fa.x)*.28).toFixed(1)}" y2="${(fb.y-(fb.y-fa.y)*.28).toFixed(1)}" stroke-dasharray="3 3" pointer-events="none"/><circle cx="${(fa.x+(fb.x-fa.x)*.28).toFixed(1)}" cy="${(fa.y+(fb.y-fa.y)*.28).toFixed(1)}" r="2.6" class="pip" style="fill:var(--ink)" pointer-events="none"/>`}});
+  P.goals.forEach((g,gi)=>{const p=pos(g);s+=`<g class="goal ${goalStatus(gi)}" data-g="${gi}" transform="translate(${p.x.toFixed(2)},${p.y.toFixed(2)})"><polygon class="gb" points="${hexPts(R-2)}"/>${pipsSVG(g.pat,goalCounts(gi).cnt)}</g>`});
+  P.stitches.forEach(t=>{const a=pos(P.cells[t.a]),b=pos(P.cells[t.b]);s+=`<g class="st ${stitchBad(t)?'bad':''}" transform="translate(${((a.x+b.x)/2).toFixed(2)},${((a.y+b.y)/2).toFixed(2)})" pointer-events="none"><circle r="7.5"/><text>${t.same?'=':'≠'}</text></g>`});
+  svg.innerHTML=s; lastPlaced=-1;
+  const rem=remaining();
+  let b=FAB.map((f,c)=>`<button class="fab" aria-pressed="${sel==='s'+c}" data-k="s${c}" ${rem.s[c]<=0?'disabled':''} aria-label="${f.n}, ${rem.s[c]} left"><svg viewBox="-22 -24 44 48">${PATDEFS}${tileSVG(c,21)}</svg><span class="n">${rem.s[c]}</span><span class="nm">${f.n}</span></button>`).join('');
+  const keys=Object.keys(P.trayD).map(Number).sort((a,b)=>a-b);
+  if(keys.length){b+=`<div class="lbl">Stitched pairs</div><div class="pairs">`+keys.map(k=>`<button class="fab dom" aria-pressed="${sel==='d'+k}" data-k="d${k}" ${(rem.d[k]||0)<=0?'disabled':''} aria-label="Pair ${FAB[k>>2&3].n} then ${FAB[k&3].n}, ${rem.d[k]} left"><svg viewBox="-36 -24 72 48">${PATDEFS}${dominoSVG(k,15)}</svg><span class="n">${rem.d[k]}</span></button>`).join('')+'</div>'}
+  $('basket').innerHTML=b;
+  const empty=st.board.filter(v=>v<0).length;
+  $('hint').textContent=st.solved?'':msg||(empty===0?'Every hex is filled, but something doesn’t fit yet. Red marks show what to fix.':`${empty} hexes to fill · tap a filled hex to take its piece back`);
+  msg='';
+}
+
+function unitCells(i){const k=P.pairOf[i];return k>=0?[P.pairs[k].a,P.pairs[k].b]:[i]}
+function place(i){
+  if(st.solved)return; if(P.fixed[i]>=0){flash(i,'That piece is pinned in place.');return}
+  const k=P.pairOf[i], cells=unitCells(i), filled=st.board[i]>=0;
+  const curKey=filled?(k>=0?'d'+pairKey(P.pairs[k]):'s'+st.board[i]):null;
+  const clear=()=>{cells.forEach(c=>st.board[c]=-1)};
+  if(filled&&(curKey===sel||!avail(remaining(),sel))){clear();sel=firstAvail(curKey);render();persist();return}
+  if(k>=0){
+    if(sel[0]!=='d'){flash(i,'These two hexes are stitched together. Pick a pair from the basket.');return}
+    const key=+sel.slice(1),p=P.pairs[k];
+    if((key>>4)!==p.ax){flash(i,'That pair points the other way. Pieces can’t rotate.');return}
+    const ca=key>>2&3,cb=key&3;
+    if((P.excl[p.a]>>ca&1)||(P.excl[p.b]>>cb&1)){flash(i,'A crossed swatch rules that fabric out there.');return}
+    if(filled)clear(); st.board[p.a]=ca; st.board[p.b]=cb;
+  }else{
+    if(sel[0]!=='s'){flash(i,'Pairs only fit outlined double slots.');return}
+    const c=+sel.slice(1); if(P.excl[i]>>c&1){flash(i,'A crossed swatch rules that fabric out there.');return}
+    st.board[i]=c;
+  }
+  if(!st.started){st.started=true;startTimer()}
+  st.log.push(cells[0]+':'+sel); lastPlaced=i;
+  if(!avail(remaining(),sel)) sel=firstAvail();
+  checkWin();render();persist();
+}
+function flash(i,why){nopeCell=i;msg=why||'';render();setTimeout(()=>{nopeCell=-1;render()},380)}
+function checkWin(){
+  if(st.board.some(v=>v<0))return;
+  if(P.goals.some((_,gi)=>goalStatus(gi)!=='ok'))return;
+  if(P.stitches.some(stitchBad))return;
+  st.solved=true;stopTimer();showWin();
+}
+const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+function shareText(){
+  const lastAt=new Map();st.log.forEach((e,k)=>lastAt.set(e.split(':')[0],k));
+  const marks=st.log.map((e,k)=>lastAt.get(e.split(':')[0])===k?'🟩':'🟨');
+  const strip=marks.length>24?marks.slice(0,24).join('')+` +${marks.length-24}`:marks.join('');
+  const extra=marks.filter(m=>m==='🟨').length;
+  const head=mode==='daily'?`Hexstitch ${P.label}`:`Hexstitch Endless · ${P.code}`;
+  return `The Puzz · ${head}\n🧵 ${P.goals.length} patterns · ${P.pairs.length} pairs · ⏱ ${fmt(st.elapsed)}\n${extra?extra+' re-stitch'+(extra>1?'es':''):'Clean run'} ${strip}`;
+}
+function showWin(){
+  const w=$('win');w.hidden=false;
+  w.innerHTML=`<h2>Quilt complete</h2><pre id="shareTxt">${shareText()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">Next puzzle</button>':'<span class="sub">A new daily quilt arrives at midnight.</span>'}</div>`;
+  $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const sl=getSelection();sl.removeAllRanges();sl.addRange(r);b.textContent='Selected · copy it'};
+    try{navigator.clipboard.writeText(shareText()).then(ok,fb)}catch(err){fb()}};
+  if($('nextBtn'))$('nextBtn').onclick=()=>load('endless');
+  render();
+}
+function startTimer(){stopTimer();const t0=Date.now()-st.elapsed*1000;timerInt=setInterval(()=>{st.elapsed=Math.floor((Date.now()-t0)/1000);tick();if(st.elapsed%5===0)persist()},500)}
+function stopTimer(){clearInterval(timerInt);timerInt=null}
+function tick(){$('timer').textContent=fmt(st.elapsed||0)}
+
+$('svg').addEventListener('click',e=>{const g=e.target.closest('[data-i]'),gl=e.target.closest('[data-g]');
+  if(g)place(+g.dataset.i);else if(gl){const gi=+gl.dataset.g;focusGoal=focusGoal===gi?-1:gi;render()}});
+$('basket').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(b&&!b.disabled){sel=b.dataset.k;render()}});
+document.addEventListener('keydown',e=>{if(e.key>='1'&&e.key<='4'){sel='s'+(+e.key-1);render()}});
+$('tDaily').onclick=()=>{stopTimer();load('daily');if(st.started&&!st.solved)startTimer()};
+$('tEndless').onclick=()=>{stopTimer();load('endless')};
+$('newBtn').onclick=()=>{stopTimer();load('endless')};
+$('size').onchange=()=>{stopTimer();load('endless')};
+$('resetBtn').onclick=()=>{if(st.solved)return;st.board=P.fixed.slice();render();persist()};
+
+$('r1').innerHTML=PATDEFS+tileSVG(2,17);
+$('r2').innerHTML=`<g class="goal"><polygon class="gb" points="${hexPts(18)}"/>${pipsSVG([3,2,1],[2,0,0,1])}</g>`;
+$('r3').innerHTML=`<polygon points="${hexPts(18)}" fill="none" stroke="var(--line)" stroke-dasharray="3 3"/>${PATDEFS}${xmarkSVG(0)}`;
+$('r4').innerHTML=`<g class="st"><circle r="9"/><text style="font-size:12px">≠</text></g>`;
+$('r5').innerHTML=PATDEFS+tileSVG(1,17)+'<circle class="pin" r="4"/>';
+$('r6').innerHTML=PATDEFS+dominoSVG(0*16+0*4+1,14);
+
+(function boot(){const h=(location.hash||'').slice(1);
+  if(/^[a-z0-9]{5}[345]$/.test(h)){$('size').value=h[5];load('endless',h.slice(0,5));}
+  else{load('daily');if(!store.get('hexstitch-seen')){$('rules').open=true;store.set('hexstitch-seen',1)}if(st.started&&!st.solved)startTimer()}})();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Puzz</title>
+<meta name="description" content="Free daily puzzles: a new set every day, plus endless mode.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: masthead with today's date, then a stack of puzzle cards with daily status. */
+:root{
+  --bg:#E6EBEE; --surface:#F6F8F9; --ink:#1C2530; --muted:#5A6772; --felt:#D3DADF; --line:#A9B5BE; --ok:#2C7A4C;
+  --f0:#B5432F; --f1:#2C4B88; --f2:#D69720; --f3:#4D8257;
+  --display:"Fredoka",ui-rounded,"Segoe UI",system-ui,sans-serif; --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#121820;--surface:#1A222B;--ink:#E4EAEE;--muted:#93A1AC;--felt:#26323C;--line:#3B4954;--ok:#62C38A;--f0:#D2583F;--f1:#4C70C4;--f2:#E7AE3A;--f3:#66A271;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+.wrap{max-width:620px;margin:0 auto;padding-block:max(28px,env(safe-area-inset-top,0px)) 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+.mast{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font:600 52px/0.95 var(--display);margin:0;letter-spacing:-.02em}
+h1 .z{display:inline-block}
+h1 .z:nth-child(1){color:var(--f0)}h1 .z:nth-child(2){color:var(--f1);transform:translateY(-4px) rotate(-6deg)}
+.date{color:var(--muted);font-size:14px}
+.tag{color:var(--muted);margin:0}
+.cards{display:flex;flex-direction:column;gap:12px}
+a.card{display:grid;grid-template-columns:72px 1fr auto;gap:16px;align-items:center;background:var(--surface);border-radius:18px;padding:14px 16px;color:inherit;text-decoration:none;border:2px solid transparent}
+a.card:hover{border-color:var(--line)}
+a.card:focus-visible{outline:2.5px solid var(--f1);outline-offset:2px}
+.card svg{width:72px;height:72px}
+.card h2{font:600 22px var(--display);margin:0}
+.card p{margin:2px 0 0;color:var(--muted);font-size:14px;min-width:0}
+.pill{font:600 12px var(--display);letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:var(--felt);color:var(--muted);white-space:nowrap}
+.pill.done{background:var(--ok);color:var(--surface)}
+.soon{display:grid;grid-template-columns:72px 1fr auto;gap:16px;align-items:center;border:2px dashed var(--line);border-radius:18px;padding:14px 16px;color:var(--muted)}
+.soon h2{font:600 20px var(--display);margin:0;color:var(--ink);opacity:.7}
+.soon p{margin:2px 0 0;font-size:14px}
+footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
+@media (max-width:420px){a.card,.soon{grid-template-columns:56px 1fr}.card svg,.soon svg{width:56px;height:56px}.pill{grid-column:2;justify-self:start}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="mast">
+    <h1>The Pu<span class="z">z</span><span class="z">z</span></h1>
+    <div class="date" id="date"></div>
+  </div>
+  <p class="tag">A fresh set of puzzles every day, free. Endless mode when one isn't enough.</p>
+  <div class="cards">
+    <a class="card" href="hexstitch.html">
+      <svg viewBox="-36 -36 72 72" aria-hidden="true">
+        <polygon points="0,-30 26,-15 26,15 0,30 -26,15 -26,-15" fill="var(--felt)"/>
+        <g fill="var(--f0)"><circle cx="-8" cy="-8" r="4"/><circle cx="0" cy="-8" r="4"/><circle cx="8" cy="-8" r="4"/></g>
+        <g fill="var(--f1)"><circle cx="-4" cy="2" r="4"/><circle cx="4" cy="2" r="4"/></g>
+        <circle cx="0" cy="12" r="3.4" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+      </svg>
+      <div><h2>Hexstitch</h2><p>Sew fabric hexes and stitched pairs into a quilt that satisfies every pattern.</p></div>
+      <span class="pill" id="s-hex">Today</span>
+    </a>
+    <a class="card" href="shadowbox.html">
+      <svg viewBox="0 0 72 72" aria-hidden="true">
+        <rect x="4" y="4" width="30" height="30" rx="6" fill="var(--f1)"/><circle cx="19" cy="19" r="7" fill="none" stroke="#fff" stroke-width="3"/>
+        <rect x="38" y="4" width="30" height="30" rx="6" fill="var(--f2)"/><path d="M47,13L59,25M59,13L47,25" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+        <rect x="4" y="38" width="30" height="30" rx="6" fill="var(--f3)"/><path d="M19,45L27,60H11Z" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
+        <rect x="38" y="38" width="30" height="30" rx="6" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-dasharray="4 3"/>
+      </svg>
+      <div><h2>Shadowbox</h2><p>Place colour-and-shape pieces using glimpses of the finished box.</p></div>
+      <span class="pill" id="s-sb">Today</span>
+    </a>
+    <a class="card" href="joannagrams.html">
+      <svg viewBox="-36 -36 72 72" aria-hidden="true">
+        <circle cx="-12" cy="6" r="15" fill="var(--f0)"/><path d="M-24,0 Q-12,-10 0,0 M-26,8 Q-12,-2 2,8" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="1.6"/>
+        <text x="-12" y="11" text-anchor="middle" font-family="Fredoka,sans-serif" font-weight="600" font-size="16" fill="#fff">J</text>
+        <rect x="6" y="-26" width="24" height="24" rx="3" fill="none" stroke="var(--f1)" stroke-width="3" stroke-dasharray="5 2.5"/>
+        <rect x="12" y="-20" width="12" height="12" rx="2" fill="var(--f2)"/>
+        <path d="M2,26 Q14,10 26,22" fill="none" stroke="var(--f3)" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <div><h2>Joannagrams</h2><p>Chain yarn-ball letters into words, crochet a granny square, then join the blanket.</p></div>
+      <span class="pill" id="s-jg">Today</span>
+    </a>
+    <div class="soon">
+      <svg viewBox="0 0 72 72" aria-hidden="true"><g fill="var(--felt)"><rect x="4" y="24" width="12" height="12" rx="2"/><rect x="18" y="24" width="12" height="12" rx="2"/><rect x="32" y="24" width="12" height="12" rx="2"/><rect x="46" y="24" width="12" height="12" rx="2"/><rect x="32" y="10" width="12" height="12" rx="2"/><rect x="32" y="38" width="12" height="12" rx="2"/><rect x="32" y="52" width="12" height="12" rx="2"/></g></svg>
+      <div><h2>Crosslight</h2><p>Coming soon: a word grid where every guess lights up the crossings.</p></div>
+    </div>
+    <div class="soon">
+      <svg viewBox="0 0 72 72" aria-hidden="true"><g font-family="Fredoka,sans-serif" font-size="15" font-weight="600" fill="var(--muted)" text-anchor="middle"><text x="16" y="24">3</text><text x="36" y="24">7</text><text x="56" y="24">2</text><text x="16" y="48">5</text><text x="36" y="48">1</text><text x="56" y="48">4</text></g><path d="M28,16L44,30M44,16L28,30" stroke="var(--f0)" stroke-width="2.4" stroke-linecap="round"/></svg>
+      <div><h2>Strike</h2><p>Coming soon: cross out numbers until every row and column hits its target.</p></div>
+    </div>
+  </div>
+  <footer>New puzzles at local midnight · progress stays on this device</footer>
+</div>
+<script>
+const t=new Date();document.getElementById('date').textContent=t.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+[['hexstitch-daily-v2','s-hex'],['shadowbox-daily','s-sb'],['joannagrams-daily','s-jg']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
+  if(s&&s.iso===iso){if(s.st.solved||s.st.metaDone){el.textContent='Solved';el.classList.add('done')}else if(s.st.started||(s.st.found&&s.st.found.length))el.textContent='In progress'}});
+</script>
+</body>
+</html>
