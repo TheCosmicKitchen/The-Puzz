@@ -1,6 +1,6 @@
 # The Puzz
 
-Live at https://thecosmickitchen.github.io/the-puzz/
+Live at https://thecosmickitchen.github.io/The-Puzz/
 
 Free daily puzzles, served as plain static pages on GitHub Pages. No build step and no server.
 
