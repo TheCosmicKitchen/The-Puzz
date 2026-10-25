@@ -108,7 +108,7 @@ h1 span{color:var(--loco)}
     <div class="row" id="endlessCtl" hidden>
       <select class="btn" id="themeSel" aria-label="Line">
         <option value="mixed">Mixed line</option><option value="stops">Stops &amp; buffers</option><option value="signals">Signals</option>
-        <option value="stations">Stations</option><option value="tickets">Tickets</option><option value="platforms">Platforms</option>
+        <option value="stations">Stations</option><option value="tickets">Tickets</option><option value="platforms">Platforms</option><option value="repairs">Repairs</option><option value="tunnels">Tunnels</option>
       </select>
       <select class="btn" id="sizeSel" aria-label="Board size"><option value="4">4 × 4</option><option value="5">5 × 5</option></select>
       <button class="btn" id="newBtn">New route</button>
@@ -125,7 +125,9 @@ h1 span{color:var(--loco)}
       <li data-k="base"><svg viewBox="-24 -24 48 48" id="lg-start"></svg><span>Drag from the <b>station</b> to the <b>terminus</b> poking off the edge. Track can't cross itself. Drag back to take track up, or use the arrow keys.</span></li>
       <li data-k="stop"><svg viewBox="-24 -24 48 48" id="lg-stop"></svg><span><b>Stop.</b> The train must call here, at a junction or along a stretch of track.</span></li>
       <li data-k="buf"><svg viewBox="-24 -24 48 48" id="lg-buf"></svg><span><b>Buffers.</b> The line can't pass this junction.</span></li>
-      <li data-k="gap"><svg viewBox="-24 -24 48 48" id="lg-gap"></svg><span><b>Broken track.</b> No line along this stretch.</span></li>
+      <li data-k="gap"><svg viewBox="-24 -24 48 48" id="lg-gap"></svg><span><b>Broken track.</b> You can only cross it by spending a spare rail.</span></li>
+      <li data-k="spare"><svg viewBox="-24 -24 48 48" id="lg-spare"></svg><span><b>Spare rails.</b> Pass this junction to pick up a spare. Each spare repairs one broken stretch further down the line, so collect it first.</span></li>
+      <li data-k="tun"><svg viewBox="-24 -24 48 48" id="lg-tun"></svg><span><b>Tunnel portal.</b> Pass it to pick up a tunnel. Later you can cross under your own track once, straight across a straight stretch, leaving a gap in your tail.</span></li>
       <li data-k="sig"><svg viewBox="-24 -24 48 48" id="lg-sig"></svg><span><b>Signal.</b> The route runs along exactly as many sides of this square as the signal has lamps.</span></li>
       <li data-k="stn"><svg viewBox="-24 -24 48 48" id="lg-stn"></svg><span><b>Stations.</b> Your route cuts the map into areas. Each area may only hold stations of one company colour.</span></li>
       <li data-k="tkt"><svg viewBox="-24 -24 48 48" id="lg-tkt"></svg><span><b>Tickets.</b> Every ticket must share its area with exactly one other ticket of the same colour.</span></li>
@@ -159,10 +161,28 @@ function regions(G,used){
   return [...Array(n).keys()].map(f);
 }
 
+// Walk a route in order. Crossings: a junction visited a second time, passing straight across at a right
+// angle to an earlier straight pass, spending one tunnel. Returns {ok, why, crossings}.
+function walkRoute(G,route,clues){
+  const nodes=route.nodes,spareAt=new Set(),tunAt=new Set(),gapC=new Map();
+  clues.forEach(c=>{if(c.t==='spare')spareAt.add(c.node);else if(c.t==='tun')tunAt.add(c.node);else if(c.t==='gap')gapC.set(c.edge,c)});
+  const first=new Map(),crossed=new Set(),crossings=[],why=[],usedE=new Set();let spares=0,tuns=0,ok=true;
+  for(let k=0;k<nodes.length;k++){const n=nodes[k];
+    if(k>0){const e=route.edges[k-1];if(usedE.has(e)){ok=false;why.push('reuse')}usedE.add(e);
+      if(gapC.has(e)){if(spares>0)spares--;else{ok=false;why.push(gapC.get(e))}}}
+    if(first.has(n)){const j=first.get(n);
+      const good=!crossed.has(n)&&j>0&&j<nodes.length-1&&k<nodes.length-1&&nodes[j]-nodes[j-1]===nodes[j+1]-nodes[j]&&nodes[k]-nodes[k-1]===nodes[k+1]-nodes[k]&&Math.abs(nodes[j]-nodes[j-1])!==Math.abs(nodes[k]-nodes[k-1]);
+      if(!good){ok=false;why.push('cross')}else if(tuns<1){ok=false;why.push('tunnel')}else{tuns--;crossed.add(n);crossings.push(k)}}
+    else{first.set(n,k);if(spareAt.has(n))spares++;if(tunAt.has(n))tuns++}}
+  return{ok,why,crossings,spares,tuns};
+}
+
 // Clue kinds:
 //  stop  {t:'stop', node} | {t:'stop', edge}
 //  buf   {t:'buf', node}            junction the route may not touch
-//  gap   {t:'gap', edge}            missing track
+//  gap   {t:'gap', edge}            missing track: passable only by spending a spare rail
+//  spare {t:'spare', node}          pick up one spare rail when the route passes this junction
+//  tun   {t:'tun', node}            pick up one tunnel: cross under your own track once
 //  sig   {t:'sig', cell, k}         route runs along exactly k sides
 //  stn   {t:'stn', cell, col}       one company colour per area
 //  tkt   {t:'tkt', cell, col}       exactly two of this colour per area
@@ -174,10 +194,11 @@ function checkRoute(G,P,route,clues,why){
   for(const c of clues){
     if(c.t==='stop'){if(c.node!==undefined?!vis[c.node]:!used[c.edge])fail(c)}
     else if(c.t==='buf'){if(vis[c.node])fail(c)}
-    else if(c.t==='gap'){if(used[c.edge])fail(c)}
+
     else if(c.t==='sig'){if(G.cellEdges[c.cell].filter(e=>used[e]).length!==c.k)fail(c)}
     else if(c.t==='plat'){const r=R(),id=r[c.cell];if(r.filter(x=>x===id).length!==c.k)fail(c)}
   }
+  {const w=walkRoute(G,route,clues);if(!w.ok){ok=false;if(bad)w.why.forEach(x=>{if(typeof x==='object')bad.push(x)})}}
   const stn=clues.filter(c=>c.t==='stn');
   if(stn.length){const r=R(),seen={};for(const c of stn){const id=r[c.cell];if(seen[id]===undefined)seen[id]=c.col;else if(seen[id]!==c.col)ok=false}
     if(bad&&!ok){for(const c of stn){const id=r[c.cell];if(stn.some(d=>r[d.cell]===id&&d.col!==c.col))bad.push(c)}}}
@@ -188,28 +209,35 @@ function checkRoute(G,P,route,clues,why){
 
 // Enumerate routes start -> end that satisfy the clues (up to limit)
 function solve(G,P,clues,limit,maxNodes=400000){
-  const vis=new Uint8Array(G.NN),used=new Uint8Array(G.NE),sigK=new Int8Array(G.W*G.H).fill(-1),sigN=new Int8Array(G.W*G.H);
-  const blocked=new Uint8Array(G.NN),broken=new Uint8Array(G.NE),edgeSig=Array.from({length:G.NE},()=>[]);
-  for(const c of clues){if(c.t==='buf')blocked[c.node]=1;else if(c.t==='gap')broken[c.edge]=1;else if(c.t==='sig')sigK[c.cell]=c.k}
+  const vc=new Uint8Array(G.NN),used=new Uint8Array(G.NE),sigK=new Int8Array(G.W*G.H).fill(-1),sigN=new Int8Array(G.W*G.H);
+  const blocked=new Uint8Array(G.NN),broken=new Uint8Array(G.NE),spare=new Uint8Array(G.NN),tun=new Uint8Array(G.NN),edgeSig=Array.from({length:G.NE},()=>[]);
+  const inD=new Int16Array(G.NN),outD=new Int16Array(G.NN);
+  for(const c of clues){if(c.t==='buf')blocked[c.node]=1;else if(c.t==='gap')broken[c.edge]=1;else if(c.t==='spare')spare[c.node]=1;else if(c.t==='tun')tun[c.node]=1;else if(c.t==='sig')sigK[c.cell]=c.k}
   G.cellEdges.forEach((es,cell)=>{if(sigK[cell]>=0)es.forEach(e=>edgeSig[e].push(cell))});
   const sigCells=[...sigK.keys()].filter(c=>sigK[c]>=0);
-  const nodes=[P.start],edges=[],sols=[];let count=0,aborted=false;vis[P.start]=1;
-  (function dfs(n){
+  const nodes=[P.start],edges=[],sols=[];let count=0,aborted=false,carry=spare[P.start],tcarry=tun[P.start];vc[P.start]=1;
+  (function dfs(n,forced){
     if(++count>maxNodes){aborted=true;return true}
-    if(n===P.end){
+    if(n===P.end&&!forced){
       for(const c of sigCells)if(sigN[c]!==sigK[c])return false;
       const route={nodes:nodes.slice(),edges:edges.slice()};
       if(checkRoute(G,P,route,clues)){sols.push(route);return sols.length>=limit}
       return false}
     for(const[m,e]of G.adj[n]){
-      if(vis[m]||blocked[m]||broken[e])continue;
+      const d=m-n;if(forced&&d!==forced)continue;
+      if(used[e]||blocked[m]||(broken[e]&&carry<1))continue;
+      let cross=false;
+      if(vc[m]){ // only a straight, right-angle crossing under an earlier straight pass, with a tunnel in hand
+        if(vc[m]>1||m===P.start||m===P.end||tcarry<1||inD[m]!==outD[m]||Math.abs(inD[m])===Math.abs(d))continue;cross=true}
       let okk=true;for(const c of edgeSig[e])if(sigN[c]+1>sigK[c]){okk=false;break}
       if(!okk)continue;
-      vis[m]=1;used[e]=1;nodes.push(m);edges.push(e);for(const c of edgeSig[e])sigN[c]++;
-      const stop=dfs(m);
-      vis[m]=0;used[e]=0;nodes.pop();edges.pop();for(const c of edgeSig[e])sigN[c]--;
+      const dc=(broken[e]?-1:0)+(cross?0:spare[m]),dt=cross?-1:tun[m];carry+=dc;tcarry+=dt;
+      const oldOut=outD[n];if(!forced)outD[n]=d;if(!cross)inD[m]=d;
+      vc[m]++;used[e]=1;nodes.push(m);edges.push(e);for(const c of edgeSig[e])sigN[c]++;
+      const stop=dfs(m,cross?d:0);
+      vc[m]--;used[e]=0;nodes.pop();edges.pop();for(const c of edgeSig[e])sigN[c]--;carry-=dc;tcarry-=dt;outD[n]=oldOut;
       if(stop)return true}
-    return false})(P.start);
+    return false})(P.start,0);
   return{count:aborted?Infinity:sols.length,sols};
 }
 
@@ -219,19 +247,24 @@ const THEMES={
   stations:['stn','stop','gap'],
   tickets:['tkt','stop','buf'],
   platforms:['plat','stop','gap'],
-  mixed:['stop','buf','gap','sig','stn','tkt','plat'],
+  repairs:['spare','gap','stop','buf'],
+  tunnels:['tun','stop','buf','gap'],
+  mixed:['stop','buf','gap','spare','tun','sig','stn','tkt','plat'],
 };
 
 function tryGen(rand,W,H,theme){
   const ri=k=>Math.floor(rand()*k),pick=a=>a[ri(a.length)],G=geom(W,H);
   // 1. a long random route between two boundary junctions
   const bnodes=[...Array(G.NN).keys()].filter(G.boundary);
-  const start=pick(bnodes);const vis=new Uint8Array(G.NN);let path=[start];vis[start]=1;
-  let best=null;const target=Math.floor(G.NN*(0.55+rand()*0.25));
-  (function walk(n,depth){ if(best)return; let guard=0;
-    if(path.length>=target&&G.boundary(n)&&n!==start){best=path.slice();return}
-    const opts=G.adj[n].filter(([m])=>!vis[m]).sort(()=>rand()-0.5);
-    for(const[m]of opts){if(++guard>2)break;vis[m]=1;path.push(m);walk(m,depth+1);if(best)return;path.pop();vis[m]=0}
+  const allowX=THEMES[theme].includes('tun')&&(theme==='tunnels'||rand()<0.4);
+  const start=pick(bnodes),vc=new Uint8Array(G.NN),inD=new Int16Array(G.NN),outD=new Int16Array(G.NN),usedE=new Uint8Array(G.NE);let path=[start];vc[start]=1;
+  let best=null,nx=0;const target=Math.floor(G.NN*(0.55+rand()*0.25))+(allowX?2:0);
+  (function walk(n,forced){ if(best)return; let guard=0;
+    if(!forced&&path.length>=target&&G.boundary(n)&&n!==start&&vc[n]===1&&(!allowX||nx>0)){best=path.slice();return}
+    const opts=G.adj[n].filter(([m,e])=>{const d=m-n;if(forced&&d!==forced)return false;if(usedE[e])return false;
+      if(!vc[m])return true;return allowX&&nx<2&&vc[m]===1&&m!==start&&inD[m]===outD[m]&&Math.abs(inD[m])!==Math.abs(d)&&!G.boundary(m)}).sort(()=>rand()-0.5);
+    for(const[m,e]of opts){if(++guard>2)break;const d=m-n,cross=vc[m]===1,oo=outD[n];if(!forced)outD[n]=d;if(!cross)inD[m]=d;if(cross)nx++;
+      vc[m]++;usedE[e]=1;path.push(m);walk(m,cross?d:0);if(best)return;path.pop();usedE[e]=0;vc[m]--;if(cross)nx--;outD[n]=oo}
   })(start,0);
   if(!best)return null;
   const end=best[best.length-1];
@@ -241,18 +274,28 @@ function tryGen(rand,W,H,theme){
   const sol={nodes:best,edges:best.slice(1).map((n,k)=>edgeOf(best[k],n))};
   const used=new Uint8Array(G.NE);sol.edges.forEach(e=>used[e]=1);
   const onRoute=new Set(best),reg=regions(G,used),nReg=new Set(reg).size;
+  const crossIdx=[];{const seen=new Set();best.forEach((n,k)=>{if(seen.has(n))crossIdx.push(k);seen.add(n)})}
   if(['stations','tickets','platforms'].includes(theme)&&nReg<3)return null;
   const P={W,H,start,end,theme,clues:[]};
+  // a tunnel portal earlier on the line for every crossing
+  for(const k of crossIdx){const firsts=best.slice(0,k).filter((n,j)=>best.indexOf(n)===j&&!P.clues.some(c=>c.node===n)&&!crossIdx.some(x=>best[x]===n));if(!firsts.length)return null;P.clues.push({t:'tun',node:pick(firsts),core:1})}
   // 2. candidate pool from the solution
   const kinds=THEMES[theme],pool=[];
   if(kinds.includes('stop')){best.slice(1,-1).forEach(n=>pool.push({t:'stop',node:n}));sol.edges.forEach(e=>pool.push({t:'stop',edge:e}))}
   if(kinds.includes('buf'))for(let n=0;n<G.NN;n++)if(!onRoute.has(n))pool.push({t:'buf',node:n});
   if(kinds.includes('gap'))for(let e=0;e<G.NE;e++)if(!used[e])pool.push({t:'gap',edge:e});
+  if(kinds.includes('spare')){for(let n=0;n<G.NN;n++)if(!onRoute.has(n))pool.push({t:'spare',node:n});
+    // route repairs: broken stretches on the route, each with a spare picked up earlier on the line
+    const nRep=theme==='repairs'?1+ri(2):(rand()<0.5?1:0);const taken=new Set();
+    for(let k=0;k<nRep;k++){const idx=3+ri(Math.max(1,sol.edges.length-4));if(idx>=sol.edges.length||taken.has(idx))continue;
+      const before=best.slice(0,idx+1).filter((n,j)=>!P.clues.some(c=>c.node===n));if(!before.length)continue;
+      taken.add(idx);P.clues.push({t:'gap',edge:sol.edges[idx],core:1},{t:'spare',node:pick(before),core:1})}}
+  if(kinds.includes('tun'))for(let n=0;n<G.NN;n++)if(!onRoute.has(n))pool.push({t:'tun',node:n});
   if(kinds.includes('sig'))for(let c=0;c<W*H;c++){const k=G.cellEdges[c].filter(e=>used[e]).length;if(k>0)pool.push({t:'sig',cell:c,k})}
   if(kinds.includes('stn')){const ids=[...new Set(reg)],col={};ids.forEach((id,k)=>col[id]=k%3===0?0:ri(3));for(let c=0;c<W*H;c++)pool.push({t:'stn',cell:c,col:col[reg[c]]})}
   if(kinds.includes('plat'))for(let c=0;c<W*H;c++){const k=reg.filter(x=>x===reg[c]).length;if(k<=9)pool.push({t:'plat',cell:c,k})}
   if(kinds.includes('tkt')){for(let a=0;a<W*H;a++)for(let b=a+1;b<W*H;b++)if(reg[a]===reg[b])for(let col=0;col<3;col++)pool.push({t:'tkt2',cells:[a,b],col})}
-  const W8={stop:3,buf:3,gap:2,sig:5,stn:5,tkt2:6,plat:5};
+  const W8={stop:3,buf:3,gap:2,spare:2,tun:1,sig:5,stn:5,tkt2:6,plat:5};
   const themeMain={signals:'sig',stations:'stn',tickets:'tkt2',platforms:'plat'}[theme];
   if(themeMain)W8[themeMain]=12;
   const cellTaken=c=>P.clues.some(o=>o.cell===c);
@@ -274,7 +317,7 @@ function tryGen(rand,W,H,theme){
   if(solve(G,P,P.clues,2).count!==1)return null;
   // trim signs that aren't needed (ticket pairs go together)
   const groups=[];P.clues.forEach(c=>{if(c.t==='tkt'){const g=groups.find(g=>g[0].t==='tkt'&&g[0].col===c.col&&g.length===1&&regions(G,used)[g[0].cell]===regions(G,used)[c.cell]);if(g){g.push(c);return}}groups.push([c])});
-  for(const g of groups.sort(()=>rand()-0.5)){const rest=P.clues.filter(c=>!g.includes(c));if(themeMain&&g[0].t===({tkt2:'tkt'}[themeMain]||themeMain)&&rest.filter(c=>c.t===g[0].t).length<2)continue;
+  for(const g of groups.sort(()=>rand()-0.5)){if(g[0].core)continue;const rest=P.clues.filter(c=>!g.includes(c));if(themeMain&&g[0].t===({tkt2:'tkt'}[themeMain]||themeMain)&&rest.filter(c=>c.t===g[0].t).length<2)continue;
     if(solve(G,P,rest,2).count===1)P.clues=rest}
   P.sol=sol;return P;
 }
@@ -284,8 +327,8 @@ function generate(seed,W,H,theme){for(let a=0;a<200;a++){const P=tryGen(mulberry
 <script>
 const S=70,M=40,$=id=>document.getElementById(id);
 const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-const THEME_NAMES={stops:'Stops & buffers',signals:'Signals',stations:'Stations',tickets:'Tickets',platforms:'Platforms',mixed:'Mixed line'};
-const DAY_THEMES=['mixed','stops','signals','stations','tickets','platforms','mixed'];
+const THEME_NAMES={stops:'Stops & buffers',signals:'Signals',stations:'Stations',tickets:'Tickets',platforms:'Platforms',mixed:'Mixed line',repairs:'Repairs',tunnels:'Tunnels'};
+const DAY_THEMES=['mixed','stops','signals','stations','tickets','platforms','sat'];
 let G,P,st,mode='daily',route=[],drawing=false,partial=null,badClues=[],timerInt=null,anim=null;
 
 const np=n=>({x:M+(n%G.NW)*S,y:M+Math.floor(n/G.NW)*S});
@@ -300,13 +343,15 @@ const D={
   sig:k=>{let s=`<line class="pole" x1="0" y1="6" x2="0" y2="22"/><rect class="sigbox" x="-8" y="${-4-k*9}" width="16" height="${k*9+8}" rx="5"/>`;for(let i=0;i<k;i++)s+=`<circle class="lamp" cx="0" cy="${-k*9+i*9+4.5}" r="3.4"/>`;return `<g transform="translate(0,-4)">${s}</g>`},
   stn:col=>`<path class="k${col}" d="M-13,13V-2L0,-13L13,-2V13Z"/><rect class="door" x="-3.5" y="3" width="7" height="10" rx="1.5"/>`,
   tkt:col=>`<path class="k${col}" d="M-15,-9H15V-3A3,3 0 0 0 15,3V9H-15V3A3,3 0 0 0 -15,-3Z"/><line x1="6" y1="-7" x2="6" y2="7" stroke="var(--surface)" stroke-width="1.5" stroke-dasharray="2 2"/>`,
+  spare:()=>`<g><rect x="-13" y="-9" width="26" height="18" rx="4" fill="var(--sleeper)"/><line x1="-10" y1="-3.5" x2="10" y2="-3.5" stroke="var(--rail)" stroke-width="3" stroke-linecap="round"/><line x1="-10" y1="3.5" x2="10" y2="3.5" stroke="var(--rail)" stroke-width="3" stroke-linecap="round"/></g>`,
+  tun:()=>`<g><path d="M-13,9V0A13,13 0 0 1 13,0V9Z" fill="var(--rail)"/><path d="M-7,9V2A7,7 0 0 1 7,2V9Z" fill="var(--field)"/><line x1="-15" y1="9" x2="15" y2="9" stroke="var(--rail)" stroke-width="2.5" stroke-linecap="round"/></g>`,
   plat:k=>`<g class="plat"><line x1="-7" y1="8" x2="-7" y2="20"/><line x1="7" y1="8" x2="7" y2="20"/><rect x="-14" y="-12" width="28" height="22" rx="4"/><text y="-1">${k}</text></g>`,
 };
 function startSVG(){return `<circle class="ring" r="15"/><rect class="bar2" x="-20" y="-4.5" width="40" height="9" rx="2"/>`}
 
 function dayInfo(){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
   const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`,wk=t.getDay();
-  return{num:Math.round((t-s)/864e5)+1,iso,theme:DAY_THEMES[wk],N:(wk===0||wk===6)?5:4,label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
+  const num=Math.round((t-s)/864e5)+1;return{num,iso,theme:DAY_THEMES[wk]==='sat'?(Math.floor(num/7)%2?'repairs':'tunnels'):DAY_THEMES[wk],N:(wk===0||wk===6)?5:4,label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
 
 function load(m,code){
   mode=m;$('tDaily').setAttribute('aria-pressed',m==='daily');$('tEndless').setAttribute('aria-pressed',m==='endless');$('endlessCtl').hidden=m!=='endless';
@@ -314,7 +359,7 @@ function load(m,code){
   setTimeout(()=>{
     let saved=null,theme,N,seed;
     if(m==='daily'){const d=dayInfo();theme=d.theme;N=d.N;seed='whistlestop-'+d.iso;P=generate(seed,N,N,theme);P.label=`#${d.num} · ${d.label}`;P.iso=d.iso;
-      $('sub').textContent='Daily line '+P.label;saved=store.get('whistlestop-daily');if(saved&&saved.iso!==d.iso)saved=null}
+      $('sub').textContent='Daily line '+P.label;saved=store.get('whistlestop-daily-v2');if(saved&&saved.iso!==d.iso)saved=null}
     else{const c=code||Math.random().toString(36).slice(2,7);theme=$('themeSel').value;N=+$('sizeSel').value;
       P=generate('ws-endless-'+c+theme+N,N,N,theme);P.code=c+Object.keys(THEME_NAMES).indexOf(theme)+N;P.label='Endless · '+P.code;$('sub').textContent='Endless mode · route '+P.code;
       try{history.replaceState(null,'','#'+P.code)}catch(e){}}
@@ -328,7 +373,7 @@ function load(m,code){
     hint(route.length>1?'':'Drag from the station roundel to start laying track.');
   },30);
 }
-function persist(){st.route=route.slice();if(mode==='daily')store.set('whistlestop-daily',{iso:P.iso,st})}
+function persist(){st.route=route.slice();if(mode==='daily')store.set('whistlestop-daily-v2',{iso:P.iso,st})}
 
 function render(){
   const Wd=M*2+G.W*S,Hd=M*2+G.H*S;$('svg').setAttribute('viewBox',`0 0 ${Wd} ${Hd}`);
@@ -345,13 +390,24 @@ function render(){
   // track
   const pts=route.map(np);if(partial)pts.push(partial);
   if(pts.length>1){const d=pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
-    s+=`<polyline class="ballast" points="${d}"/><polyline class="sleepers" points="${d}"/><polyline class="rails" points="${d}"/><polyline class="railgap" points="${d}"/>`}
+    s+=`<polyline class="ballast" points="${d}"/><polyline class="sleepers" points="${d}"/><polyline class="rails" points="${d}"/><polyline class="railgap" points="${d}"/>`;
+    // repaired stretches get bright new rails
+    route.slice(1).forEach((n,k)=>{const e=edgeOf(route[k],n);if(brokenE(e)){const a=np(route[k]),b=np(n);s+=`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="var(--lamp)" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 4"/>`}});
+    // tunnels: the later pass dives under the tail, leaving a gap in the earlier track
+    route.forEach((n,k)=>{const j=route.indexOf(n);if(j===k||k>=route.length-1&&!partial)return;const p=np(n),ax=route[j+1]-route[j],horiz=Math.abs(ax)===1;
+      const L=26,Wd=24,dl=route[k]-route[k-1],lh=Math.abs(dl)===1;
+      s+=`<rect x="${p.x-(horiz?L:Wd/2)}" y="${p.y-(horiz?Wd/2:L)}" width="${horiz?2*L:Wd}" height="${horiz?Wd:2*L}" fill="var(--field)"/>`;
+      const q1={x:p.x-(lh?L:0),y:p.y-(lh?0:L)},q2={x:p.x+(lh?L:0),y:p.y+(lh?0:L)},seg=`${q1.x},${q1.y} ${q2.x},${q2.y}`;
+      s+=`<polyline class="ballast" points="${seg}" style="stroke-linecap:butt"/><polyline class="sleepers" points="${seg}"/><polyline class="rails" points="${seg}" style="stroke-linecap:butt"/><polyline class="railgap" points="${seg}" style="stroke-linecap:butt"/>`;
+      for(const sg of [-1,1]){const cx=p.x+(horiz?sg*L:0),cy=p.y+(horiz?0:sg*L),rot=horiz?(sg<0?90:-90):(sg<0?180:0);
+        s+=`<path transform="translate(${cx},${cy}) rotate(${rot})" d="M-11,0A11,11 0 0 1 11,0" fill="none" stroke="var(--rail)" stroke-width="4" stroke-linecap="round"/>`}})}
   // signs
   const isBad=c=>badClues.includes(c);
   P.clues.forEach(c=>{let p,svg;
     if(c.t==='gap')return;
     if(c.t==='stop'){p=c.node!==undefined?np(c.node):em(c.edge);svg=D.stop()}
     else if(c.t==='buf'){p=np(c.node);svg=D.buf()}
+    else if(c.t==='spare'||c.t==='tun'){p=np(c.node);svg=`<g opacity="${route.includes(c.node)?0.35:1}">${D[c.t]()}</g>`}
     else{p=cc(c.cell);svg=c.t==='sig'?D.sig(c.k):c.t==='stn'?D.stn(c.col):c.t==='tkt'?D.tkt(c.col):D.plat(c.k)}
     s+=`<g class="${isBad(c)?'bad':''}" transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)})" pointer-events="none">${svg}</g>`});
   const sp=np(P.start);s+=`<g transform="translate(${sp.x},${sp.y})">${startSVG()}</g>`;
@@ -371,7 +427,15 @@ function trainSVG(pts){if(pts.length<2)return'';const total=pts.slice(1).reduce(
 function svgPt(e){const r=$('svg').getBoundingClientRect(),vb=$('svg').viewBox.baseVal;return{x:(e.clientX-r.left)/r.width*vb.width,y:(e.clientY-r.top)/r.height*vb.height}}
 const blockedN=n=>P.clues.some(c=>c.t==='buf'&&c.node===n);
 const brokenE=e=>P.clues.some(c=>c.t==='gap'&&c.edge===e);
-const canGo=(h,m)=>{const e=edgeOf(h,m);return e>=0&&!route.includes(m)&&!blockedN(m)&&!brokenE(e)};
+function carry(){return walkRoute(G,{nodes:route,edges:route.slice(1).map((n,k)=>edgeOf(route[k],n))},P.clues)}
+const routeEdges=()=>new Set(route.slice(1).map((n,k)=>edgeOf(route[k],n)));
+function canGo(h,m){const e=edgeOf(h,m);if(e<0||blockedN(m)||routeEdges().has(e))return false;const c=carry(),d=m-h;
+  // after diving under the track, the line must carry straight on
+  const hk=route.length-1;if(route.indexOf(h)<hk&&hk>0&&d!==h-route[hk-1])return false;
+  if(brokenE(e)&&c.spares<1)return false;
+  if(!route.includes(m))return true;
+  const j=route.indexOf(m);if(route.lastIndexOf(m)!==j||m===P.start||m===P.end||c.tuns<1||j===0)return false;
+  const a=route[j]-route[j-1],b=route[j+1]-route[j];return a===b&&Math.abs(a)!==Math.abs(d)}
 function steer(p){
   partial=null;
   for(let guard=0;guard<40;guard++){
@@ -398,8 +462,9 @@ document.addEventListener('keydown',e=>{if(!P||st.solved)return;const dir={Arrow
   render();persist();arrive()});
 $('clearBtn').onclick=()=>{if(st.solved)return;route=[P.start];badClues=[];render();persist();hint('')};
 
+function carryText(){if(!P.clues.some(c=>c.t==='spare'||c.t==='tun'))return'';const c=carry(),parts=[];if(P.clues.some(x=>x.t==='spare'))parts.push(`${c.spares} spare rail${c.spares===1?'':'s'}`);if(P.clues.some(x=>x.t==='tun'))parts.push(`${c.tuns} tunnel${c.tuns===1?'':'s'}`);return 'Carrying '+parts.join(' · ')+'. '}
 function arrive(){
-  if(route[route.length-1]!==P.end){hint(route.length>1?'Keep going. The terminus pokes off the edge of the map.':'');return}
+  if(route[route.length-1]!==P.end||route.indexOf(P.end)!==route.length-1){hint(route.length>1?carryText()+'Keep going. The terminus pokes off the edge of the map.':carryText());return}
   const r={nodes:route.slice(),edges:route.slice(1).map((n,k)=>edgeOf(route[k],n))};
   const bad=checkRoute(G,P,r,P.clues,true);
   if(bad.length){st.tries.push(0);badClues=bad;persist();render();hint(`That route breaks ${bad.length} sign${bad.length>1?'s':''}. They’re flashing.`,'bad');return}
@@ -438,9 +503,9 @@ $('lg-start').innerHTML=`<g transform="scale(.9)">${startSVG()}</g>`;
 $('lg-stop').innerHTML=`<line x1="-22" y1="0" x2="22" y2="0" class="slot"/>${D.stop()}`;
 $('lg-buf').innerHTML=D.buf();
 $('lg-gap').innerHTML=`<line class="gapmark" x1="-22" y1="0" x2="-7" y2="0"/><line class="gapmark" x1="7" y1="0" x2="22" y2="0"/><circle class="rubble" cx="-2" cy="2" r="2.2"/><circle class="rubble" cx="3" cy="-2" r="1.6"/>`;
-$('lg-sig').innerHTML=D.sig(2);$('lg-stn').innerHTML=D.stn(0);$('lg-tkt').innerHTML=D.tkt(2);$('lg-plat').innerHTML=D.plat(4);
+$('lg-sig').innerHTML=D.sig(2);$('lg-spare').innerHTML=D.spare();$('lg-tun').innerHTML=D.tun();$('lg-stn').innerHTML=D.stn(0);$('lg-tkt').innerHTML=D.tkt(2);$('lg-plat').innerHTML=D.plat(4);
 
-(function boot(){const h=(location.hash||'').slice(1),m=/^([a-z0-9]{5})([0-5])([45])$/.exec(h);
+(function boot(){const h=(location.hash||'').slice(1),m=/^([a-z0-9]{5})([0-7])([45])$/.exec(h);
   if(m){$('themeSel').value=Object.keys(THEME_NAMES)[+m[2]];$('sizeSel').value=m[3];load('endless',m[1])}
   else{load('daily');if(!store.get('whistlestop-seen')){$('legend').open=true;store.set('whistlestop-seen',1)}}})();
 </script>
