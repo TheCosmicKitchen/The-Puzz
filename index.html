@@ -87,7 +87,7 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
         <circle cx="36" cy="36" r="4.5" fill="var(--surface)" stroke="var(--ink)" stroke-width="2"/>
         <g transform="translate(48,12)"><rect x="-10" y="-7" width="20" height="14" rx="4" fill="var(--f0)"/><circle cx="6" cy="0" r="2.5" fill="var(--f2)"/></g>
       </svg>
-      <div><h2>Whistlestop</h2><p>Lay track from station to terminus, obeying every sign on the line.</p></div>
+      <div><h2>Whistlestop</h2><p>Lay track to the end of the line. A journey of small puzzles teaches every sign, then endless lines open up.</p></div>
       <span class="pill" id="s-ws">Today</span>
     </a>
     <div class="soon">
@@ -105,8 +105,10 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
 const t=new Date();document.getElementById('date').textContent=t.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
 const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
 const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
-[['hexstitch-daily-v2','s-hex'],['shadowbox-daily-v3','s-sb'],['joannagrams-daily','s-jg'],['whistlestop-daily-v2','s-ws']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
+[['hexstitch-daily-v2','s-hex'],['shadowbox-daily-v3','s-sb'],['joannagrams-daily','s-jg'],['whistlestop-daily-v3','s-ws']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
   if(s&&s.iso===iso){if(s.st.solved||s.st.metaDone){el.textContent='Solved';el.classList.add('done')}else if(s.st.started||(s.st.found&&s.st.found.length))el.textContent='In progress'}});
+{const j=get('whistlestop-journey'),el=document.getElementById('s-ws');const n=j&&j.solved?Object.keys(j.solved).length:0;
+  if(n<40&&el&&el.textContent==='Today'){el.textContent=n?`Journey ${n}/40`:'Start the journey'}}
 </script>
 </body>
 </html>

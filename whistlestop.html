@@ -88,6 +88,30 @@ h1 span{color:var(--loco)}
 .win h2{font:600 22px var(--display);margin:0}
 .win pre{font-family:var(--body);margin:0;white-space:pre-wrap;background:var(--bg);padding:10px 12px;border-radius:10px;font-size:15px;line-height:1.4;user-select:all}
 @media (prefers-reduced-motion:reduce){.bad{animation:none}}
+.linemap{background:var(--surface);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.lm-rail{display:flex;align-items:center;gap:0;overflow-x:auto;padding:4px 2px}
+.chap{flex:none;width:26px;height:26px;border-radius:50%;border:3px solid var(--line);background:var(--surface);cursor:pointer;padding:0;position:relative;font:600 11px var(--display);color:var(--muted)}
+.chap.done{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.chap.cur{border-color:var(--loco);color:var(--ink)}
+.chap:disabled{cursor:default;opacity:.45}
+.seg{flex:1 1 10px;min-width:8px;height:5px;background:var(--line)}
+.seg.done{background:var(--ok)}
+.lm-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.lm-title{font:600 18px var(--display)}
+.lm-count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.stopdots{display:flex;gap:8px;flex-wrap:wrap}
+.sd{width:34px;height:34px;border-radius:10px;border:2px solid var(--line);background:var(--bg);font:600 14px var(--display);color:var(--ink);cursor:pointer;font-variant-numeric:tabular-nums}
+.sd.solved{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.sd.cur{border-color:var(--loco);border-width:3px}
+.sd:disabled{opacity:.35;cursor:default}
+.note{background:var(--surface);border:1.5px dashed var(--line);border-radius:14px;padding:10px 14px;font-size:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.lockpanel{display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 16px;text-align:center}
+.lockpanel b{font:600 20px var(--display)}
+.tabs button .lk{font-size:11px;margin-left:4px}
+.legend li.new{background:var(--bg);border-radius:10px;padding:6px}
+.newpage{display:flex;gap:12px;align-items:center;background:var(--bg);border-radius:12px;padding:10px 12px}
+.newpage svg{flex:none;width:48px;height:48px}
+.legend .locked{color:var(--muted);font-size:13px;margin-top:8px}
 </style>
 
 </head>
@@ -100,11 +124,21 @@ h1 span{color:var(--loco)}
       <div class="sub" id="sub"></div>
     </div>
     <div class="tabs" role="group" aria-label="Mode">
-      <button id="tDaily" aria-pressed="true">Daily</button>
-      <button id="tEndless" aria-pressed="false">Endless</button>
+      <button id="tJourney" aria-pressed="true">Journey</button>
+      <button id="tDaily" aria-pressed="false">Daily</button>
+      <button id="tEndless" aria-pressed="false">Endless<span class="lk" id="endLock">🔒</span></button>
     </div>
   </header>
-  <div class="bar">
+
+  <section class="linemap" id="lineMap" hidden>
+    <div class="lm-rail" id="lmRail" role="group" aria-label="Chapters"></div>
+    <div class="lm-head"><span class="lm-title" id="lmTitle"></span><span class="lm-count" id="lmCount"></span></div>
+    <div class="stopdots" id="lmStops" role="group" aria-label="Puzzles in this chapter"></div>
+  </section>
+
+  <div class="note" id="dailyNote" hidden><span id="dailyNoteTxt"></span><span class="row"><button class="btn" id="peekBtn">Peek at the sign book</button><button class="btn" id="toJourney">Go to the journey</button></span></div>
+
+  <div class="bar" id="bar">
     <div class="row" id="endlessCtl" hidden>
       <select class="btn" id="themeSel" aria-label="Line">
         <option value="mixed">Mixed line</option><option value="stops">Stops &amp; buffers</option><option value="signals">Signals</option>
@@ -116,23 +150,25 @@ h1 span{color:var(--loco)}
     <span class="theme" id="themeTag"></span>
     <div class="row"><button class="btn" id="clearBtn">Clear track</button><span class="timer" id="timer">0:00</span></div>
   </div>
-  <div class="board"><svg id="svg" aria-label="Railway board. Drag from the station to lay track."></svg><div class="loading" id="loading" hidden>Laying track…</div></div>
+  <div class="board" id="boardBox"><svg id="svg" aria-label="Railway board. Drag from the station roundel to lay track."></svg><div class="loading" id="loading" hidden>Laying track…</div>
+    <div class="lockpanel" id="lockPanel" hidden><b>Endless lines are still under construction</b><span id="lockTxt"></span><button class="btn primary" id="lockGo">Back to the journey</button></div></div>
   <div class="hint" id="hint"></div>
   <section class="win" id="win" hidden></section>
   <details class="legend" id="legend">
-    <summary>Signs on the line</summary>
+    <summary id="legendSum">Sign book</summary>
     <ul>
-      <li data-k="base"><svg viewBox="-24 -24 48 48" id="lg-start"></svg><span>Drag from the <b>station</b> to the <b>terminus</b> poking off the edge. Track can't cross itself. Drag back to take track up, or use the arrow keys.</span></li>
+      <li data-k="base"><svg viewBox="-24 -24 48 48" id="lg-start"></svg><span>Drag from the <b>station roundel</b> and drive off the board at the <b>terminus</b>. Track can't run over itself. Drag back to take track up, or use the arrow keys.</span></li>
       <li data-k="stop"><svg viewBox="-24 -24 48 48" id="lg-stop"></svg><span><b>Stop.</b> The train must call here, at a junction or along a stretch of track.</span></li>
       <li data-k="buf"><svg viewBox="-24 -24 48 48" id="lg-buf"></svg><span><b>Buffers.</b> The line can't pass this junction.</span></li>
-      <li data-k="gap"><svg viewBox="-24 -24 48 48" id="lg-gap"></svg><span><b>Broken track.</b> You can only cross it by spending a spare rail.</span></li>
-      <li data-k="spare"><svg viewBox="-24 -24 48 48" id="lg-spare"></svg><span><b>Spare rails.</b> Pass this junction to pick up a spare. Each spare repairs one broken stretch further down the line, so collect it first.</span></li>
-      <li data-k="tun"><svg viewBox="-24 -24 48 48" id="lg-tun"></svg><span><b>Tunnel portal.</b> Pass it to pick up a tunnel. Later you can cross under your own track once, straight across a straight stretch, leaving a gap in your tail.</span></li>
+      <li data-k="gap"><svg viewBox="-24 -24 48 48" id="lg-gap"></svg><span><b>Broken track.</b> No line along this stretch, unless you're carrying a spare rail.</span></li>
       <li data-k="sig"><svg viewBox="-24 -24 48 48" id="lg-sig"></svg><span><b>Signal.</b> The route runs along exactly as many sides of this square as the signal has lamps.</span></li>
       <li data-k="stn"><svg viewBox="-24 -24 48 48" id="lg-stn"></svg><span><b>Stations.</b> Your route cuts the map into areas. Each area may only hold stations of one company colour.</span></li>
-      <li data-k="tkt"><svg viewBox="-24 -24 48 48" id="lg-tkt"></svg><span><b>Tickets.</b> Every ticket must share its area with exactly one other ticket of the same colour.</span></li>
       <li data-k="plat"><svg viewBox="-24 -24 48 48" id="lg-plat"></svg><span><b>Platform board.</b> The area holding this board is exactly that many squares.</span></li>
+      <li data-k="tkt"><svg viewBox="-24 -24 48 48" id="lg-tkt"></svg><span><b>Tickets.</b> Every ticket must share its area with exactly one other ticket of the same colour.</span></li>
+      <li data-k="spare"><svg viewBox="-24 -24 48 48" id="lg-spare"></svg><span><b>Spare rails.</b> Pass this junction to pick up a spare. Each spare repairs one broken stretch further down the line, so collect it first.</span></li>
+      <li data-k="tun"><svg viewBox="-24 -24 48 48" id="lg-tun"></svg><span><b>Tunnel portal.</b> Pass it to pick up a tunnel. Later you can cross under your own track once, straight across a straight stretch, leaving a gap in your tail.</span></li>
     </ul>
+    <div class="locked" id="legendLocked"></div>
   </details>
 </div>
 
@@ -218,11 +254,9 @@ function solve(G,P,clues,limit,maxNodes=400000){
   const nodes=[P.start],edges=[],sols=[];let count=0,aborted=false,carry=spare[P.start],tcarry=tun[P.start];vc[P.start]=1;
   (function dfs(n,forced){
     if(++count>maxNodes){aborted=true;return true}
-    if(n===P.end&&!forced){
-      for(const c of sigCells)if(sigN[c]!==sigK[c])return false;
+    if(n===P.end&&!forced&&sigCells.every(c=>sigN[c]===sigK[c])){
       const route={nodes:nodes.slice(),edges:edges.slice()};
-      if(checkRoute(G,P,route,clues)){sols.push(route);return sols.length>=limit}
-      return false}
+      if(checkRoute(G,P,route,clues)){sols.push(route);if(sols.length>=limit)return true}}
     for(const[m,e]of G.adj[n]){
       const d=m-n;if(forced&&d!==forced)continue;
       if(used[e]||blocked[m]||(broken[e]&&carry<1))continue;
@@ -251,90 +285,123 @@ const THEMES={
   tunnels:['tun','stop','buf','gap'],
   mixed:['stop','buf','gap','spare','tun','sig','stn','tkt','plat'],
 };
+const FOCUS={signals:'sig',stations:'stn',tickets:'tkt',platforms:'plat'};
+function themeSpec(theme,W,H){return{W,H,kinds:THEMES[theme],focus:FOCUS[theme],focusMin:FOCUS[theme]?2:0,cross:theme==='tunnels'?2:theme==='mixed'?-1:0,rep:theme==='repairs'?-2:theme==='mixed'?-3:0,theme}}
 
-function tryGen(rand,W,H,theme){
-  const ri=k=>Math.floor(rand()*k),pick=a=>a[ri(a.length)],G=geom(W,H);
-  // 1. a long random route between two boundary junctions
+// spec: {W,H,kinds,focus,focusMin,maxClues,cross,rep,len}
+//   cross: max tunnel crossings (exactly >=1 when >0); -1 = sometimes. rep: route repairs; negative = random up to |rep| (-3: 0 or 1)
+function tryGen(rand,spec){
+  const {W,H}=spec,kinds=spec.kinds,ri=k=>Math.floor(rand()*k),pick=a=>a[ri(a.length)],G=geom(W,H);
+  // 1. a random route between two boundary junctions
   const bnodes=[...Array(G.NN).keys()].filter(G.boundary);
-  const allowX=THEMES[theme].includes('tun')&&(theme==='tunnels'||rand()<0.4);
+  const maxX=spec.cross>0?spec.cross:spec.cross<0&&rand()<0.4?2:0,allowX=maxX>0;
   const start=pick(bnodes),vc=new Uint8Array(G.NN),inD=new Int16Array(G.NN),outD=new Int16Array(G.NN),usedE=new Uint8Array(G.NE);let path=[start];vc[start]=1;
-  let best=null,nx=0;const target=Math.floor(G.NN*(0.55+rand()*0.25))+(allowX?2:0);
+  let best=null,nx=0;const target=Math.max(2,Math.floor(G.NN*(spec.len||(0.55+rand()*0.25))))+(allowX?2:0);
   (function walk(n,forced){ if(best)return; let guard=0;
     if(!forced&&path.length>=target&&G.boundary(n)&&n!==start&&vc[n]===1&&(!allowX||nx>0)){best=path.slice();return}
     const opts=G.adj[n].filter(([m,e])=>{const d=m-n;if(forced&&d!==forced)return false;if(usedE[e])return false;
-      if(!vc[m])return true;return allowX&&nx<2&&vc[m]===1&&m!==start&&inD[m]===outD[m]&&Math.abs(inD[m])!==Math.abs(d)&&!G.boundary(m)}).sort(()=>rand()-0.5);
+      if(!vc[m])return true;return allowX&&nx<maxX&&vc[m]===1&&m!==start&&inD[m]===outD[m]&&Math.abs(inD[m])!==Math.abs(d)&&!G.boundary(m)}).sort(()=>rand()-0.5);
     for(const[m,e]of opts){if(++guard>2)break;const d=m-n,cross=vc[m]===1,oo=outD[n];if(!forced)outD[n]=d;if(!cross)inD[m]=d;if(cross)nx++;
       vc[m]++;usedE[e]=1;path.push(m);walk(m,cross?d:0);if(best)return;path.pop();usedE[e]=0;vc[m]--;if(cross)nx--;outD[n]=oo}
   })(start,0);
   if(!best)return null;
   const end=best[best.length-1];
   const sx=start%G.NW,sy=Math.floor(start/G.NW),ex=end%G.NW,ey=Math.floor(end/G.NW);
-  if(Math.abs(sx-ex)+Math.abs(sy-ey)<Math.max(W,H)-1)return null;
+  if(Math.abs(sx-ex)+Math.abs(sy-ey)<Math.max(1,Math.max(W,H)-1))return null;
   const edgeOf=(a,b)=>G.adj[a].find(([m])=>m===b)[1];
   const sol={nodes:best,edges:best.slice(1).map((n,k)=>edgeOf(best[k],n))};
   const used=new Uint8Array(G.NE);sol.edges.forEach(e=>used[e]=1);
   const onRoute=new Set(best),reg=regions(G,used),nReg=new Set(reg).size;
   const crossIdx=[];{const seen=new Set();best.forEach((n,k)=>{if(seen.has(n))crossIdx.push(k);seen.add(n)})}
-  if(['stations','tickets','platforms'].includes(theme)&&nReg<3)return null;
-  const P={W,H,start,end,theme,clues:[]};
+  if(['stn','tkt','plat'].includes(spec.focus)&&nReg<2)return null;
+  if(spec.focus==='tkt'&&W*H>4&&nReg<3)return null;
+  const P={W,H,start,end,theme:spec.theme,clues:[]};
   // a tunnel portal earlier on the line for every crossing
   for(const k of crossIdx){const firsts=best.slice(0,k).filter((n,j)=>best.indexOf(n)===j&&!P.clues.some(c=>c.node===n)&&!crossIdx.some(x=>best[x]===n));if(!firsts.length)return null;P.clues.push({t:'tun',node:pick(firsts),core:1})}
   // 2. candidate pool from the solution
-  const kinds=THEMES[theme],pool=[];
+  const pool=[];
   if(kinds.includes('stop')){best.slice(1,-1).forEach(n=>pool.push({t:'stop',node:n}));sol.edges.forEach(e=>pool.push({t:'stop',edge:e}))}
   if(kinds.includes('buf'))for(let n=0;n<G.NN;n++)if(!onRoute.has(n))pool.push({t:'buf',node:n});
   if(kinds.includes('gap'))for(let e=0;e<G.NE;e++)if(!used[e])pool.push({t:'gap',edge:e});
   if(kinds.includes('spare')){for(let n=0;n<G.NN;n++)if(!onRoute.has(n))pool.push({t:'spare',node:n});
     // route repairs: broken stretches on the route, each with a spare picked up earlier on the line
-    const nRep=theme==='repairs'?1+ri(2):(rand()<0.5?1:0);const taken=new Set();
-    for(let k=0;k<nRep;k++){const idx=3+ri(Math.max(1,sol.edges.length-4));if(idx>=sol.edges.length||taken.has(idx))continue;
+    const nRep=spec.rep>0?spec.rep:spec.rep===-3?(rand()<0.5?1:0):spec.rep<0?1+ri(-spec.rep):0;const taken=new Set();
+    for(let k=0;k<nRep;k++){const lo=Math.min(2,sol.edges.length-1),idx=lo+ri(Math.max(1,sol.edges.length-lo-1));if(idx>=sol.edges.length||taken.has(idx))continue;
       const before=best.slice(0,idx+1).filter((n,j)=>!P.clues.some(c=>c.node===n));if(!before.length)continue;
-      taken.add(idx);P.clues.push({t:'gap',edge:sol.edges[idx],core:1},{t:'spare',node:pick(before),core:1})}}
+      taken.add(idx);P.clues.push({t:'gap',edge:sol.edges[idx],core:1},{t:'spare',node:pick(before),core:1})}
+    if(spec.rep>0&&taken.size<spec.rep)return null}
   if(kinds.includes('tun'))for(let n=0;n<G.NN;n++)if(!onRoute.has(n))pool.push({t:'tun',node:n});
   if(kinds.includes('sig'))for(let c=0;c<W*H;c++){const k=G.cellEdges[c].filter(e=>used[e]).length;if(k>0)pool.push({t:'sig',cell:c,k})}
-  if(kinds.includes('stn')){const ids=[...new Set(reg)],col={};ids.forEach((id,k)=>col[id]=k%3===0?0:ri(3));for(let c=0;c<W*H;c++)pool.push({t:'stn',cell:c,col:col[reg[c]]})}
+  if(kinds.includes('stn')){const ids=[...new Set(reg)],col={};ids.forEach((id,k)=>col[id]=k%3===0?0:ri(3));if(new Set(Object.values(col)).size<2)col[ids[1]]=(col[ids[0]]+1)%3;for(let c=0;c<W*H;c++)pool.push({t:'stn',cell:c,col:col[reg[c]]})}
   if(kinds.includes('plat'))for(let c=0;c<W*H;c++){const k=reg.filter(x=>x===reg[c]).length;if(k<=9)pool.push({t:'plat',cell:c,k})}
   if(kinds.includes('tkt')){for(let a=0;a<W*H;a++)for(let b=a+1;b<W*H;b++)if(reg[a]===reg[b])for(let col=0;col<3;col++)pool.push({t:'tkt2',cells:[a,b],col})}
   const W8={stop:3,buf:3,gap:2,spare:2,tun:1,sig:5,stn:5,tkt2:6,plat:5};
-  const themeMain={signals:'sig',stations:'stn',tickets:'tkt2',platforms:'plat'}[theme];
-  if(themeMain)W8[themeMain]=12;
+  const fk=spec.focus==='tkt'?'tkt2':spec.focus;
+  if(fk)W8[fk]=12;
   const cellTaken=c=>P.clues.some(o=>o.cell===c);
   const expand=c=>c.t==='tkt2'?c.cells.map(cell=>({t:'tkt',cell,col:c.col})):[c];
   const fits=c=>{ if((c.cell!==undefined&&cellTaken(c.cell))||(c.cells&&c.cells.some(cellTaken)))return false;
     if(c.node!==undefined&&P.clues.some(o=>o.node===c.node))return false;if(c.edge!==undefined&&P.clues.some(o=>o.edge===c.edge))return false;
     return checkRoute(G,P,sol,[...P.clues,...expand(c)])};
   const add=list=>{let tot=list.reduce((s,c)=>s+W8[c.t],0),x=rand()*tot;for(const c of list){x-=W8[c.t];if(x<=0){P.clues.push(...expand(c));return}}P.clues.push(...expand(list[list.length-1]))};
-  // seed with a couple of theme signs so the day's idea shows up
-  if(themeMain){const seeds=pool.filter(c=>c.t===themeMain);for(let k=0;k<2;k++){const f=seeds.filter(fits);if(f.length)add(f)}}
+  // seed with the focus sign so the stage's idea shows up
+  if(fk){const seeds=pool.filter(c=>c.t===fk);for(let k=0;k<Math.max(1,spec.focusMin||0);k++){const f=seeds.filter(fits);if(f.length)add(f)}}
   for(let it=0;it<60;it++){
     const r=solve(G,P,P.clues,2,250000);
     if(r.count===1)break;if(r.count===0)return null;
     let cand;
     if(r.count===Infinity)cand=pool.filter(c=>['stop','buf','gap','sig'].includes(c.t)&&fits(c));
-    else{const alt=r.sols.find(s=>s.edges.join()!==sol.edges.join());cand=pool.filter(c=>fits(c)&&!checkRoute(G,P,alt,[...P.clues,...expand(c)]))}
+    else{const alt=r.sols.find(s=>s.edges.join()!==sol.edges.join()||s.nodes.join()!==sol.nodes.join());cand=pool.filter(c=>fits(c)&&!checkRoute(G,P,alt,[...P.clues,...expand(c)]))}
     if(!cand.length)return null;add(cand);
   }
   if(solve(G,P,P.clues,2).count!==1)return null;
-  // trim signs that aren't needed (ticket pairs go together)
-  const groups=[];P.clues.forEach(c=>{if(c.t==='tkt'){const g=groups.find(g=>g[0].t==='tkt'&&g[0].col===c.col&&g.length===1&&regions(G,used)[g[0].cell]===regions(G,used)[c.cell]);if(g){g.push(c);return}}groups.push([c])});
-  for(const g of groups.sort(()=>rand()-0.5)){if(g[0].core)continue;const rest=P.clues.filter(c=>!g.includes(c));if(themeMain&&g[0].t===({tkt2:'tkt'}[themeMain]||themeMain)&&rest.filter(c=>c.t===g[0].t).length<2)continue;
+  // trim signs that aren't needed (ticket pairs go together); keep at least focusMin of the focus sign
+  const R0=regions(G,used),groups=[];P.clues.forEach(c=>{if(c.t==='tkt'){const g=groups.find(g=>g[0].t==='tkt'&&g[0].col===c.col&&g.length===1&&R0[g[0].cell]===R0[c.cell]);if(g){g.push(c);return}}groups.push([c])});
+  const fUnit=spec.focus==='tkt'?2:1;
+  for(const g of groups.sort(()=>rand()-0.5)){if(g[0].core)continue;const rest=P.clues.filter(c=>!g.includes(c));
+    if(spec.focus&&g[0].t===spec.focus&&rest.filter(c=>c.t===spec.focus).length<(spec.focusMin||0)*fUnit)continue;
     if(solve(G,P,rest,2).count===1)P.clues=rest}
+  if(spec.focus&&P.clues.filter(c=>c.t===spec.focus).length<Math.max(1,spec.focusMin||0)*fUnit)return null;
+  if(spec.maxClues&&P.clues.length>spec.maxClues)return null;
+  P.clues.forEach(c=>delete c.core);
   P.sol=sol;return P;
 }
-function generate(seed,W,H,theme){for(let a=0;a<200;a++){const P=tryGen(mulberry(hseed(seed+'#'+a)),W,H,theme);if(P){P.seed=seed;return P}}return null}
+function generateSpec(seed,spec,tries=200){for(let a=0;a<tries;a++){const P=tryGen(mulberry(hseed(seed+'#'+a)),spec);if(P){P.seed=seed;return P}}return null}
+function generate(seed,W,H,theme){return generateSpec(seed,themeSpec(theme,W,H))}
 
+</script>
+<script>
+const JOURNEY=[{"id":"first","name":"First run","learn":["base"],"puzzles":[{"W":1,"H":1,"start":2,"end":1,"clues":[],"free":1},{"W":2,"H":1,"start":3,"end":2,"clues":[],"free":1},{"W":2,"H":2,"start":6,"end":2,"clues":[],"free":1}]},{"id":"stops","name":"Stops","learn":["stop"],"puzzles":[{"W":2,"H":1,"start":1,"end":2,"clues":[{"t":"stop","edge":5}],"sol":[1,4,5,2]},{"W":2,"H":2,"start":3,"end":5,"clues":[{"t":"stop","edge":5},{"t":"stop","edge":2}],"sol":[3,4,7,8,5]},{"W":3,"H":2,"start":2,"end":4,"clues":[{"t":"stop","edge":14},{"t":"stop","node":1},{"t":"stop","edge":6}],"sol":[2,1,5,9,8,4]},{"W":3,"H":3,"start":14,"end":4,"clues":[{"t":"stop","edge":8},{"t":"stop","edge":0},{"t":"stop","edge":14},{"t":"stop","edge":18}],"sol":[14,15,11,10,6,2,1,0,4]}]},{"id":"blocks","name":"Buffers & breaks","learn":["buf","gap"],"puzzles":[{"W":2,"H":2,"start":0,"end":8,"clues":[{"t":"buf","node":5},{"t":"buf","node":3}],"sol":[0,1,4,7,8]},{"W":2,"H":2,"start":5,"end":3,"clues":[{"t":"gap","edge":1},{"t":"gap","edge":3},{"t":"gap","edge":10}],"sol":[5,8,7,6,3]},{"W":3,"H":3,"start":11,"end":12,"clues":[{"t":"gap","edge":8},{"t":"buf","node":1},{"t":"buf","node":13},{"t":"gap","edge":6},{"t":"buf","node":6}],"sol":[11,15,14,10,9,5,4,8,12]},{"W":3,"H":3,"start":3,"end":12,"clues":[{"t":"gap","edge":23},{"t":"gap","edge":9},{"t":"stop","edge":17},{"t":"buf","node":6},{"t":"stop","node":14},{"t":"gap","edge":12}],"sol":[3,7,11,10,14,13,9,5,4,8,12]}]},{"id":"signals","name":"Signals","learn":["sig"],"puzzles":[{"W":2,"H":1,"start":4,"end":0,"clues":[{"t":"sig","cell":1,"k":1}],"sol":[4,1,0]},{"W":2,"H":2,"start":6,"end":5,"clues":[{"t":"sig","cell":0,"k":3},{"t":"sig","cell":2,"k":1}],"sol":[6,3,0,1,4,5]},{"W":3,"H":2,"start":2,"end":7,"clues":[{"t":"sig","cell":0,"k":3},{"t":"sig","cell":4,"k":1}],"sol":[2,1,0,4,5,6,7]},{"W":3,"H":3,"start":15,"end":13,"clues":[{"t":"sig","cell":2,"k":2},{"t":"sig","cell":6,"k":3},{"t":"sig","cell":3,"k":2},{"t":"sig","cell":5,"k":2},{"t":"stop","edge":14}],"sol":[15,11,7,6,2,1,5,9,8,12,13]},{"W":4,"H":4,"start":22,"end":1,"clues":[{"t":"sig","cell":15,"k":3},{"t":"sig","cell":13,"k":2},{"t":"stop","edge":1},{"t":"sig","cell":7,"k":1},{"t":"stop","node":6},{"t":"sig","cell":11,"k":1},{"t":"sig","cell":4,"k":1}],"sol":[22,21,16,11,6,7,12,17,18,23,24,19,14,9,4,3,2,1]}]},{"id":"stations","name":"Stations","learn":["stn"],"puzzles":[{"W":2,"H":2,"start":5,"end":0,"clues":[{"t":"stn","cell":2,"col":1},{"t":"stn","cell":3,"col":0},{"t":"stn","cell":0,"col":0}],"sol":[5,8,7,4,3,0]},{"W":3,"H":2,"start":10,"end":1,"clues":[{"t":"stn","cell":3,"col":0},{"t":"stn","cell":4,"col":1},{"t":"stn","cell":5,"col":0}],"sol":[10,6,5,9,8,4,0,1]},{"W":3,"H":3,"start":12,"end":11,"clues":[{"t":"stn","cell":7,"col":0},{"t":"stn","cell":5,"col":0},{"t":"stop","node":8},{"t":"stop","edge":21},{"t":"stop","node":0},{"t":"stn","cell":2,"col":2},{"t":"stop","edge":14}],"sol":[12,13,9,8,4,0,1,2,6,7,11]},{"W":4,"H":4,"start":24,"end":9,"clues":[{"t":"stn","cell":9,"col":0},{"t":"stop","edge":38},{"t":"stop","edge":33},{"t":"stop","edge":26},{"t":"buf","node":3},{"t":"stn","cell":1,"col":2},{"t":"stn","cell":0,"col":0},{"t":"stop","edge":16},{"t":"buf","node":16}],"sol":[24,19,14,13,18,23,22,21,20,15,10,5,0,1,6,11,12,7,8,9]}]},{"id":"platforms","name":"Platforms","learn":["plat"],"puzzles":[{"W":2,"H":2,"start":1,"end":7,"clues":[{"t":"plat","cell":2,"k":1}],"sol":[1,0,3,4,7]},{"W":3,"H":2,"start":8,"end":10,"clues":[{"t":"plat","cell":3,"k":2},{"t":"plat","cell":5,"k":2}],"sol":[8,9,5,1,2,6,10]},{"W":3,"H":3,"start":0,"end":8,"clues":[{"t":"plat","cell":8,"k":3},{"t":"plat","cell":6,"k":6},{"t":"plat","cell":2,"k":3}],"sol":[0,1,2,6,10,14,13,12,8]},{"W":4,"H":4,"start":23,"end":10,"clues":[{"t":"plat","cell":5,"k":4},{"t":"stop","edge":30},{"t":"plat","cell":9,"k":4},{"t":"stop","edge":17}],"sol":[23,18,13,12,7,6,11,16,17,22,21,20,15,10]}]},{"id":"tickets","name":"Tickets","learn":["tkt"],"puzzles":[{"W":2,"H":2,"start":1,"end":5,"clues":[{"t":"tkt","cell":1,"col":0},{"t":"tkt","cell":2,"col":0},{"t":"stop","edge":10}],"sol":[1,0,3,6,7,4,5]},{"W":3,"H":2,"start":3,"end":4,"clues":[{"t":"tkt","cell":0,"col":2},{"t":"tkt","cell":4,"col":2},{"t":"tkt","cell":1,"col":1},{"t":"tkt","cell":2,"col":1},{"t":"stop","edge":14},{"t":"stop","edge":15}],"sol":[3,7,6,10,9,5,4]},{"W":3,"H":3,"start":15,"end":1,"clues":[{"t":"tkt","cell":1,"col":2},{"t":"tkt","cell":2,"col":2},{"t":"tkt","cell":4,"col":0},{"t":"tkt","cell":8,"col":0},{"t":"stop","node":10},{"t":"stop","edge":20},{"t":"stop","edge":13}],"sol":[15,14,10,9,13,12,8,4,5,1]},{"W":4,"H":4,"start":1,"end":23,"clues":[{"t":"buf","node":5},{"t":"tkt","cell":2,"col":2},{"t":"tkt","cell":13,"col":2},{"t":"stop","node":18},{"t":"tkt","cell":6,"col":1},{"t":"tkt","cell":8,"col":1},{"t":"tkt","cell":0,"col":1},{"t":"tkt","cell":4,"col":1},{"t":"stop","node":24},{"t":"buf","node":21}],"sol":[1,6,11,10,15,16,17,18,13,8,7,2,3,4,9,14,19,24,23]}]},{"id":"spares","name":"Spare rails","learn":["spare"],"puzzles":[{"W":2,"H":2,"start":8,"end":3,"clues":[{"t":"gap","edge":9},{"t":"spare","node":8},{"t":"stop","edge":4},{"t":"gap","edge":11}],"sol":[8,7,6,3]},{"W":3,"H":2,"start":10,"end":7,"clues":[{"t":"gap","edge":13},{"t":"spare","node":9},{"t":"stop","node":0},{"t":"gap","edge":11},{"t":"stop","edge":10}],"sol":[10,9,8,4,0,1,5,6,7]},{"W":3,"H":3,"start":1,"end":11,"clues":[{"t":"gap","edge":6},{"t":"spare","node":9},{"t":"gap","edge":20},{"t":"spare","node":8},{"t":"stop","edge":13},{"t":"stop","edge":17},{"t":"stop","edge":11},{"t":"stop","node":12}],"sol":[1,5,9,8,12,13,14,15,11]},{"W":4,"H":4,"start":21,"end":4,"clues":[{"t":"gap","edge":30},{"t":"spare","node":16},{"t":"gap","edge":39},{"t":"spare","node":15},{"t":"stop","edge":22},{"t":"stop","edge":24},{"t":"stop","edge":19},{"t":"buf","node":5},{"t":"stop","edge":18},{"t":"buf","node":13},{"t":"stop","edge":8}],"sol":[21,16,15,10,11,6,1,2,7,12,17,22,23,24,19,14,9,4]}]},{"id":"tunnels","name":"Tunnels","learn":["tun"],"puzzles":[{"W":2,"H":2,"start":5,"end":8,"clues":[{"t":"tun","node":5},{"t":"stop","edge":7},{"t":"stop","edge":10},{"t":"stop","edge":3}],"sol":[5,4,3,0,1,4,7,8]},{"W":3,"H":3,"start":1,"end":3,"clues":[{"t":"tun","node":7},{"t":"stop","edge":11},{"t":"stop","edge":22},{"t":"stop","edge":2},{"t":"stop","edge":18},{"t":"stop","edge":3}],"sol":[1,0,4,5,6,7,11,15,14,10,6,2,3]},{"W":3,"H":3,"start":4,"end":7,"clues":[{"t":"tun","node":8},{"t":"stop","edge":14},{"t":"stop","edge":16},{"t":"stop","edge":1},{"t":"stop","edge":4},{"t":"stop","edge":21},{"t":"stop","edge":11}],"sol":[4,8,9,13,14,15,11,10,6,2,1,5,6,7]},{"W":4,"H":4,"start":1,"end":21,"clues":[{"t":"tun","node":11},{"t":"stop","edge":36},{"t":"stop","edge":33},{"t":"stop","edge":24},{"t":"stop","edge":37},{"t":"gap","edge":4},{"t":"stop","edge":6},{"t":"stop","edge":15},{"t":"stop","edge":30},{"t":"stop","node":12},{"t":"gap","edge":8}],"sol":[1,0,5,10,15,16,17,22,23,24,19,18,13,14,9,4,3,8,7,12,11,16,21]}]},{"id":"grand","name":"Grand junction","learn":[],"puzzles":[{"W":4,"H":4,"start":1,"end":4,"clues":[{"t":"plat","cell":13,"k":1},{"t":"stop","edge":25},{"t":"stop","edge":38},{"t":"buf","node":6},{"t":"sig","cell":6,"k":1},{"t":"stop","edge":24},{"t":"stop","node":19}],"sol":[1,0,5,10,15,20,21,16,17,22,23,18,19,14,13,8,9,4]},{"W":4,"H":4,"start":21,"end":1,"clues":[{"t":"sig","cell":4,"k":1},{"t":"sig","cell":0,"k":2},{"t":"stop","edge":34},{"t":"tkt","cell":7,"col":1},{"t":"tkt","cell":9,"col":1},{"t":"buf","node":7},{"t":"stop","edge":13},{"t":"sig","cell":14,"k":1}],"sol":[21,22,23,24,19,14,13,12,17,16,15,10,5,0,1]},{"W":4,"H":4,"start":3,"end":21,"clues":[{"t":"plat","cell":12,"k":5},{"t":"stop","edge":38},{"t":"plat","cell":1,"k":9},{"t":"plat","cell":4,"k":1}],"sol":[3,2,1,0,5,6,11,10,15,16,17,12,13,14,19,18,23,22,21]},{"W":5,"H":5,"start":34,"end":17,"clues":[{"t":"tun","node":27},{"t":"tkt","cell":10,"col":1},{"t":"tkt","cell":24,"col":1},{"t":"stop","edge":31},{"t":"stop","edge":15},{"t":"buf","node":23},{"t":"stop","edge":25},{"t":"buf","node":10},{"t":"gap","edge":32},{"t":"gap","edge":10},{"t":"sig","cell":16,"k":3},{"t":"sig","cell":11,"k":2},{"t":"sig","cell":2,"k":3},{"t":"buf","node":22}],"sol":[34,28,27,33,32,31,30,24,25,26,20,19,18,12,6,7,8,9,3,2,1,7,13,14,15,16,17]}]}];
 </script>
 <script>
 const S=70,M=40,$=id=>document.getElementById(id);
 const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const THEME_NAMES={stops:'Stops & buffers',signals:'Signals',stations:'Stations',tickets:'Tickets',platforms:'Platforms',mixed:'Mixed line',repairs:'Repairs',tunnels:'Tunnels'};
 const DAY_THEMES=['mixed','stops','signals','stations','tickets','platforms','sat'];
-let G,P,st,mode='daily',route=[],drawing=false,partial=null,badClues=[],timerInt=null,anim=null;
+const SIGN_NAMES={stop:'Stops',buf:'Buffers',gap:'Broken track',sig:'Signals',stn:'Stations',plat:'Platform boards',tkt:'Tickets',spare:'Spare rails',tun:'Tunnels'};
+const ALL_SIGNS=Object.keys(SIGN_NAMES);
+let G,P,st,mode='journey',route=[],drawing=false,partial=null,badClues=[],timerInt=null,anim=null,EX=0,dailyPeek=false;
 
-const np=n=>({x:M+(n%G.NW)*S,y:M+Math.floor(n/G.NW)*S});
+// ---- journey progress ----
+const FLAT=JOURNEY.flatMap((ch,ci)=>ch.puzzles.map((_,pi)=>({ci,pi})));
+let J=store.get('whistlestop-journey')||{solved:{},learned:[]};if(!J.solved)J.solved={};if(!J.learned)J.learned=[];
+const jKey=(ci,pi)=>ci+'.'+pi;
+const jSolved=(ci,pi)=>!!J.solved[jKey(ci,pi)];
+const jIdx=(ci,pi)=>FLAT.findIndex(x=>x.ci===ci&&x.pi===pi);
+const jUnlocked=(ci,pi)=>{const k=jIdx(ci,pi);return k===0||jSolved(FLAT[k-1].ci,FLAT[k-1].pi)};
+const jDone=()=>FLAT.every(x=>jSolved(x.ci,x.pi));
+const jNext=()=>FLAT.find(x=>!jSolved(x.ci,x.pi))||FLAT[FLAT.length-1];
+const chDone=ci=>JOURNEY[ci].puzzles.every((_,pi)=>jSolved(ci,pi));
+const jCount=()=>FLAT.filter(x=>jSolved(x.ci,x.pi)).length;
+let jCur=jNext();
+function jSave(){store.set('whistlestop-journey',J)}
+
+const np=n=>{if(n===EX){const ep=np(P.end),[dx,dy]=exitDir();return{x:ep.x+dx*S*.62,y:ep.y+dy*S*.62}}return{x:M+(n%G.NW)*S,y:M+Math.floor(n/G.NW)*S}};
 const cc=c=>({x:M+(c%G.W)*S+S/2,y:M+Math.floor(c/G.W)*S+S/2});
 const em=e=>{const[a,b]=G.ends[e];const p=np(a),q=np(b);return{x:(p.x+q.x)/2,y:(p.y+q.y)/2,a:p,b:q}};
-const edgeOf=(a,b)=>{const f=G.adj[a].find(([m])=>m===b);return f?f[1]:-1};
+const edgeOf=(a,b)=>{if(a===EX||b===EX)return -9;const f=G.adj[a].find(([m])=>m===b);return f?f[1]:-1};
+function exitDir(){const x=P.end%G.NW,y=Math.floor(P.end/G.NW);if(x===G.W)return[1,0];if(x===0)return[-1,0];return[0,y===0?-1:1]}
+const nbrs=h=>h===EX?[P.end]:G.adj[h].map(([m])=>m).concat(h===P.end?[EX]:[]);
 
 // ---- sign drawings (centred at 0,0) ----
 const D={
@@ -348,32 +415,76 @@ const D={
   plat:k=>`<g class="plat"><line x1="-7" y1="8" x2="-7" y2="20"/><line x1="7" y1="8" x2="7" y2="20"/><rect x="-14" y="-12" width="28" height="22" rx="4"/><text y="-1">${k}</text></g>`,
 };
 function startSVG(){return `<circle class="ring" r="15"/><rect class="bar2" x="-20" y="-4.5" width="40" height="9" rx="2"/>`}
+const ICON={base:()=>`<g transform="scale(.9)">${startSVG()}</g>`,stop:()=>`<line x1="-22" y1="0" x2="22" y2="0" class="slot"/>${D.stop()}`,buf:()=>D.buf(),
+  gap:()=>`<line class="gapmark" x1="-22" y1="0" x2="-7" y2="0"/><line class="gapmark" x1="7" y1="0" x2="22" y2="0"/><circle class="rubble" cx="-2" cy="2" r="2.2"/><circle class="rubble" cx="3" cy="-2" r="1.6"/>`,
+  sig:()=>D.sig(2),stn:()=>D.stn(0),plat:()=>D.plat(4),tkt:()=>D.tkt(2),spare:()=>D.spare(),tun:()=>D.tun()};
 
 function dayInfo(){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
   const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`,wk=t.getDay();
   const num=Math.round((t-s)/864e5)+1;return{num,iso,theme:DAY_THEMES[wk]==='sat'?(Math.floor(num/7)%2?'repairs':'tunnels'):DAY_THEMES[wk],N:(wk===0||wk===6)?5:4,label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
 
-function load(m,code){
-  mode=m;$('tDaily').setAttribute('aria-pressed',m==='daily');$('tEndless').setAttribute('aria-pressed',m==='endless');$('endlessCtl').hidden=m!=='endless';
-  stopTimer();if(anim)cancelAnimationFrame(anim);$('win').hidden=true;$('loading').hidden=false;$('svg').innerHTML='';
-  setTimeout(()=>{
-    let saved=null,theme,N,seed;
-    if(m==='daily'){const d=dayInfo();theme=d.theme;N=d.N;seed='whistlestop-'+d.iso;P=generate(seed,N,N,theme);P.label=`#${d.num} · ${d.label}`;P.iso=d.iso;
-      $('sub').textContent='Daily line '+P.label;saved=store.get('whistlestop-daily-v2');if(saved&&saved.iso!==d.iso)saved=null}
-    else{const c=code||Math.random().toString(36).slice(2,7);theme=$('themeSel').value;N=+$('sizeSel').value;
-      P=generate('ws-endless-'+c+theme+N,N,N,theme);P.code=c+Object.keys(THEME_NAMES).indexOf(theme)+N;P.label='Endless · '+P.code;$('sub').textContent='Endless mode · route '+P.code;
-      try{history.replaceState(null,'','#'+P.code)}catch(e){}}
-    G=geom(P.W,P.H);
-    st=saved?saved.st:{route:[P.start],tries:[],elapsed:0,started:false,solved:false};
-    route=st.route.slice();partial=null;badClues=[];
-    $('themeTag').textContent=THEME_NAMES[P.theme];
-    const kinds=new Set(P.clues.map(c=>c.t));document.querySelectorAll('.legend li').forEach(li=>{const k=li.dataset.k;li.classList.toggle('off',k!=='base'&&!kinds.has(k))});
-    $('loading').hidden=true;render();tick();
-    if(st.solved)showWin(false);else if(st.started)startTimer();
-    hint(route.length>1?'':'Drag from the station roundel to start laying track.');
+function setMode(m){mode=m;['Journey','Daily','Endless'].forEach(x=>$('t'+x).setAttribute('aria-pressed',m===x.toLowerCase()));
+  $('endLock').hidden=jDone();$('endlessCtl').hidden=m!=='endless'||!jDone();$('lineMap').hidden=m!=='journey';$('timer').hidden=m==='journey';
+  $('dailyNote').hidden=true;$('lockPanel').hidden=true;$('svg').style.display='';stopTimer();if(anim)cancelAnimationFrame(anim);$('win').hidden=true}
+
+function setPuzzle(puz,state){
+  P=puz;G=geom(P.W,P.H);EX=G.NN;st=state;route=st.route.slice();partial=null;badClues=[];
+  $('loading').hidden=true;render();tick();refreshLegend();
+  if(st.solved)showWin(false);else if(st.started&&mode!=='journey')startTimer();
+}
+function openJourney(ci,pi){
+  setMode('journey');jCur={ci,pi};const ch=JOURNEY[ci],pz=ch.puzzles[pi];
+  const solvedRoute=J.solved[jKey(ci,pi)];
+  $('sub').textContent=`The journey · stop ${jIdx(ci,pi)+1} of ${FLAT.length}`;$('themeTag').textContent=ch.name;
+  setPuzzle({...pz,label:`${ch.name} ${pi+1}`},{route:Array.isArray(solvedRoute)?solvedRoute:[pz.start],tries:[],elapsed:0,started:false,solved:!!solvedRoute});
+  renderMap();
+  if(!st.solved)hint(jIdx(ci,pi)===0?'Drag from the roundel and drive off the edge at the end of the line.':'');
+}
+function loadDaily(){
+  setMode('daily');$('loading').hidden=false;$('svg').innerHTML='';
+  setTimeout(()=>{const d=dayInfo();const pz=generate('whistlestop-'+d.iso,d.N,d.N,d.theme);pz.label=`#${d.num} · ${d.label}`;pz.iso=d.iso;
+    $('sub').textContent='Daily line '+pz.label;$('themeTag').textContent=THEME_NAMES[pz.theme];
+    let saved=store.get('whistlestop-daily-v3');if(saved&&saved.iso!==d.iso)saved=null;
+    setPuzzle(pz,saved?saved.st:{route:[pz.start],tries:[],elapsed:0,started:false,solved:false});
+    const unknown=[...new Set(P.clues.map(c=>c.t))].filter(k=>!J.learned.includes(k));
+    if(unknown.length&&!st.solved){$('dailyNote').hidden=false;$('dailyNoteTxt').textContent=`Today's line uses ${unknown.length===1?'a sign':'signs'} you haven't met on the journey yet. Experiment, or learn ${unknown.length===1?'it':'them'} first.`}
+    if(!st.solved&&route.length<2)hint('Drag from the roundel and drive off the edge at the end of the line.');
   },30);
 }
-function persist(){st.route=route.slice();if(mode==='daily')store.set('whistlestop-daily-v2',{iso:P.iso,st})}
+function loadEndless(code){
+  setMode('endless');
+  if(!jDone()){$('lockPanel').hidden=false;$('svg').style.display='none';$('hint').textContent='';$('themeTag').textContent='Locked';
+    $('lockTxt').textContent=`Finish the journey to open endless lines. You've reached ${jCount()} of ${FLAT.length} stops.`;$('sub').textContent='Endless mode';refreshLegend();return}
+  $('loading').hidden=false;$('svg').innerHTML='';
+  setTimeout(()=>{const c=code||Math.random().toString(36).slice(2,7),theme=$('themeSel').value,N=+$('sizeSel').value;
+    const pz=generate('ws-endless-'+c+theme+N,N,N,theme);pz.code=c+Object.keys(THEME_NAMES).indexOf(theme)+N;pz.label='Endless · '+pz.code;
+    $('sub').textContent='Endless mode · route '+pz.code;$('themeTag').textContent=THEME_NAMES[pz.theme];try{history.replaceState(null,'','#'+pz.code)}catch(e){}
+    setPuzzle(pz,{route:[pz.start],tries:[],elapsed:0,started:false,solved:false});hint('');
+  },30);
+}
+function persist(){if(mode==='daily'){st.route=route.slice();store.set('whistlestop-daily-v3',{iso:P.iso,st})}}
+
+// ---- journey map ----
+function renderMap(){
+  let r='';JOURNEY.forEach((ch,ci)=>{const done=chDone(ci),un=jUnlocked(ci,0);
+    if(ci)r+=`<span class="seg ${chDone(ci-1)?'done':''}"></span>`;
+    r+=`<button class="chap ${done?'done':''} ${ci===jCur.ci?'cur':''}" data-ch="${ci}" ${un?'':'disabled'} title="${un?ch.name:'Not reached yet'}" aria-label="Chapter ${ci+1}${un?': '+ch.name:', locked'}">${ci+1}</button>`});
+  $('lmRail').innerHTML=r;
+  const ch=JOURNEY[jCur.ci];$('lmTitle').textContent=`Chapter ${jCur.ci+1} · ${ch.name}`;
+  $('lmCount').textContent=`${jCount()} / ${FLAT.length} stops`;
+  $('lmStops').innerHTML=ch.puzzles.map((_,pi)=>{const sv=jSolved(jCur.ci,pi),un=jUnlocked(jCur.ci,pi);
+    return `<button class="sd ${sv?'solved':''} ${pi===jCur.pi?'cur':''}" data-pi="${pi}" ${un?'':'disabled'} aria-label="Puzzle ${pi+1}${sv?', solved':un?'':', locked'}">${pi+1}</button>`}).join('');
+}
+$('lmRail').addEventListener('click',e=>{const b=e.target.closest('[data-ch]');if(!b||b.disabled)return;const ci=+b.dataset.ch,ch=JOURNEY[ci];
+  const pi=ch.puzzles.findIndex((_,k)=>!jSolved(ci,k));openJourney(ci,pi<0?0:pi)});
+$('lmStops').addEventListener('click',e=>{const b=e.target.closest('[data-pi]');if(!b||b.disabled)return;openJourney(jCur.ci,+b.dataset.pi)});
+
+// ---- sign book ----
+function refreshLegend(){const onBoard=new Set(P?P.clues.map(c=>c.t):[]),peek=mode==='daily'&&dailyPeek;
+  let shown=0;document.querySelectorAll('.legend li').forEach(li=>{const k=li.dataset.k,vis=k==='base'||J.learned.includes(k)||(peek&&onBoard.has(k));li.classList.toggle('off',!vis);if(k!=='base'&&vis)shown++});
+  const learned=ALL_SIGNS.filter(k=>J.learned.includes(k)).length;
+  $('legendSum').textContent=`Sign book · ${learned} of ${ALL_SIGNS.length} pages`;
+  $('legendLocked').textContent=learned<ALL_SIGNS.length?'More pages fill in as you work out each new sign on the journey.':''}
 
 function render(){
   const Wd=M*2+G.W*S,Hd=M*2+G.H*S;$('svg').setAttribute('viewBox',`0 0 ${Wd} ${Hd}`);
@@ -384,24 +495,21 @@ function render(){
     if(gaps.has(e)){const ax=m.a.x+(m.b.x-m.a.x)*.32,ay=m.a.y+(m.b.y-m.a.y)*.32,bx=m.a.x+(m.b.x-m.a.x)*.68,by=m.a.y+(m.b.y-m.a.y)*.68;
       s+=`<line class="gapmark" x1="${m.a.x}" y1="${m.a.y}" x2="${ax}" y2="${ay}"/><line class="gapmark" x1="${bx}" y1="${by}" x2="${m.b.x}" y2="${m.b.y}"/><circle class="rubble" cx="${m.x-3}" cy="${m.y+2}" r="2.2"/><circle class="rubble" cx="${m.x+3}" cy="${m.y-2}" r="1.6"/>`}
     else s+=`<line class="slot" x1="${m.a.x}" y1="${m.a.y}" x2="${m.b.x}" y2="${m.b.y}"/>`}
-  // terminus stub, pointing off the board
-  const ep=np(P.end),ex=P.end%G.NW,ey=Math.floor(P.end/G.NW);let dx=ex===0?-1:ex===G.W?1:0,dy=dx?0:(ey===0?-1:1);
-  s+=`<line class="slot" x1="${ep.x}" y1="${ep.y}" x2="${ep.x+dx*26}" y2="${ep.y+dy*26}" style="stroke-dasharray:none;stroke-width:5"/><rect class="term" x="${ep.x+dx*26-7}" y="${ep.y+dy*26-7}" width="14" height="14" rx="3"/>`;
+  // the line runs off the board here
+  const ep=np(P.end),xp=np(EX),[dx,dy]=exitDir();
+  s+=`<line class="slot" x1="${ep.x}" y1="${ep.y}" x2="${xp.x}" y2="${xp.y}" style="stroke-dasharray:none;stroke-width:5"/><g transform="translate(${xp.x},${xp.y}) rotate(${Math.atan2(dy,dx)*180/Math.PI})"><rect class="term" x="-3" y="-11" width="7" height="22" rx="2"/><path d="M8,-6L14,0L8,6" fill="none" stroke="var(--rail)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>`;
   // track
   const pts=route.map(np);if(partial)pts.push(partial);
   if(pts.length>1){const d=pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
     s+=`<polyline class="ballast" points="${d}"/><polyline class="sleepers" points="${d}"/><polyline class="rails" points="${d}"/><polyline class="railgap" points="${d}"/>`;
-    // repaired stretches get bright new rails
-    route.slice(1).forEach((n,k)=>{const e=edgeOf(route[k],n);if(brokenE(e)){const a=np(route[k]),b=np(n);s+=`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="var(--lamp)" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 4"/>`}});
-    // tunnels: the later pass dives under the tail, leaving a gap in the earlier track
+    route.slice(1).forEach((n,k)=>{const e=edgeOf(route[k],n);if(e>=0&&brokenE(e)){const a=np(route[k]),b=np(n);s+=`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="var(--lamp)" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 4"/>`}});
     route.forEach((n,k)=>{const j=route.indexOf(n);if(j===k||k>=route.length-1&&!partial)return;const p=np(n),ax=route[j+1]-route[j],horiz=Math.abs(ax)===1;
-      const L=26,Wd=24,dl=route[k]-route[k-1],lh=Math.abs(dl)===1;
-      s+=`<rect x="${p.x-(horiz?L:Wd/2)}" y="${p.y-(horiz?Wd/2:L)}" width="${horiz?2*L:Wd}" height="${horiz?Wd:2*L}" fill="var(--field)"/>`;
+      const L=26,Wd2=24,dl=route[k]-route[k-1],lh=Math.abs(dl)===1;
+      s+=`<rect x="${p.x-(horiz?L:Wd2/2)}" y="${p.y-(horiz?Wd2/2:L)}" width="${horiz?2*L:Wd2}" height="${horiz?Wd2:2*L}" fill="var(--field)"/>`;
       const q1={x:p.x-(lh?L:0),y:p.y-(lh?0:L)},q2={x:p.x+(lh?L:0),y:p.y+(lh?0:L)},seg=`${q1.x},${q1.y} ${q2.x},${q2.y}`;
       s+=`<polyline class="ballast" points="${seg}" style="stroke-linecap:butt"/><polyline class="sleepers" points="${seg}"/><polyline class="rails" points="${seg}" style="stroke-linecap:butt"/><polyline class="railgap" points="${seg}" style="stroke-linecap:butt"/>`;
       for(const sg of [-1,1]){const cx=p.x+(horiz?sg*L:0),cy=p.y+(horiz?0:sg*L),rot=horiz?(sg<0?90:-90):(sg<0?180:0);
         s+=`<path transform="translate(${cx},${cy}) rotate(${rot})" d="M-11,0A11,11 0 0 1 11,0" fill="none" stroke="var(--rail)" stroke-width="4" stroke-linecap="round"/>`}})}
-  // signs
   const isBad=c=>badClues.includes(c);
   P.clues.forEach(c=>{let p,svg;
     if(c.t==='gap')return;
@@ -414,7 +522,6 @@ function render(){
   s+=`<g id="train">${trainSVG(pts)}</g>`;
   $('svg').innerHTML=s;
 }
-// locomotive at the head of the line, one carriage behind
 function along(pts,back){let rem=back;for(let k=pts.length-1;k>0;k--){const a=pts[k-1],b=pts[k],L=Math.hypot(b.x-a.x,b.y-a.y);if(L>=rem){const t=rem/L;return{x:b.x+(a.x-b.x)*t,y:b.y+(a.y-b.y)*t,ang:Math.atan2(b.y-a.y,b.x-a.x)}}rem-=L}
   const a=pts[0],b=pts[1]||{x:a.x+1,y:a.y};return{x:a.x,y:a.y,ang:Math.atan2(b.y-a.y,b.x-a.x)}}
 function trainSVG(pts){if(pts.length<2)return'';const total=pts.slice(1).reduce((s,p,k)=>s+Math.hypot(p.x-pts[k].x,p.y-pts[k].y),0);
@@ -427,87 +534,113 @@ function trainSVG(pts){if(pts.length<2)return'';const total=pts.slice(1).reduce(
 function svgPt(e){const r=$('svg').getBoundingClientRect(),vb=$('svg').viewBox.baseVal;return{x:(e.clientX-r.left)/r.width*vb.width,y:(e.clientY-r.top)/r.height*vb.height}}
 const blockedN=n=>P.clues.some(c=>c.t==='buf'&&c.node===n);
 const brokenE=e=>P.clues.some(c=>c.t==='gap'&&c.edge===e);
-function carry(){return walkRoute(G,{nodes:route,edges:route.slice(1).map((n,k)=>edgeOf(route[k],n))},P.clues)}
+const plain=()=>route.filter(n=>n!==EX);
+function carry(){const r=plain();return walkRoute(G,{nodes:r,edges:r.slice(1).map((n,k)=>edgeOf(r[k],n))},P.clues)}
 const routeEdges=()=>new Set(route.slice(1).map((n,k)=>edgeOf(route[k],n)));
-function canGo(h,m){const e=edgeOf(h,m);if(e<0||blockedN(m)||routeEdges().has(e))return false;const c=carry(),d=m-h;
-  // after diving under the track, the line must carry straight on
-  const hk=route.length-1;if(route.indexOf(h)<hk&&hk>0&&d!==h-route[hk-1])return false;
-  if(brokenE(e)&&c.spares<1)return false;
-  if(!route.includes(m))return true;
-  const j=route.indexOf(m);if(route.lastIndexOf(m)!==j||m===P.start||m===P.end||c.tuns<1||j===0)return false;
-  const a=route[j]-route[j-1],b=route[j+1]-route[j];return a===b&&Math.abs(a)!==Math.abs(d)}
+// how far the head may run toward m: 1 = all the way, less = it bonks partway, 0 = not at all
+function reach(h,m){
+  if(h===EX)return 0;
+  if(m===EX)return h===P.end?1:0;
+  const e=edgeOf(h,m);if(e<0||routeEdges().has(e))return 0;
+  const hk=route.length-1,d=m-h;if(route.indexOf(h)<hk&&hk>0&&d!==h-route[hk-1])return 0; // after a tunnel the line carries straight on
+  const c=carry();
+  if(brokenE(e)&&c.spares<1)return .3;
+  if(blockedN(m))return .5;
+  if(!route.includes(m))return 1;
+  const j=route.indexOf(m);
+  if(route.lastIndexOf(m)!==j||m===P.start||m===P.end||c.tuns<1||j===0)return .62;
+  const a=route[j]-route[j-1],b=route[j+1]-route[j];return a===b&&Math.abs(a)!==Math.abs(d)?1:.62}
+const canGo=(h,m)=>reach(h,m)>=1;
 function steer(p){
   partial=null;
   for(let guard=0;guard<40;guard++){
-    const h=route[route.length-1],H=np(h);if(h===P.end&&route.length>1){ // allow backing out of the terminus
-      const prev=route[route.length-2],Q=np(prev),vx=Q.x-H.x,vy=Q.y-H.y,L=S,t=((p.x-H.x)*vx+(p.y-H.y)*vy)/(L*L);if(t>0.5){route.pop();continue}return}
-    let best=null;
-    for(const[m]of G.adj[h]){const Q=np(m),vx=Q.x-H.x,vy=Q.y-H.y,t=((p.x-H.x)*vx+(p.y-H.y)*vy)/(S*S),px=H.x+vx*t,py=H.y+vy*t,d=Math.hypot(p.x-px,p.y-py);
-      if(t<=0.05||d>S*0.5)continue;const back=route.length>1&&m===route[route.length-2];
-      if(back||canGo(h,m))if(!best||t>best.t)best={m,t,back,vx,vy}}
+    const h=route[route.length-1],H=np(h);let best=null;
+    for(const m of nbrs(h)){const Q=np(m),vx=Q.x-H.x,vy=Q.y-H.y,L2=vx*vx+vy*vy,t=((p.x-H.x)*vx+(p.y-H.y)*vy)/L2,px=H.x+vx*t,py=H.y+vy*t,d=Math.hypot(p.x-px,p.y-py);
+      if(t<=0.05||d>S*0.5)continue;const back=route.length>1&&m===route[route.length-2],lim=back?1:reach(h,m);
+      if(lim<=0)continue;if(!best||t>best.t)best={m,t,back,vx,vy,lim}}
     if(!best)return;
     if(best.back){if(best.t>0.5){route.pop();continue}return}
-    if(best.t>0.9){route.push(best.m);if(!st.started){st.started=true;startTimer()}if(best.m===P.end)return;continue}
+    if(best.lim<1){const t=Math.min(best.t,best.lim);partial={x:H.x+best.vx*t,y:H.y+best.vy*t};return}
+    if(best.t>0.9){route.push(best.m);if(!st.started){st.started=true;if(mode!=='journey')startTimer()}if(best.m===EX)return;continue}
     partial={x:H.x+best.vx*best.t,y:H.y+best.vy*best.t};return}
 }
-$('svg').addEventListener('pointerdown',e=>{if(st.solved||!P)return;const p=svgPt(e),h=np(route[route.length-1]),s0=np(P.start);
+$('svg').addEventListener('pointerdown',e=>{if(!P||st.solved)return;const p=svgPt(e),h=np(route[route.length-1]),s0=np(P.start);
   if(Math.hypot(p.x-h.x,p.y-h.y)<28){drawing=true}else if(Math.hypot(p.x-s0.x,p.y-s0.y)<28){route=[P.start];drawing=true}else return;
   badClues=[];e.preventDefault();try{$('svg').setPointerCapture(e.pointerId)}catch(err){}steer(p);render()});
 $('svg').addEventListener('pointermove',e=>{if(!drawing)return;steer(svgPt(e));render()});
 const up=()=>{if(!drawing)return;drawing=false;partial=null;render();persist();arrive()};
 $('svg').addEventListener('pointerup',up);$('svg').addEventListener('pointercancel',up);
-document.addEventListener('keydown',e=>{if(!P||st.solved)return;const dir={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];if(!dir)return;e.preventDefault();
-  const h=route[route.length-1],x=h%G.NW+dir[0],y=Math.floor(h/G.NW)+dir[1];if(x<0||y<0||x>G.W||y>G.H)return;const m=y*G.NW+x;badClues=[];
-  if(route.length>1&&m===route[route.length-2])route.pop();else if(h!==P.end&&canGo(h,m)){route.push(m);if(!st.started){st.started=true;startTimer()}}
+document.addEventListener('keydown',e=>{if(!P||st.solved||$('svg').style.display==='none')return;const dir={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];if(!dir)return;e.preventDefault();
+  const h=route[route.length-1];badClues=[];let m;
+  if(h===EX){const[dx,dy]=exitDir();if(dir[0]===-dx&&dir[1]===-dy)route.pop();render();persist();arrive();return}
+  const[dx,dy]=exitDir();if(h===P.end&&dir[0]===dx&&dir[1]===dy)m=EX;
+  else{const x=h%G.NW+dir[0],y=Math.floor(h/G.NW)+dir[1];if(x<0||y<0||x>G.W||y>G.H)return;m=y*G.NW+x}
+  if(route.length>1&&m===route[route.length-2])route.pop();else if(canGo(h,m)){route.push(m);if(!st.started){st.started=true;if(mode!=='journey')startTimer()}}
   render();persist();arrive()});
-$('clearBtn').onclick=()=>{if(st.solved)return;route=[P.start];badClues=[];render();persist();hint('')};
+$('clearBtn').onclick=()=>{if(!P||st.solved)return;route=[P.start];badClues=[];render();persist();hint('')};
 
 function carryText(){if(!P.clues.some(c=>c.t==='spare'||c.t==='tun'))return'';const c=carry(),parts=[];if(P.clues.some(x=>x.t==='spare'))parts.push(`${c.spares} spare rail${c.spares===1?'':'s'}`);if(P.clues.some(x=>x.t==='tun'))parts.push(`${c.tuns} tunnel${c.tuns===1?'':'s'}`);return 'Carrying '+parts.join(' · ')+'. '}
 function arrive(){
-  if(route[route.length-1]!==P.end||route.indexOf(P.end)!==route.length-1){hint(route.length>1?carryText()+'Keep going. The terminus pokes off the edge of the map.':carryText());return}
-  const r={nodes:route.slice(),edges:route.slice(1).map((n,k)=>edgeOf(route[k],n))};
+  if(route[route.length-1]!==EX){hint(route.length>1?carryText():'');return}
+  const r0=plain(),r={nodes:r0,edges:r0.slice(1).map((n,k)=>edgeOf(r0[k],n))};
   const bad=checkRoute(G,P,r,P.clues,true);
-  if(bad.length){st.tries.push(0);badClues=bad;persist();render();hint(`That route breaks ${bad.length} sign${bad.length>1?'s':''}. They’re flashing.`,'bad');return}
-  st.tries.push(1);st.solved=true;stopTimer();persist();hint('');showWin(true);
+  if(bad.length){st.tries.push(0);badClues=bad;persist();render();
+    hint(mode==='journey'?'Not quite. Watch what flashes.':`That route breaks ${bad.length} sign${bad.length>1?'s':''}. They’re flashing.`,'bad');return}
+  st.tries.push(1);st.solved=true;stopTimer();persist();hint('');
+  if(mode==='journey')journeySolved();else showWin(true);
 }
 function hint(t,cls=''){$('hint').textContent=t;$('hint').className='hint '+cls}
 
-// ---- win: the train runs the whole line ----
+// ---- win ----
 function runTrain(){const pts=route.map(np),total=pts.slice(1).reduce((s,p,k)=>s+Math.hypot(p.x-pts[k].x,p.y-pts[k].y),0);
   if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   const t0=performance.now(),dur=Math.min(4200,total*7);
   const step=now=>{const f=Math.min(1,(now-t0)/dur),dist=total*(1-f);
-    // positions measured back from the end
     const sub=[];let acc=0;sub.push(pts[0]);
     for(let k=1;k<pts.length;k++){const L=Math.hypot(pts[k].x-pts[k-1].x,pts[k].y-pts[k-1].y);if(acc+L>=total-dist){const t=(total-dist-acc)/L;sub.push({x:pts[k-1].x+(pts[k].x-pts[k-1].x)*t,y:pts[k-1].y+(pts[k].y-pts[k-1].y)*t});break}sub.push(pts[k]);acc+=L}
     const g=$('train');if(g)g.innerHTML=trainSVG(sub.length>1?sub:pts.slice(0,2))+(f<1?`<circle class="puff" cx="${sub[sub.length-1].x+6*Math.sin(now/90)}" cy="${sub[sub.length-1].y-16-6*((now/300)%1)}" r="${4+3*((now/300)%1)}"/>`:'');
     if(f<1)anim=requestAnimationFrame(step)};
   anim=requestAnimationFrame(step)}
+function journeySolved(){
+  const {ci,pi}=jCur,wasDone=chDone(ci);J.solved[jKey(ci,pi)]=route.slice();
+  let pages=[];if(!wasDone&&chDone(ci)){pages=JOURNEY[ci].learn.filter(k=>k!=='base'&&!J.learned.includes(k));J.learned.push(...pages)}
+  jSave();renderMap();refreshLegend();
+  const w=$('win');w.hidden=false;const all=jDone(),nx=jNext();
+  let h=`<h2>${all?'The whole line is open!':chDone(ci)&&!wasDone?'Chapter complete: '+JOURNEY[ci].name:'All aboard!'}</h2>`;
+  pages.forEach(k=>{const li=document.querySelector(`.legend li[data-k="${k}"] span`);h+=`<div class="newpage"><svg viewBox="-24 -24 48 48">${ICON[k]()}</svg><span><b>New page in your sign book.</b> ${li?li.innerHTML:''}</span></div>`});
+  if(all)h+=`<p class="sub" style="margin:0">Endless lines are now open, with every sign you've learned.</p>`;
+  h+=`<div class="row">${all?'<button class="btn primary" id="goEndless">Ride endless lines</button><button class="btn" id="goDaily">Today’s daily</button>':`<button class="btn primary" id="nextStop">Next stop →</button>`}</div>`;
+  w.innerHTML=h;
+  if($('nextStop'))$('nextStop').onclick=()=>openJourney(nx.ci,nx.pi);
+  if($('goEndless'))$('goEndless').onclick=()=>loadEndless();
+  if($('goDaily'))$('goDaily').onclick=()=>loadDaily();
+  render();runTrain();
+}
 const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
 function shareText(){const strip=st.tries.map(t=>t?'🟩':'🟥').join('');const fails=st.tries.filter(t=>!t).length;
   return `The Puzz · Whistlestop ${P.label} 🚂\n${THEME_NAMES[P.theme]} · ${P.W}×${P.H} · ⏱ ${fmt(st.elapsed)}\n${fails?fails+' wrong route'+(fails>1?'s':''):'Right first time'} 🚂${strip}`}
 function showWin(animate){const w=$('win');w.hidden=false;
+  if(mode==='journey'){w.innerHTML=`<h2>Already ridden</h2><div class="row"><button class="btn primary" id="nextStop">Next stop →</button><button class="btn" id="again">Ride it again</button></div>`;
+    const nx=jNext();$('nextStop').onclick=()=>openJourney(nx.ci,nx.pi);$('again').onclick=()=>{st.solved=false;route=[P.start];w.hidden=true;render();hint('')};render();return}
   w.innerHTML=`<h2>All aboard!</h2><pre id="shareTxt">${shareText()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New route</button>':'<span class="sub">A new line opens at midnight.</span>'}</div>`;
   $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected · copy it'};
     try{navigator.clipboard.writeText(shareText()).then(ok,fb)}catch(err){fb()}};
-  if($('nextBtn'))$('nextBtn').onclick=()=>load('endless');
+  if($('nextBtn'))$('nextBtn').onclick=()=>loadEndless();
   render();if(animate)runTrain()}
 function startTimer(){stopTimer();const t0=Date.now()-st.elapsed*1000;timerInt=setInterval(()=>{st.elapsed=Math.floor((Date.now()-t0)/1000);tick();if(st.elapsed%5===0)persist()},500)}
 function stopTimer(){clearInterval(timerInt);timerInt=null}
 function tick(){$('timer').textContent=fmt(st&&st.elapsed||0)}
 
-$('tDaily').onclick=()=>load('daily');$('tEndless').onclick=()=>load('endless');$('newBtn').onclick=()=>load('endless');
-$('themeSel').onchange=()=>load('endless');$('sizeSel').onchange=()=>load('endless');
-// legend icons
-$('lg-start').innerHTML=`<g transform="scale(.9)">${startSVG()}</g>`;
-$('lg-stop').innerHTML=`<line x1="-22" y1="0" x2="22" y2="0" class="slot"/>${D.stop()}`;
-$('lg-buf').innerHTML=D.buf();
-$('lg-gap').innerHTML=`<line class="gapmark" x1="-22" y1="0" x2="-7" y2="0"/><line class="gapmark" x1="7" y1="0" x2="22" y2="0"/><circle class="rubble" cx="-2" cy="2" r="2.2"/><circle class="rubble" cx="3" cy="-2" r="1.6"/>`;
-$('lg-sig').innerHTML=D.sig(2);$('lg-spare').innerHTML=D.spare();$('lg-tun').innerHTML=D.tun();$('lg-stn').innerHTML=D.stn(0);$('lg-tkt').innerHTML=D.tkt(2);$('lg-plat').innerHTML=D.plat(4);
+$('tJourney').onclick=()=>{const n=jNext();openJourney(n.ci,n.pi)};
+$('tDaily').onclick=()=>loadDaily();$('tEndless').onclick=()=>loadEndless();$('newBtn').onclick=()=>loadEndless();
+$('themeSel').onchange=()=>loadEndless();$('sizeSel').onchange=()=>loadEndless();
+$('lockGo').onclick=()=>{const n=jNext();openJourney(n.ci,n.pi)};$('toJourney').onclick=()=>{const n=jNext();openJourney(n.ci,n.pi)};
+$('peekBtn').onclick=()=>{dailyPeek=true;refreshLegend();$('legend').open=true;$('legend').scrollIntoView({behavior:'smooth',block:'nearest'})};
+document.querySelectorAll('.legend li').forEach(li=>{const k=li.dataset.k,svg=li.querySelector('svg');if(ICON[k])svg.innerHTML=ICON[k]()});
 
 (function boot(){const h=(location.hash||'').slice(1),m=/^([a-z0-9]{5})([0-7])([45])$/.exec(h);
-  if(m){$('themeSel').value=Object.keys(THEME_NAMES)[+m[2]];$('sizeSel').value=m[3];load('endless',m[1])}
-  else{load('daily');if(!store.get('whistlestop-seen')){$('legend').open=true;store.set('whistlestop-seen',1)}}})();
+  if(m&&jDone()){$('themeSel').value=Object.keys(THEME_NAMES)[+m[2]];$('sizeSel').value=m[3];loadEndless(m[1]);return}
+  if(jDone())loadDaily();else{const n=jNext();openJourney(n.ci,n.pi)}})();
 </script>
 
 </body>
