@@ -90,6 +90,15 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
       <div><h2>Whistlestop</h2><p>Lay track to the end of the line. A journey of small puzzles teaches every sign, then endless lines open up.</p></div>
       <span class="pill" id="s-ws">Today</span>
     </a>
+    <a class="card" href="hanko.html">
+      <svg viewBox="0 0 72 72" aria-hidden="true">
+        <rect x="10" y="10" width="44" height="44" rx="6" fill="var(--paper,var(--surface))" stroke="var(--line)" stroke-width="2"/>
+        <text x="32" y="44" text-anchor="middle" font-family="'Klee One','Hiragino Mincho ProN','Yu Mincho',serif" font-size="30" fill="var(--ink)">休</text>
+        <g transform="translate(52,52) rotate(-12)"><rect x="-14" y="-14" width="28" height="28" rx="5" fill="none" stroke="var(--f0)" stroke-width="3"/><text x="0" y="6" text-anchor="middle" font-family="'Klee One','Hiragino Mincho ProN','Yu Mincho',serif" font-size="16" fill="var(--f0)">判</text></g>
+      </svg>
+      <div><h2>Hanko <span style="font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.08em">PROTOTYPE</span></h2><p>One new kanji a day: build it from its parts, find the hub word, then stamp the ones you're due to review.</p></div>
+      <span class="pill" id="s-hk">Today</span>
+    </a>
     <div class="soon">
       <svg viewBox="0 0 72 72" aria-hidden="true"><g fill="var(--felt)"><rect x="4" y="24" width="12" height="12" rx="2"/><rect x="18" y="24" width="12" height="12" rx="2"/><rect x="32" y="24" width="12" height="12" rx="2"/><rect x="46" y="24" width="12" height="12" rx="2"/><rect x="32" y="10" width="12" height="12" rx="2"/><rect x="32" y="38" width="12" height="12" rx="2"/><rect x="32" y="52" width="12" height="12" rx="2"/></g></svg>
       <div><h2>Crosslight</h2><p>Coming soon: a word grid where every guess lights up the crossings.</p></div>
@@ -109,6 +118,8 @@ const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return nul
   if(s&&s.iso===iso){if(s.st.solved||s.st.metaDone){el.textContent='Solved';el.classList.add('done')}else if(s.st.started||(s.st.found&&s.st.found.length))el.textContent='In progress'}});
 {const j=get('whistlestop-journey'),el=document.getElementById('s-ws');const n=j&&j.solved?Object.keys(j.solved).length:0;
   if(n<40&&el&&el.textContent==='Today'){el.textContent=n?`Journey ${n}/40`:'Start the journey'}}
+{const t=get('hanko-today'),el=document.getElementById('s-hk'),d0=new Date(2026,9,25),n=new Date(),dn=Math.round((new Date(n.getFullYear(),n.getMonth(),n.getDate())-d0)/864e5)+1;
+  if(t&&t.day===dn&&el){if(t.i>=t.rounds.length){el.textContent='Stamped';el.classList.add('done')}else if(t.i>0)el.textContent='In progress'}}
 </script>
 </body>
 </html>
