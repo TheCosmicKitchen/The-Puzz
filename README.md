@@ -12,3 +12,10 @@ Free daily puzzles, served as plain static pages on GitHub Pages. No build step 
 - `hanko.html` (prototype): daily kanji. Build today's kanji from its parts, find the hub kanji that makes four real words, then a spaced-repetition recall round from your stamp book. Grades 1–2 (240 kanji). Data: KANJIDIC2 / JMdict (EDRDG, CC BY-SA 4.0), KanjiVG (CC BY-SA 3.0).
 
 Every puzzle is generated in the browser from a seed. The daily seed is the date, so everyone gets the same puzzle. Endless mode uses a random seed, which appears in the URL hash so a puzzle can be shared. A built-in solver checks that each puzzle has exactly one solution before showing it.
+
+## Prototypes
+- `crosslight.html`: six five-letter words in a waffle grid, shared pool of 15 guesses; green / yellow / blue (letter is in a crossing word).
+- `strike.html`: Sumplete-style number grid; strike numbers so every row and column hits its target. Unique solutions.
+- `sampler.html`: nonogram stitched as cross-stitch; every pattern is solvable by line logic alone.
+- `tally.html`: six numbers, + − × ÷, exact target guaranteed, par = fewest steps.
+- `ladder.html`: four-letter word ladders with par and hints.

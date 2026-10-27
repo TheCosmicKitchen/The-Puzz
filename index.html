@@ -36,6 +36,8 @@ a.card:focus-visible{outline:2.5px solid var(--f1);outline-offset:2px}
 .soon{display:grid;grid-template-columns:72px 1fr auto;gap:16px;align-items:center;border:2px dashed var(--line);border-radius:18px;padding:14px 16px;color:var(--muted)}
 .soon h2{font:600 20px var(--display);margin:0;color:var(--ink);opacity:.7}
 .soon p{margin:2px 0 0;font-size:14px}
+.sect h3{font:600 15px var(--display);letter-spacing:.12em;text-transform:uppercase;margin:6px 0 0;color:var(--muted)}
+.sect p{margin:2px 0 0;color:var(--muted);font-size:14px}
 footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
 @media (max-width:420px){a.card,.soon{grid-template-columns:56px 1fr}.card svg,.soon svg{width:56px;height:56px}.pill{grid-column:2;justify-self:start}}
 </style>
@@ -90,23 +92,44 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
       <div><h2>Whistlestop</h2><p>Lay track to the end of the line. A journey of small puzzles teaches every sign, then endless lines open up.</p></div>
       <span class="pill" id="s-ws">Today</span>
     </a>
+  </div>
+  <div class="sect"><h3>Prototypes</h3><p>New ideas we're trying out. They all work, daily and endless, but they may change.</p></div>
+  <div class="cards">
     <a class="card" href="hanko.html">
       <svg viewBox="0 0 72 72" aria-hidden="true">
         <rect x="10" y="10" width="44" height="44" rx="6" fill="var(--paper,var(--surface))" stroke="var(--line)" stroke-width="2"/>
         <text x="32" y="44" text-anchor="middle" font-family="'Klee One','Hiragino Mincho ProN','Yu Mincho',serif" font-size="30" fill="var(--ink)">休</text>
         <g transform="translate(52,52) rotate(-12)"><rect x="-14" y="-14" width="28" height="28" rx="5" fill="none" stroke="var(--f0)" stroke-width="3"/><text x="0" y="6" text-anchor="middle" font-family="'Klee One','Hiragino Mincho ProN','Yu Mincho',serif" font-size="16" fill="var(--f0)">判</text></g>
       </svg>
-      <div><h2>Hanko <span style="font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.08em">PROTOTYPE</span></h2><p>One new kanji a day: build it from its parts, find the hub word, then stamp the ones you're due to review.</p></div>
+      <div><h2>Hanko</h2><p>One new kanji a day: build it from its parts, find the hub word, then stamp the ones you're due to review.</p></div>
       <span class="pill" id="s-hk">Today</span>
     </a>
-    <div class="soon">
-      <svg viewBox="0 0 72 72" aria-hidden="true"><g fill="var(--felt)"><rect x="4" y="24" width="12" height="12" rx="2"/><rect x="18" y="24" width="12" height="12" rx="2"/><rect x="32" y="24" width="12" height="12" rx="2"/><rect x="46" y="24" width="12" height="12" rx="2"/><rect x="32" y="10" width="12" height="12" rx="2"/><rect x="32" y="38" width="12" height="12" rx="2"/><rect x="32" y="52" width="12" height="12" rx="2"/></g></svg>
-      <div><h2>Crosslight</h2><p>Coming soon: a word grid where every guess lights up the crossings.</p></div>
-    </div>
-    <div class="soon">
-      <svg viewBox="0 0 72 72" aria-hidden="true"><g font-family="Fredoka,sans-serif" font-size="15" font-weight="600" fill="var(--muted)" text-anchor="middle"><text x="16" y="24">3</text><text x="36" y="24">7</text><text x="56" y="24">2</text><text x="16" y="48">5</text><text x="36" y="48">1</text><text x="56" y="48">4</text></g><path d="M28,16L44,30M44,16L28,30" stroke="var(--f0)" stroke-width="2.4" stroke-linecap="round"/></svg>
-      <div><h2>Strike</h2><p>Coming soon: cross out numbers until every row and column hits its target.</p></div>
-    </div>
+
+    <a class="card" href="crosslight.html">
+      <svg viewBox="0 0 72 72" aria-hidden="true"><rect x="6" y="6" width="10" height="10" rx="2" fill="var(--f1)"/><rect x="18" y="6" width="10" height="10" rx="2" fill="var(--f1)"/><rect x="30" y="6" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="42" y="6" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="54" y="6" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="6" y="18" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="30" y="18" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="54" y="18" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="6" y="30" width="10" height="10" rx="2" fill="var(--f1)"/><rect x="18" y="30" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="30" y="30" width="10" height="10" rx="2" fill="var(--f1)"/><rect x="42" y="30" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="54" y="30" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="6" y="42" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="30" y="42" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="54" y="42" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="6" y="54" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="18" y="54" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="30" y="54" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="42" y="54" width="10" height="10" rx="2" fill="var(--felt)"/><rect x="54" y="54" width="10" height="10" rx="2" fill="var(--f1)"/></svg>
+      <div><h2>Crosslight</h2><p>Six crossing words in a waffle. Wordle colours, plus blue for letters hiding in a crossing word.</p></div>
+      <span class="pill" id="s-cl">Try it</span>
+    </a>
+    <a class="card" href="strike.html">
+      <svg viewBox="0 0 72 72" aria-hidden="true"><g font-family="Fredoka,sans-serif" font-weight="600" font-size="16" fill="var(--ink)" text-anchor="middle"><text x="16" y="26">3</text><text x="36" y="26">7</text><text x="56" y="26">2</text><text x="16" y="52">5</text><text x="36" y="52">1</text><text x="56" y="52">4</text></g><path d="M28,14L44,30M44,14L28,30" stroke="var(--f0)" stroke-width="3" stroke-linecap="round"/><circle cx="16" cy="47" r="11" fill="none" stroke="var(--f1)" stroke-width="2.4"/></svg>
+      <div><h2>Strike</h2><p>Cross out numbers until every row and column adds up to its target.</p></div>
+      <span class="pill" id="s-st">Try it</span>
+    </a>
+    <a class="card" href="sampler.html">
+      <svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30" fill="none" stroke="#B9864E" stroke-width="5"/><path d="M22,20L30,28M30,20L22,28" stroke="var(--f0)" stroke-width="2.6" stroke-linecap="round"/><path d="M32,20L40,28M40,20L32,28" stroke="var(--f1)" stroke-width="2.6" stroke-linecap="round"/><path d="M42,20L50,28M50,20L42,28" stroke="var(--f2)" stroke-width="2.6" stroke-linecap="round"/><path d="M18,30L26,38M26,30L18,38" stroke="var(--f3)" stroke-width="2.6" stroke-linecap="round"/><path d="M46,30L54,38M54,30L46,38" stroke="var(--f0)" stroke-width="2.6" stroke-linecap="round"/><path d="M22,40L30,48M30,40L22,48" stroke="var(--f1)" stroke-width="2.6" stroke-linecap="round"/><path d="M42,40L50,48M50,40L42,48" stroke="var(--f2)" stroke-width="2.6" stroke-linecap="round"/><path d="M32,48L40,56M40,48L32,56" stroke="var(--f3)" stroke-width="2.6" stroke-linecap="round"/></svg>
+      <div><h2>Sampler</h2><p>A picture logic puzzle stitched in cross-stitch. Follow the row and column counts to reveal the pattern.</p></div>
+      <span class="pill" id="s-sm">Try it</span>
+    </a>
+    <a class="card" href="tally.html">
+      <svg viewBox="0 0 72 72" aria-hidden="true"><text x="36" y="28" text-anchor="middle" font-family="Fredoka,sans-serif" font-weight="600" font-size="20" fill="var(--ink)">547</text><g font-family="Fredoka,sans-serif" font-weight="600" font-size="12" fill="var(--muted)" text-anchor="middle"><rect x="6" y="40" width="18" height="18" rx="4" fill="none" stroke="var(--f2)" stroke-width="2"/><text x="15" y="53">75</text><rect x="27" y="40" width="18" height="18" rx="4" fill="none" stroke="var(--line)" stroke-width="2"/><text x="36" y="53">8</text><rect x="48" y="40" width="18" height="18" rx="4" fill="none" stroke="var(--line)" stroke-width="2"/><text x="57" y="53">3</text></g></svg>
+      <div><h2>Tally</h2><p>Six numbers, four operations, one target. Every target can be hit exactly.</p></div>
+      <span class="pill" id="s-ta">Try it</span>
+    </a>
+    <a class="card" href="ladder.html">
+      <svg viewBox="0 0 72 72" aria-hidden="true"><rect x="18" y="6" width="5" height="60" rx="2" fill="var(--line)"/><rect x="49" y="6" width="5" height="60" rx="2" fill="var(--line)"/><rect x="23" y="12" width="26" height="4" rx="2" fill="var(--f1)"/><rect x="23" y="26" width="26" height="4" rx="2" fill="var(--f2)"/><rect x="23" y="40" width="26" height="4" rx="2" fill="var(--f2)"/><rect x="23" y="54" width="26" height="4" rx="2" fill="var(--f3)"/></svg>
+      <div><h2>Ladder</h2><p>Climb from one word to another, changing one letter at a time.</p></div>
+      <span class="pill" id="s-la">Try it</span>
+    </a>
   </div>
   <footer>New puzzles at local midnight · progress stays on this device</footer>
 </div>
@@ -120,6 +143,8 @@ const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return nul
   if(n<40&&el&&el.textContent==='Today'){el.textContent=n?`Journey ${n}/40`:'Start the journey'}}
 {const t=get('hanko-today'),el=document.getElementById('s-hk'),d0=new Date(2026,9,25),n=new Date(),dn=Math.round((new Date(n.getFullYear(),n.getMonth(),n.getDate())-d0)/864e5)+1;
   if(t&&t.day===dn&&el){if(t.i>=t.rounds.length){el.textContent='Stamped';el.classList.add('done')}else if(t.i>0)el.textContent='In progress'}}
+[['crosslight-daily','s-cl'],['strike-daily','s-st'],['sampler-daily','s-sm'],['tally-daily','s-ta'],['ladder-daily','s-la']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
+  if(s&&s.iso===iso&&el){if(s.st.done){el.textContent='Done';el.classList.add('done')}else if(s.st.started||(s.st.guesses&&s.st.guesses.length)||(s.st.rungs&&s.st.rungs.length))el.textContent='In progress'}});
 </script>
 </body>
 </html>
