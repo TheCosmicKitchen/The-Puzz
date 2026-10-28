@@ -137,7 +137,7 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
 const t=new Date();document.getElementById('date').textContent=t.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
 const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
 const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
-[['hexstitch-daily-v2','s-hex'],['shadowbox-daily-v3','s-sb'],['joannagrams-daily','s-jg'],['whistlestop-daily-v3','s-ws']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
+[['hexstitch-daily-v2','s-hex'],['shadowbox-daily-v3','s-sb'],['joannagrams-daily','s-jg'],['whistlestop-daily-v4','s-ws']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
   if(s&&s.iso===iso){if(s.st.solved||s.st.metaDone){el.textContent='Solved';el.classList.add('done')}else if(s.st.started||(s.st.found&&s.st.found.length))el.textContent='In progress'}});
 {const j=get('whistlestop-journey'),el=document.getElementById('s-ws');const n=j&&j.solved?Object.keys(j.solved).length:0;
   if(n<40&&el&&el.textContent==='Today'){el.textContent=n?`Journey ${n}/40`:'Start the journey'}}

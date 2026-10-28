@@ -74,7 +74,13 @@ h1 span{color:var(--loco)}
 .hut .door{fill:var(--rail)}
 .hut .clock{fill:var(--surface);stroke:var(--rail);stroke-width:1.2}
 .spur{stroke:var(--rail);stroke-width:4;stroke-linecap:round}
-.depart{fill:var(--loco);stroke:var(--surface);stroke-width:2.5}
+.depart{fill:var(--ok);stroke:var(--surface);stroke-width:2.5}
+.depart-halo{fill:none;stroke:var(--ok);stroke-width:2.5;opacity:.5}
+@media (prefers-reduced-motion:no-preference){.depart-halo{animation:halo 1.6s ease-out infinite;transform-box:fill-box;transform-origin:center}@keyframes halo{from{transform:scale(.7);opacity:.7}to{transform:scale(1.7);opacity:0}}}
+.flag-go{fill:var(--ok)}
+.bufbeam{fill:var(--bad)}.bufstripe{fill:var(--surface)}
+.chq-a{fill:var(--ink)}.chq-b{fill:var(--surface)}
+.pole{stroke:var(--rail);stroke-width:2;stroke-linecap:round}
 .loco .body{fill:var(--loco)}.loco .cab{fill:var(--rail)}.loco .win{fill:var(--lamp)}.loco .chim{fill:var(--rail)}
 .car .body{fill:var(--k0)}.car .win{fill:var(--surface)}
 .puff{fill:var(--surface);opacity:.85}
@@ -319,7 +325,7 @@ function tryGen(rand,spec){
   if(spec.focus==='tkt'&&W*H>4&&nReg<3)return null;
   const P={W,H,start,end,theme:spec.theme,clues:[]};
   // a tunnel portal earlier on the line for every crossing
-  for(const k of crossIdx){const firsts=best.slice(0,k).filter((n,j)=>best.indexOf(n)===j&&!P.clues.some(c=>c.node===n)&&!crossIdx.some(x=>best[x]===n));if(!firsts.length)return null;P.clues.push({t:'tun',node:pick(firsts),core:1})}
+  for(const k of crossIdx){const firsts=best.slice(0,k).filter((n,j)=>j>0&&n!==start&&best.indexOf(n)===j&&!P.clues.some(c=>c.node===n)&&!crossIdx.some(x=>best[x]===n));if(!firsts.length)return null;P.clues.push({t:'tun',node:pick(firsts),core:1})}
   // 2. candidate pool from the solution
   const pool=[];
   if(kinds.includes('stop')){best.slice(1,-1).forEach(n=>pool.push({t:'stop',node:n}));sol.edges.forEach(e=>pool.push({t:'stop',edge:e}))}
@@ -329,13 +335,13 @@ function tryGen(rand,spec){
     // route repairs: broken stretches on the route, each with a spare picked up earlier on the line
     const nRep=spec.rep>0?spec.rep:spec.rep===-3?(rand()<0.5?1:0):spec.rep<0?1+ri(-spec.rep):0;const taken=new Set();
     for(let k=0;k<nRep;k++){const lo=Math.min(2,sol.edges.length-1),idx=lo+ri(Math.max(1,sol.edges.length-lo-1));if(idx>=sol.edges.length||taken.has(idx))continue;
-      const before=best.slice(0,idx+1).filter((n,j)=>!P.clues.some(c=>c.node===n));if(!before.length)continue;
+      const before=best.slice(1,idx+1).filter((n,j)=>n!==start&&!P.clues.some(c=>c.node===n));if(!before.length)continue;
       taken.add(idx);P.clues.push({t:'gap',edge:sol.edges[idx],core:1},{t:'spare',node:pick(before),core:1})}
     if(spec.rep>0&&taken.size<spec.rep)return null}
   if(kinds.includes('tun'))for(let n=0;n<G.NN;n++)if(!onRoute.has(n))pool.push({t:'tun',node:n});
   if(kinds.includes('sig'))for(let c=0;c<W*H;c++){const k=G.cellEdges[c].filter(e=>used[e]).length;if(k>0)pool.push({t:'sig',cell:c,k})}
   if(kinds.includes('stn')){const ids=[...new Set(reg)],col={};ids.forEach((id,k)=>col[id]=k%3===0?0:ri(3));if(new Set(Object.values(col)).size<2)col[ids[1]]=(col[ids[0]]+1)%3;for(let c=0;c<W*H;c++)pool.push({t:'stn',cell:c,col:col[reg[c]]})}
-  if(kinds.includes('plat'))for(let c=0;c<W*H;c++){const k=reg.filter(x=>x===reg[c]).length;if(k<=9)pool.push({t:'plat',cell:c,k})}
+  if(kinds.includes('plat'))for(let c=0;c<W*H;c++){const k=reg.filter(x=>x===reg[c]).length;if(k<=5)pool.push({t:'plat',cell:c,k})}
   if(kinds.includes('tkt')){for(let a=0;a<W*H;a++)for(let b=a+1;b<W*H;b++)if(reg[a]===reg[b])for(let col=0;col<3;col++)pool.push({t:'tkt2',cells:[a,b],col})}
   const W8={stop:3,buf:3,gap:2,spare:2,tun:1,sig:5,stn:5,tkt2:6,plat:5};
   const fk=spec.focus==='tkt'?'tkt2':spec.focus;
@@ -365,6 +371,7 @@ function tryGen(rand,spec){
     if(solve(G,P,rest,2).count===1)P.clues=rest}
   if(spec.focus&&P.clues.filter(c=>c.t===spec.focus).length<Math.max(1,spec.focusMin||0)*fUnit)return null;
   if(spec.maxClues&&P.clues.length>spec.maxClues)return null;
+  if(P.clues.some(c=>c.node===start||c.node===end))return null;
   P.clues.forEach(c=>delete c.core);
   P.sol=sol;return P;
 }
@@ -373,7 +380,7 @@ function generate(seed,W,H,theme){return generateSpec(seed,themeSpec(theme,W,H))
 
 </script>
 <script>
-const JOURNEY=[{"id":"first","name":"First run","learn":["base"],"puzzles":[{"W":1,"H":1,"start":2,"end":1,"clues":[],"free":1},{"W":2,"H":1,"start":3,"end":2,"clues":[],"free":1},{"W":2,"H":2,"start":6,"end":2,"clues":[],"free":1}]},{"id":"stops","name":"Stops","learn":["stop"],"puzzles":[{"W":2,"H":1,"start":1,"end":2,"clues":[{"t":"stop","edge":5}],"sol":[1,4,5,2]},{"W":2,"H":2,"start":3,"end":5,"clues":[{"t":"stop","edge":5},{"t":"stop","edge":2}],"sol":[3,4,7,8,5]},{"W":3,"H":2,"start":2,"end":4,"clues":[{"t":"stop","edge":14},{"t":"stop","node":1},{"t":"stop","edge":6}],"sol":[2,1,5,9,8,4]},{"W":3,"H":3,"start":14,"end":4,"clues":[{"t":"stop","edge":8},{"t":"stop","edge":0},{"t":"stop","edge":14},{"t":"stop","edge":18}],"sol":[14,15,11,10,6,2,1,0,4]}]},{"id":"blocks","name":"Buffers & breaks","learn":["buf","gap"],"puzzles":[{"W":2,"H":2,"start":0,"end":8,"clues":[{"t":"buf","node":5},{"t":"buf","node":3}],"sol":[0,1,4,7,8]},{"W":2,"H":2,"start":5,"end":3,"clues":[{"t":"gap","edge":1},{"t":"gap","edge":3},{"t":"gap","edge":10}],"sol":[5,8,7,6,3]},{"W":3,"H":3,"start":11,"end":12,"clues":[{"t":"gap","edge":8},{"t":"buf","node":1},{"t":"buf","node":13},{"t":"gap","edge":6},{"t":"buf","node":6}],"sol":[11,15,14,10,9,5,4,8,12]},{"W":3,"H":3,"start":3,"end":12,"clues":[{"t":"gap","edge":23},{"t":"gap","edge":9},{"t":"stop","edge":17},{"t":"buf","node":6},{"t":"stop","node":14},{"t":"gap","edge":12}],"sol":[3,7,11,10,14,13,9,5,4,8,12]}]},{"id":"signals","name":"Signals","learn":["sig"],"puzzles":[{"W":2,"H":1,"start":4,"end":0,"clues":[{"t":"sig","cell":1,"k":1}],"sol":[4,1,0]},{"W":2,"H":2,"start":6,"end":5,"clues":[{"t":"sig","cell":0,"k":3},{"t":"sig","cell":2,"k":1}],"sol":[6,3,0,1,4,5]},{"W":3,"H":2,"start":2,"end":7,"clues":[{"t":"sig","cell":0,"k":3},{"t":"sig","cell":4,"k":1}],"sol":[2,1,0,4,5,6,7]},{"W":3,"H":3,"start":15,"end":13,"clues":[{"t":"sig","cell":2,"k":2},{"t":"sig","cell":6,"k":3},{"t":"sig","cell":3,"k":2},{"t":"sig","cell":5,"k":2},{"t":"stop","edge":14}],"sol":[15,11,7,6,2,1,5,9,8,12,13]},{"W":4,"H":4,"start":22,"end":1,"clues":[{"t":"sig","cell":15,"k":3},{"t":"sig","cell":13,"k":2},{"t":"stop","edge":1},{"t":"sig","cell":7,"k":1},{"t":"stop","node":6},{"t":"sig","cell":11,"k":1},{"t":"sig","cell":4,"k":1}],"sol":[22,21,16,11,6,7,12,17,18,23,24,19,14,9,4,3,2,1]}]},{"id":"stations","name":"Stations","learn":["stn"],"puzzles":[{"W":2,"H":2,"start":5,"end":0,"clues":[{"t":"stn","cell":2,"col":1},{"t":"stn","cell":3,"col":0},{"t":"stn","cell":0,"col":0}],"sol":[5,8,7,4,3,0]},{"W":3,"H":2,"start":10,"end":1,"clues":[{"t":"stn","cell":3,"col":0},{"t":"stn","cell":4,"col":1},{"t":"stn","cell":5,"col":0}],"sol":[10,6,5,9,8,4,0,1]},{"W":3,"H":3,"start":12,"end":11,"clues":[{"t":"stn","cell":7,"col":0},{"t":"stn","cell":5,"col":0},{"t":"stop","node":8},{"t":"stop","edge":21},{"t":"stop","node":0},{"t":"stn","cell":2,"col":2},{"t":"stop","edge":14}],"sol":[12,13,9,8,4,0,1,2,6,7,11]},{"W":4,"H":4,"start":24,"end":9,"clues":[{"t":"stn","cell":9,"col":0},{"t":"stop","edge":38},{"t":"stop","edge":33},{"t":"stop","edge":26},{"t":"buf","node":3},{"t":"stn","cell":1,"col":2},{"t":"stn","cell":0,"col":0},{"t":"stop","edge":16},{"t":"buf","node":16}],"sol":[24,19,14,13,18,23,22,21,20,15,10,5,0,1,6,11,12,7,8,9]}]},{"id":"platforms","name":"Platforms","learn":["plat"],"puzzles":[{"W":2,"H":2,"start":1,"end":7,"clues":[{"t":"plat","cell":2,"k":1}],"sol":[1,0,3,4,7]},{"W":3,"H":2,"start":8,"end":10,"clues":[{"t":"plat","cell":3,"k":2},{"t":"plat","cell":5,"k":2}],"sol":[8,9,5,1,2,6,10]},{"W":3,"H":3,"start":0,"end":8,"clues":[{"t":"plat","cell":8,"k":3},{"t":"plat","cell":6,"k":6},{"t":"plat","cell":2,"k":3}],"sol":[0,1,2,6,10,14,13,12,8]},{"W":4,"H":4,"start":23,"end":10,"clues":[{"t":"plat","cell":5,"k":4},{"t":"stop","edge":30},{"t":"plat","cell":9,"k":4},{"t":"stop","edge":17}],"sol":[23,18,13,12,7,6,11,16,17,22,21,20,15,10]}]},{"id":"tickets","name":"Tickets","learn":["tkt"],"puzzles":[{"W":2,"H":2,"start":1,"end":5,"clues":[{"t":"tkt","cell":1,"col":0},{"t":"tkt","cell":2,"col":0},{"t":"stop","edge":10}],"sol":[1,0,3,6,7,4,5]},{"W":3,"H":2,"start":3,"end":4,"clues":[{"t":"tkt","cell":0,"col":2},{"t":"tkt","cell":4,"col":2},{"t":"tkt","cell":1,"col":1},{"t":"tkt","cell":2,"col":1},{"t":"stop","edge":14},{"t":"stop","edge":15}],"sol":[3,7,6,10,9,5,4]},{"W":3,"H":3,"start":15,"end":1,"clues":[{"t":"tkt","cell":1,"col":2},{"t":"tkt","cell":2,"col":2},{"t":"tkt","cell":4,"col":0},{"t":"tkt","cell":8,"col":0},{"t":"stop","node":10},{"t":"stop","edge":20},{"t":"stop","edge":13}],"sol":[15,14,10,9,13,12,8,4,5,1]},{"W":4,"H":4,"start":1,"end":23,"clues":[{"t":"buf","node":5},{"t":"tkt","cell":2,"col":2},{"t":"tkt","cell":13,"col":2},{"t":"stop","node":18},{"t":"tkt","cell":6,"col":1},{"t":"tkt","cell":8,"col":1},{"t":"tkt","cell":0,"col":1},{"t":"tkt","cell":4,"col":1},{"t":"stop","node":24},{"t":"buf","node":21}],"sol":[1,6,11,10,15,16,17,18,13,8,7,2,3,4,9,14,19,24,23]}]},{"id":"spares","name":"Spare rails","learn":["spare"],"puzzles":[{"W":2,"H":2,"start":8,"end":3,"clues":[{"t":"gap","edge":9},{"t":"spare","node":8},{"t":"stop","edge":4},{"t":"gap","edge":11}],"sol":[8,7,6,3]},{"W":3,"H":2,"start":10,"end":7,"clues":[{"t":"gap","edge":13},{"t":"spare","node":9},{"t":"stop","node":0},{"t":"gap","edge":11},{"t":"stop","edge":10}],"sol":[10,9,8,4,0,1,5,6,7]},{"W":3,"H":3,"start":1,"end":11,"clues":[{"t":"gap","edge":6},{"t":"spare","node":9},{"t":"gap","edge":20},{"t":"spare","node":8},{"t":"stop","edge":13},{"t":"stop","edge":17},{"t":"stop","edge":11},{"t":"stop","node":12}],"sol":[1,5,9,8,12,13,14,15,11]},{"W":4,"H":4,"start":21,"end":4,"clues":[{"t":"gap","edge":30},{"t":"spare","node":16},{"t":"gap","edge":39},{"t":"spare","node":15},{"t":"stop","edge":22},{"t":"stop","edge":24},{"t":"stop","edge":19},{"t":"buf","node":5},{"t":"stop","edge":18},{"t":"buf","node":13},{"t":"stop","edge":8}],"sol":[21,16,15,10,11,6,1,2,7,12,17,22,23,24,19,14,9,4]}]},{"id":"tunnels","name":"Tunnels","learn":["tun"],"puzzles":[{"W":2,"H":2,"start":5,"end":8,"clues":[{"t":"tun","node":5},{"t":"stop","edge":7},{"t":"stop","edge":10},{"t":"stop","edge":3}],"sol":[5,4,3,0,1,4,7,8]},{"W":3,"H":3,"start":1,"end":3,"clues":[{"t":"tun","node":7},{"t":"stop","edge":11},{"t":"stop","edge":22},{"t":"stop","edge":2},{"t":"stop","edge":18},{"t":"stop","edge":3}],"sol":[1,0,4,5,6,7,11,15,14,10,6,2,3]},{"W":3,"H":3,"start":4,"end":7,"clues":[{"t":"tun","node":8},{"t":"stop","edge":14},{"t":"stop","edge":16},{"t":"stop","edge":1},{"t":"stop","edge":4},{"t":"stop","edge":21},{"t":"stop","edge":11}],"sol":[4,8,9,13,14,15,11,10,6,2,1,5,6,7]},{"W":4,"H":4,"start":1,"end":21,"clues":[{"t":"tun","node":11},{"t":"stop","edge":36},{"t":"stop","edge":33},{"t":"stop","edge":24},{"t":"stop","edge":37},{"t":"gap","edge":4},{"t":"stop","edge":6},{"t":"stop","edge":15},{"t":"stop","edge":30},{"t":"stop","node":12},{"t":"gap","edge":8}],"sol":[1,0,5,10,15,16,17,22,23,24,19,18,13,14,9,4,3,8,7,12,11,16,21]}]},{"id":"grand","name":"Grand junction","learn":[],"puzzles":[{"W":4,"H":4,"start":1,"end":4,"clues":[{"t":"plat","cell":13,"k":1},{"t":"stop","edge":25},{"t":"stop","edge":38},{"t":"buf","node":6},{"t":"sig","cell":6,"k":1},{"t":"stop","edge":24},{"t":"stop","node":19}],"sol":[1,0,5,10,15,20,21,16,17,22,23,18,19,14,13,8,9,4]},{"W":4,"H":4,"start":21,"end":1,"clues":[{"t":"sig","cell":4,"k":1},{"t":"sig","cell":0,"k":2},{"t":"stop","edge":34},{"t":"tkt","cell":7,"col":1},{"t":"tkt","cell":9,"col":1},{"t":"buf","node":7},{"t":"stop","edge":13},{"t":"sig","cell":14,"k":1}],"sol":[21,22,23,24,19,14,13,12,17,16,15,10,5,0,1]},{"W":4,"H":4,"start":3,"end":21,"clues":[{"t":"plat","cell":12,"k":5},{"t":"stop","edge":38},{"t":"plat","cell":1,"k":9},{"t":"plat","cell":4,"k":1}],"sol":[3,2,1,0,5,6,11,10,15,16,17,12,13,14,19,18,23,22,21]},{"W":5,"H":5,"start":34,"end":17,"clues":[{"t":"tun","node":27},{"t":"tkt","cell":10,"col":1},{"t":"tkt","cell":24,"col":1},{"t":"stop","edge":31},{"t":"stop","edge":15},{"t":"buf","node":23},{"t":"stop","edge":25},{"t":"buf","node":10},{"t":"gap","edge":32},{"t":"gap","edge":10},{"t":"sig","cell":16,"k":3},{"t":"sig","cell":11,"k":2},{"t":"sig","cell":2,"k":3},{"t":"buf","node":22}],"sol":[34,28,27,33,32,31,30,24,25,26,20,19,18,12,6,7,8,9,3,2,1,7,13,14,15,16,17]}]}];
+const JOURNEY=[{"id":"first","name":"First run","learn":["base"],"puzzles":[{"W":1,"H":1,"start":2,"end":1,"clues":[],"free":1},{"W":2,"H":1,"start":3,"end":2,"clues":[],"free":1},{"W":2,"H":2,"start":6,"end":2,"clues":[],"free":1}]},{"id":"stops","name":"Stops","learn":["stop"],"puzzles":[{"W":2,"H":1,"start":1,"end":2,"clues":[{"t":"stop","edge":5}],"sol":[1,4,5,2]},{"W":2,"H":2,"start":3,"end":5,"clues":[{"t":"stop","edge":5},{"t":"stop","edge":2}],"sol":[3,4,7,8,5]},{"W":3,"H":2,"start":2,"end":4,"clues":[{"t":"stop","edge":14},{"t":"stop","node":1},{"t":"stop","edge":6}],"sol":[2,1,5,9,8,4]},{"W":3,"H":3,"start":14,"end":4,"clues":[{"t":"stop","edge":8},{"t":"stop","edge":0},{"t":"stop","edge":14},{"t":"stop","edge":18}],"sol":[14,15,11,10,6,2,1,0,4]}]},{"id":"blocks","name":"Buffers & breaks","learn":["buf","gap"],"puzzles":[{"W":2,"H":2,"start":0,"end":8,"clues":[{"t":"buf","node":5},{"t":"buf","node":3}],"sol":[0,1,4,7,8]},{"W":2,"H":2,"start":5,"end":3,"clues":[{"t":"gap","edge":1},{"t":"gap","edge":3},{"t":"gap","edge":10}],"sol":[5,8,7,6,3]},{"W":3,"H":3,"start":11,"end":12,"clues":[{"t":"gap","edge":8},{"t":"buf","node":1},{"t":"buf","node":13},{"t":"gap","edge":6},{"t":"buf","node":6}],"sol":[11,15,14,10,9,5,4,8,12]},{"W":3,"H":3,"start":3,"end":12,"clues":[{"t":"gap","edge":23},{"t":"gap","edge":9},{"t":"stop","edge":17},{"t":"buf","node":6},{"t":"stop","node":14},{"t":"gap","edge":12}],"sol":[3,7,11,10,14,13,9,5,4,8,12]}]},{"id":"signals","name":"Signals","learn":["sig"],"puzzles":[{"W":2,"H":1,"start":4,"end":0,"clues":[{"t":"sig","cell":1,"k":1}],"sol":[4,1,0]},{"W":2,"H":2,"start":6,"end":5,"clues":[{"t":"sig","cell":0,"k":3},{"t":"sig","cell":2,"k":1}],"sol":[6,3,0,1,4,5]},{"W":3,"H":2,"start":2,"end":7,"clues":[{"t":"sig","cell":0,"k":3},{"t":"sig","cell":4,"k":1}],"sol":[2,1,0,4,5,6,7]},{"W":3,"H":3,"start":15,"end":13,"clues":[{"t":"sig","cell":2,"k":2},{"t":"sig","cell":6,"k":3},{"t":"sig","cell":3,"k":2},{"t":"sig","cell":5,"k":2},{"t":"stop","edge":14}],"sol":[15,11,7,6,2,1,5,9,8,12,13]},{"W":4,"H":4,"start":22,"end":1,"clues":[{"t":"sig","cell":15,"k":3},{"t":"sig","cell":13,"k":2},{"t":"stop","edge":1},{"t":"sig","cell":7,"k":1},{"t":"stop","node":6},{"t":"sig","cell":11,"k":1},{"t":"sig","cell":4,"k":1}],"sol":[22,21,16,11,6,7,12,17,18,23,24,19,14,9,4,3,2,1]}]},{"id":"stations","name":"Stations","learn":["stn"],"puzzles":[{"W":2,"H":2,"start":5,"end":0,"clues":[{"t":"stn","cell":2,"col":1},{"t":"stn","cell":3,"col":0},{"t":"stn","cell":0,"col":0}],"sol":[5,8,7,4,3,0]},{"W":3,"H":2,"start":10,"end":1,"clues":[{"t":"stn","cell":3,"col":0},{"t":"stn","cell":4,"col":1},{"t":"stn","cell":5,"col":0}],"sol":[10,6,5,9,8,4,0,1]},{"W":3,"H":3,"start":12,"end":11,"clues":[{"t":"stn","cell":7,"col":0},{"t":"stn","cell":5,"col":0},{"t":"stop","node":8},{"t":"stop","edge":21},{"t":"stop","node":0},{"t":"stn","cell":2,"col":2},{"t":"stop","edge":14}],"sol":[12,13,9,8,4,0,1,2,6,7,11]},{"W":4,"H":4,"start":24,"end":9,"clues":[{"t":"stn","cell":9,"col":0},{"t":"stop","edge":38},{"t":"stop","edge":33},{"t":"stop","edge":26},{"t":"buf","node":3},{"t":"stn","cell":1,"col":2},{"t":"stn","cell":0,"col":0},{"t":"stop","edge":16},{"t":"buf","node":16}],"sol":[24,19,14,13,18,23,22,21,20,15,10,5,0,1,6,11,12,7,8,9]}]},{"id":"platforms","name":"Platforms","learn":["plat"],"puzzles":[{"W":2,"H":2,"start":1,"end":7,"clues":[{"t":"plat","cell":2,"k":1}],"sol":[1,0,3,4,7]},{"W":3,"H":2,"start":8,"end":10,"clues":[{"t":"plat","cell":3,"k":2},{"t":"plat","cell":5,"k":2}],"sol":[8,9,5,1,2,6,10]},{"W":3,"H":3,"start":0,"end":8,"clues":[{"t":"plat","cell":8,"k":3},{"t":"plat","cell":2,"k":3},{"t":"stop","node":12},{"t":"stop","edge":0}],"sol":[0,1,2,6,10,14,13,12,8]},{"W":4,"H":4,"start":23,"end":10,"clues":[{"t":"plat","cell":5,"k":4},{"t":"stop","edge":30},{"t":"plat","cell":9,"k":4},{"t":"stop","edge":17}],"sol":[23,18,13,12,7,6,11,16,17,22,21,20,15,10]}]},{"id":"tickets","name":"Tickets","learn":["tkt"],"puzzles":[{"W":2,"H":2,"start":1,"end":5,"clues":[{"t":"tkt","cell":1,"col":0},{"t":"tkt","cell":2,"col":0},{"t":"stop","edge":10}],"sol":[1,0,3,6,7,4,5]},{"W":3,"H":2,"start":3,"end":4,"clues":[{"t":"tkt","cell":0,"col":2},{"t":"tkt","cell":4,"col":2},{"t":"tkt","cell":1,"col":1},{"t":"tkt","cell":2,"col":1},{"t":"stop","edge":14},{"t":"stop","edge":15}],"sol":[3,7,6,10,9,5,4]},{"W":3,"H":3,"start":15,"end":1,"clues":[{"t":"tkt","cell":1,"col":2},{"t":"tkt","cell":2,"col":2},{"t":"tkt","cell":4,"col":0},{"t":"tkt","cell":8,"col":0},{"t":"stop","node":10},{"t":"stop","edge":20},{"t":"stop","edge":13}],"sol":[15,14,10,9,13,12,8,4,5,1]},{"W":4,"H":4,"start":1,"end":23,"clues":[{"t":"buf","node":5},{"t":"tkt","cell":2,"col":2},{"t":"tkt","cell":13,"col":2},{"t":"stop","node":18},{"t":"tkt","cell":6,"col":1},{"t":"tkt","cell":8,"col":1},{"t":"tkt","cell":0,"col":1},{"t":"tkt","cell":4,"col":1},{"t":"stop","node":24},{"t":"buf","node":21}],"sol":[1,6,11,10,15,16,17,18,13,8,7,2,3,4,9,14,19,24,23]}]},{"id":"spares","name":"Spare rails","learn":["spare"],"puzzles":[{"W":2,"H":2,"start":8,"end":3,"clues":[{"t":"gap","edge":9},{"t":"spare","node":7},{"t":"stop","edge":4},{"t":"gap","edge":11}],"sol":[8,7,6,3]},{"W":3,"H":2,"start":10,"end":7,"clues":[{"t":"gap","edge":13},{"t":"spare","node":9},{"t":"stop","node":0},{"t":"gap","edge":11},{"t":"stop","edge":10}],"sol":[10,9,8,4,0,1,5,6,7]},{"W":3,"H":3,"start":1,"end":11,"clues":[{"t":"gap","edge":6},{"t":"spare","node":9},{"t":"gap","edge":20},{"t":"spare","node":8},{"t":"stop","edge":13},{"t":"stop","edge":17},{"t":"stop","edge":11},{"t":"stop","node":12}],"sol":[1,5,9,8,12,13,14,15,11]},{"W":4,"H":4,"start":15,"end":4,"clues":[{"t":"gap","edge":20},{"t":"spare","node":10},{"t":"gap","edge":0},{"t":"spare","node":0},{"t":"stop","node":3},{"t":"stop","edge":19},{"t":"stop","edge":30},{"t":"buf","node":17},{"t":"stop","edge":22},{"t":"buf","node":11},{"t":"buf","node":6}],"sol":[15,10,5,0,1,2,7,12,13,18,23,24,19,14,9,8,3,4]}]},{"id":"tunnels","name":"Tunnels","learn":["tun"],"puzzles":[{"W":2,"H":2,"start":5,"end":8,"clues":[{"t":"tun","node":3},{"t":"stop","edge":7},{"t":"stop","edge":10},{"t":"stop","edge":2}],"sol":[5,4,3,0,1,4,7,8]},{"W":3,"H":3,"start":1,"end":3,"clues":[{"t":"tun","node":7},{"t":"stop","edge":11},{"t":"stop","edge":22},{"t":"stop","edge":2},{"t":"stop","edge":18},{"t":"stop","edge":3}],"sol":[1,0,4,5,6,7,11,15,14,10,6,2,3]},{"W":3,"H":3,"start":4,"end":7,"clues":[{"t":"tun","node":9},{"t":"stop","edge":14},{"t":"stop","edge":16},{"t":"stop","edge":1},{"t":"stop","edge":4},{"t":"stop","edge":11}],"sol":[4,8,9,13,14,15,11,10,6,2,1,5,6,7]},{"W":4,"H":4,"start":1,"end":21,"clues":[{"t":"tun","node":11},{"t":"stop","edge":36},{"t":"stop","edge":33},{"t":"stop","edge":24},{"t":"stop","edge":37},{"t":"gap","edge":4},{"t":"stop","edge":6},{"t":"stop","edge":15},{"t":"stop","edge":30},{"t":"stop","node":12},{"t":"gap","edge":8}],"sol":[1,0,5,10,15,16,17,22,23,24,19,18,13,14,9,4,3,8,7,12,11,16,21]}]},{"id":"grand","name":"Grand junction","learn":[],"puzzles":[{"W":4,"H":4,"start":1,"end":4,"clues":[{"t":"plat","cell":13,"k":1},{"t":"stop","edge":25},{"t":"stop","edge":38},{"t":"buf","node":6},{"t":"sig","cell":6,"k":1},{"t":"stop","edge":24},{"t":"stop","node":19}],"sol":[1,0,5,10,15,20,21,16,17,22,23,18,19,14,13,8,9,4]},{"W":4,"H":4,"start":21,"end":1,"clues":[{"t":"sig","cell":4,"k":1},{"t":"sig","cell":0,"k":2},{"t":"stop","edge":34},{"t":"tkt","cell":7,"col":1},{"t":"tkt","cell":9,"col":1},{"t":"buf","node":7},{"t":"stop","edge":13},{"t":"sig","cell":14,"k":1}],"sol":[21,22,23,24,19,14,13,12,17,16,15,10,5,0,1]},{"W":4,"H":4,"start":3,"end":21,"clues":[{"t":"plat","cell":13,"k":5},{"t":"plat","cell":4,"k":1},{"t":"buf","node":24},{"t":"stop","node":14},{"t":"stop","edge":2}],"sol":[3,2,1,0,5,6,11,10,15,16,17,12,13,14,19,18,23,22,21]},{"W":5,"H":5,"start":0,"end":17,"clues":[{"t":"gap","edge":7},{"t":"spare","node":27},{"t":"tkt","cell":4,"col":2},{"t":"tkt","cell":18,"col":2},{"t":"plat","cell":5,"k":2},{"t":"stop","edge":39},{"t":"sig","cell":22,"k":2},{"t":"sig","cell":3,"k":1},{"t":"buf","node":20},{"t":"stop","node":6},{"t":"gap","edge":12},{"t":"sig","cell":9,"k":3},{"t":"sig","cell":0,"k":2},{"t":"sig","cell":21,"k":1}],"sol":[0,6,7,13,19,18,24,30,31,32,33,27,21,15,9,8,2,3,4,5,11,10,16,17]}]}];
 </script>
 <script>
 const S=70,M=56,$=id=>document.getElementById(id);
@@ -419,8 +426,13 @@ const D={
 };
 // a little station building, upright, centred at 0,0; the terminus gets a clock in its gable
 function hutSVG(roof,clock){return `<g class="hut"><rect class="wall" x="-9" y="-3" width="18" height="12" rx="1.5"/><path d="M-12.5,-2L0,-12L12.5,-2Z" fill="${roof}"/>${clock?'<circle class="clock" cx="0" cy="-5" r="2.6"/>':''}<rect class="door" x="-2.6" y="2.4" width="5.2" height="6.6" rx="1"/></g>`}
-function startSVG(){return `<circle class="depart" r="6.5"/>`}
-const ICON={base:()=>`<line class="spur" x1="-10" y1="8" x2="16" y2="8"/><g transform="translate(-8,0) scale(1.15)">${hutSVG('var(--loco)')}</g><g transform="translate(14,8)">${startSVG()}</g>`,stop:()=>`<line x1="-22" y1="0" x2="22" y2="0" class="slot"/>${D.stop()}`,buf:()=>D.buf(),
+function startSVG(halo){return `${halo?'<circle class="depart-halo" r="9"/>':''}<circle class="depart" r="7.5"/><path d="M-2.2,-3.6L3.8,0L-2.2,3.6Z" fill="var(--surface)"/>`}
+function departSVG(){return `${hutSVG('var(--ok)')}<line class="pole" x1="12" y1="9" x2="12" y2="-16"/><path class="flag-go" d="M12,-16L22,-12.5L12,-9Z"/>`}
+// terminus: a red-and-white buffer stop across the track, with a chequered flag beside it
+function terminusSVG(dx,dy){const ang=Math.atan2(dy,dx)*180/Math.PI,px=-dy,py=dx;let chq='';for(let r=0;r<2;r++)for(let c=0;c<3;c++)chq+=`<rect class="${(r+c)%2?'chq-b':'chq-a'}" x="${c*4}" y="${r*4}" width="4" height="4"/>`;
+  return `<g transform="rotate(${ang})"><rect class="bufbeam" x="-3" y="-13" width="7" height="26" rx="2"/><rect class="bufstripe" x="-3" y="-6" width="7" height="3.5"/><rect class="bufstripe" x="-3" y="2.5" width="7" height="3.5"/><circle cx="-5" cy="-8" r="2.4" fill="var(--rail)"/><circle cx="-5" cy="8" r="2.4" fill="var(--rail)"/></g>
+    <g transform="translate(${px*20+dx*4},${py*20+dy*4})"><line class="pole" x1="0" y1="10" x2="0" y2="-12"/><g transform="translate(0,-12)">${chq}<rect x="0" y="0" width="12" height="8" fill="none" stroke="var(--rail)" stroke-width=".8"/></g></g>`}
+const ICON={base:()=>`<line class="spur" x1="-14" y1="10" x2="10" y2="10"/><g transform="translate(-12,0) scale(.85)">${departSVG()}</g><g transform="translate(10,10) scale(.8)">${startSVG()}</g>`,stop:()=>`<line x1="-22" y1="0" x2="22" y2="0" class="slot"/>${D.stop()}`,buf:()=>D.buf(),
   gap:()=>`<line class="gapmark" x1="-22" y1="0" x2="-7" y2="0"/><line class="gapmark" x1="7" y1="0" x2="22" y2="0"/><circle class="rubble" cx="-2" cy="2" r="2.2"/><circle class="rubble" cx="3" cy="-2" r="1.6"/>`,
   sig:()=>D.sig(2),stn:()=>D.stn(0),plat:()=>D.plat(4),tkt:()=>D.tkt(2),spare:()=>D.spare(),tun:()=>D.tun()};
 
@@ -437,11 +449,15 @@ function setPuzzle(puz,state){
   $('loading').hidden=true;render();tick();refreshLegend();
   if(st.solved)showWin(false);else if(st.started&&mode!=='journey')startTimer();
 }
+const G0=pz=>geom(pz.W,pz.H);
 function openJourney(ci,pi){
   setMode('journey');jCur={ci,pi};const ch=JOURNEY[ci],pz=ch.puzzles[pi];
-  const solvedRoute=J.solved[jKey(ci,pi)];
+  let solvedRoute=J.solved[jKey(ci,pi)];
+  if(Array.isArray(solvedRoute)){const g=G0(pz),r0=solvedRoute.filter(n=>n!==g.NN),edges=r0.slice(1).map((n,k)=>{const f=g.adj[r0[k]].find(([m])=>m===n);return f?f[1]:-1});
+    const fits=r0[0]===pz.start&&r0[r0.length-1]===pz.end&&edges.every(e=>e>=0)&&checkRoute(g,pz,{nodes:r0,edges},pz.clues);
+    if(!fits)solvedRoute=pz.sol?[...pz.sol,g.NN]:true}
   $('sub').textContent=`The journey · stop ${jIdx(ci,pi)+1} of ${FLAT.length}`;$('themeTag').textContent=ch.name;
-  setPuzzle({...pz,label:`${ch.name} ${pi+1}`},{route:Array.isArray(solvedRoute)?solvedRoute:[pz.start],tries:[],elapsed:0,started:false,solved:!!solvedRoute});
+  setPuzzle({...pz,label:`${ch.name} ${pi+1}`},{route:Array.isArray(solvedRoute)?solvedRoute.slice():[pz.start],tries:[],elapsed:0,started:false,solved:!!solvedRoute});
   renderMap();
   if(!st.solved)hint(jIdx(ci,pi)===0?'Drag from the roundel and drive off the edge at the end of the line.':'');
 }
@@ -449,7 +465,7 @@ function loadDaily(){
   setMode('daily');$('loading').hidden=false;$('svg').innerHTML='';
   setTimeout(()=>{const d=dayInfo();const pz=generate('whistlestop-'+d.iso,d.N,d.N,d.theme);pz.label=`#${d.num} · ${d.label}`;pz.iso=d.iso;
     $('sub').textContent='Daily line '+pz.label;$('themeTag').textContent=THEME_NAMES[pz.theme];
-    let saved=store.get('whistlestop-daily-v3');if(saved&&saved.iso!==d.iso)saved=null;
+    let saved=store.get('whistlestop-daily-v4');if(saved&&saved.iso!==d.iso)saved=null;
     setPuzzle(pz,saved?saved.st:{route:[pz.start],tries:[],elapsed:0,started:false,solved:false});
     const unknown=[...new Set(P.clues.map(c=>c.t))].filter(k=>!J.learned.includes(k));
     if(unknown.length&&!st.solved){$('dailyNote').hidden=false;$('dailyNoteTxt').textContent=`Today's line uses ${unknown.length===1?'a sign':'signs'} you haven't met on the journey yet. Experiment, or learn ${unknown.length===1?'it':'them'} first.`}
@@ -467,7 +483,7 @@ function loadEndless(code){
     setPuzzle(pz,{route:[pz.start],tries:[],elapsed:0,started:false,solved:false});hint('');
   },30);
 }
-function persist(){if(mode==='daily'){st.route=route.slice();store.set('whistlestop-daily-v3',{iso:P.iso,st})}}
+function persist(){if(mode==='daily'){st.route=route.slice();store.set('whistlestop-daily-v4',{iso:P.iso,st})}}
 
 // ---- journey map ----
 function renderMap(){
@@ -501,11 +517,11 @@ function render(){
       s+=`<line class="gapmark" x1="${m.a.x}" y1="${m.a.y}" x2="${ax}" y2="${ay}"/><line class="gapmark" x1="${bx}" y1="${by}" x2="${m.b.x}" y2="${m.b.y}"/><circle class="rubble" cx="${m.x-3}" cy="${m.y+2}" r="2.2"/><circle class="rubble" cx="${m.x+3}" cy="${m.y-2}" r="1.6"/>`}
     else s+=`<line class="slot" x1="${m.a.x}" y1="${m.a.y}" x2="${m.b.x}" y2="${m.b.y}"/>`}
   // the line runs off the board here
-  const ep=np(P.end),xp=np(EX),[dx,dy]=exitDir(),hutOff=13;
-  s+=`<line class="slot" x1="${ep.x}" y1="${ep.y}" x2="${xp.x}" y2="${xp.y}" style="stroke-dasharray:none;stroke-width:5"/><g transform="translate(${xp.x+dx*hutOff},${xp.y+dy*hutOff})">${hutSVG('var(--k0)',1)}</g>`;
+  const ep=np(P.end),xp=np(EX),[dx,dy]=exitDir(),hutOff=4;
+  s+=`<line class="slot" x1="${ep.x}" y1="${ep.y}" x2="${xp.x}" y2="${xp.y}" style="stroke-dasharray:none;stroke-width:5"/><g transform="translate(${xp.x+dx*hutOff},${xp.y+dy*hutOff})">${terminusSVG(dx,dy)}</g>`;
   // the departure station sits just off the board beside the start junction
   {const sp0=np(P.start),[ox,oy]=outDir(P.start),hx=sp0.x+ox*S*.4,hy=sp0.y+oy*S*.4;
-    s+=`<line class="spur" x1="${sp0.x}" y1="${sp0.y}" x2="${hx}" y2="${hy}"/><g transform="translate(${hx},${hy})">${hutSVG('var(--loco)')}</g>`}
+    s+=`<line class="spur" x1="${sp0.x}" y1="${sp0.y}" x2="${hx}" y2="${hy}"/><g transform="translate(${hx},${hy})">${departSVG()}</g>`}
   // track
   const pts=route.map(np);if(partial)pts.push(partial);
   if(pts.length>1){const d=pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
@@ -526,7 +542,7 @@ function render(){
     else if(c.t==='spare'||c.t==='tun'){p=np(c.node);svg=`<g opacity="${route.includes(c.node)?0.35:1}">${D[c.t]()}</g>`}
     else{p=cc(c.cell);svg=c.t==='sig'?D.sig(c.k):c.t==='stn'?D.stn(c.col):c.t==='tkt'?D.tkt(c.col):D.plat(c.k)}
     s+=`<g class="${isBad(c)?'bad':''}" transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)})" pointer-events="none">${svg}</g>`});
-  const sp=np(P.start);s+=`<g transform="translate(${sp.x},${sp.y})">${startSVG()}</g>`;
+  const sp=np(P.start);s+=`<g transform="translate(${sp.x},${sp.y})">${startSVG(route.length<2&&!st.solved)}</g>`;
   s+=`<g id="train">${trainSVG(pts)}</g>`;
   $('svg').innerHTML=s;
 }
@@ -569,7 +585,7 @@ function steer(p){
     if(!best)return;
     if(best.back){if(best.t>0.5){route.pop();continue}return}
     if(best.lim<1){const t=Math.min(best.t,best.lim);partial={x:H.x+best.vx*t,y:H.y+best.vy*t};return}
-    if(best.t>0.9){route.push(best.m);if(!st.started){st.started=true;if(mode!=='journey')startTimer()}if(best.m===EX)return;continue}
+    if(best.t>(best.m===EX?0.6:0.9)){route.push(best.m);if(!st.started){st.started=true;if(mode!=='journey')startTimer()}pickedUp(best.m);if(best.m===EX)return;continue}
     partial={x:H.x+best.vx*best.t,y:H.y+best.vy*best.t};return}
 }
 $('svg').addEventListener('pointerdown',e=>{if(!P||st.solved)return;const p=svgPt(e),h=np(route[route.length-1]),s0=np(P.start);
@@ -584,12 +600,14 @@ document.addEventListener('keydown',e=>{if(!P||st.solved||$('svg').style.display
   const[dx,dy]=exitDir();if(h===P.end&&dir[0]===dx&&dir[1]===dy)m=EX;
   else{const x=h%G.NW+dir[0],y=Math.floor(h/G.NW)+dir[1];if(x<0||y<0||x>G.W||y>G.H)return;m=y*G.NW+x}
   if(route.length>1&&m===route[route.length-2])route.pop();else if(canGo(h,m)){route.push(m);if(!st.started){st.started=true;if(mode!=='journey')startTimer()}}
-  render();persist();arrive()});
+  render();persist();arrive();pickedUp(route[route.length-1])});
 $('clearBtn').onclick=()=>{if(!P||st.solved)return;route=[P.start];badClues=[];render();persist();hint('')};
 
+function pickedUp(n){if(route.indexOf(n)!==route.length-1)return;const c=P.clues.find(x=>x.node===n&&(x.t==='spare'||x.t==='tun'));if(!c)return;
+  hint(`Picked up ${c.t==='spare'?'a spare rail':'a tunnel'}! ${carryText()}`,'good')}
 function carryText(){if(!P.clues.some(c=>c.t==='spare'||c.t==='tun'))return'';const c=carry(),parts=[];if(P.clues.some(x=>x.t==='spare'))parts.push(`${c.spares} spare rail${c.spares===1?'':'s'}`);if(P.clues.some(x=>x.t==='tun'))parts.push(`${c.tuns} tunnel${c.tuns===1?'':'s'}`);return 'Carrying '+parts.join(' · ')+'. '}
 function arrive(){
-  if(route[route.length-1]!==EX){hint(route.length>1?carryText():'');return}
+  if(route[route.length-1]!==EX){if(!/^Picked up/.test($('hint').textContent))hint(route.length>1?carryText():'');return}
   const r0=plain(),r={nodes:r0,edges:r0.slice(1).map((n,k)=>edgeOf(r0[k],n))};
   const bad=checkRoute(G,P,r,P.clues,true);
   if(bad.length){st.tries.push(0);badClues=bad;persist();render();
