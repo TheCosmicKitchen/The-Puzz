@@ -165,7 +165,7 @@ h1 span{color:var(--loco)}
   <details class="legend" id="legend">
     <summary id="legendSum">Sign book</summary>
     <ul>
-      <li data-k="base"><svg viewBox="-24 -24 48 48" id="lg-start"></svg><span>Drag from the <b>station roundel</b> and drive off the board at the <b>terminus</b>. Track can't run over itself. Drag back to take track up, or use the arrow keys.</span></li>
+      <li data-k="base"><svg viewBox="-24 -24 48 48" id="lg-start"></svg><span>Drag the <b>locomotive</b> onto the board and drive it to the <b>buffer stop</b> at the end of the line. Track can't run over itself. Drag back to take track up, or use the arrow keys.</span></li>
       <li data-k="stop"><svg viewBox="-24 -24 48 48" id="lg-stop"></svg><span><b>Stop.</b> The train must call here, at a junction or along a stretch of track.</span></li>
       <li data-k="buf"><svg viewBox="-24 -24 48 48" id="lg-buf"></svg><span><b>Buffers.</b> The line can't pass this junction.</span></li>
       <li data-k="gap"><svg viewBox="-24 -24 48 48" id="lg-gap"></svg><span><b>Broken track.</b> No line along this stretch, unless you're carrying a spare rail.</span></li>
@@ -429,10 +429,9 @@ function hutSVG(roof,clock){return `<g class="hut"><rect class="wall" x="-9" y="
 function startSVG(halo){return `${halo?'<circle class="depart-halo" r="9"/>':''}<circle class="depart" r="7.5"/><path d="M-2.2,-3.6L3.8,0L-2.2,3.6Z" fill="var(--surface)"/>`}
 function departSVG(){return `${hutSVG('var(--ok)')}<line class="pole" x1="12" y1="9" x2="12" y2="-16"/><path class="flag-go" d="M12,-16L22,-12.5L12,-9Z"/>`}
 // terminus: a red-and-white buffer stop across the track, with a chequered flag beside it
-function terminusSVG(dx,dy){const ang=Math.atan2(dy,dx)*180/Math.PI,px=-dy,py=dx;let chq='';for(let r=0;r<2;r++)for(let c=0;c<3;c++)chq+=`<rect class="${(r+c)%2?'chq-b':'chq-a'}" x="${c*4}" y="${r*4}" width="4" height="4"/>`;
-  return `<g transform="rotate(${ang})"><rect class="bufbeam" x="-3" y="-13" width="7" height="26" rx="2"/><rect class="bufstripe" x="-3" y="-6" width="7" height="3.5"/><rect class="bufstripe" x="-3" y="2.5" width="7" height="3.5"/><circle cx="-5" cy="-8" r="2.4" fill="var(--rail)"/><circle cx="-5" cy="8" r="2.4" fill="var(--rail)"/></g>
-    <g transform="translate(${px*20+dx*4},${py*20+dy*4})"><line class="pole" x1="0" y1="10" x2="0" y2="-12"/><g transform="translate(0,-12)">${chq}<rect x="0" y="0" width="12" height="8" fill="none" stroke="var(--rail)" stroke-width=".8"/></g></g>`}
-const ICON={base:()=>`<line class="spur" x1="-14" y1="10" x2="10" y2="10"/><g transform="translate(-12,0) scale(.85)">${departSVG()}</g><g transform="translate(10,10) scale(.8)">${startSVG()}</g>`,stop:()=>`<line x1="-22" y1="0" x2="22" y2="0" class="slot"/>${D.stop()}`,buf:()=>D.buf(),
+function terminusSVG(dx,dy){const ang=Math.atan2(dy,dx)*180/Math.PI;
+  return `<g transform="rotate(${ang})"><rect class="bufbeam" x="-3" y="-13" width="7" height="26" rx="2"/><rect class="bufstripe" x="-3" y="-6" width="7" height="3.5"/><rect class="bufstripe" x="-3" y="2.5" width="7" height="3.5"/><circle cx="-5" cy="-8" r="2.4" fill="var(--rail)"/><circle cx="-5" cy="8" r="2.4" fill="var(--rail)"/></g>`}
+const ICON={base:()=>`<line class="spur" x1="-22" y1="0" x2="22" y2="0"/><g transform="translate(-4,0) scale(.75)">${trainSVG([{x:-30,y:0},{x:0,y:0}])}</g><g transform="translate(18,0) scale(.7)">${terminusSVG(1,0)}</g>`,stop:()=>`<line x1="-22" y1="0" x2="22" y2="0" class="slot"/>${D.stop()}`,buf:()=>D.buf(),
   gap:()=>`<line class="gapmark" x1="-22" y1="0" x2="-7" y2="0"/><line class="gapmark" x1="7" y1="0" x2="22" y2="0"/><circle class="rubble" cx="-2" cy="2" r="2.2"/><circle class="rubble" cx="3" cy="-2" r="1.6"/>`,
   sig:()=>D.sig(2),stn:()=>D.stn(0),plat:()=>D.plat(4),tkt:()=>D.tkt(2),spare:()=>D.spare(),tun:()=>D.tun()};
 
@@ -459,7 +458,7 @@ function openJourney(ci,pi){
   $('sub').textContent=`The journey · stop ${jIdx(ci,pi)+1} of ${FLAT.length}`;$('themeTag').textContent=ch.name;
   setPuzzle({...pz,label:`${ch.name} ${pi+1}`},{route:Array.isArray(solvedRoute)?solvedRoute.slice():[pz.start],tries:[],elapsed:0,started:false,solved:!!solvedRoute});
   renderMap();
-  if(!st.solved)hint(jIdx(ci,pi)===0?'Drag from the roundel and drive off the edge at the end of the line.':'');
+  if(!st.solved)hint(jIdx(ci,pi)===0?'Drag the locomotive onto the board and drive it to the buffer stop.':'');
 }
 function loadDaily(){
   setMode('daily');$('loading').hidden=false;$('svg').innerHTML='';
@@ -469,7 +468,7 @@ function loadDaily(){
     setPuzzle(pz,saved?saved.st:{route:[pz.start],tries:[],elapsed:0,started:false,solved:false});
     const unknown=[...new Set(P.clues.map(c=>c.t))].filter(k=>!J.learned.includes(k));
     if(unknown.length&&!st.solved){$('dailyNote').hidden=false;$('dailyNoteTxt').textContent=`Today's line uses ${unknown.length===1?'a sign':'signs'} you haven't met on the journey yet. Experiment, or learn ${unknown.length===1?'it':'them'} first.`}
-    if(!st.solved&&route.length<2)hint('Drag from the roundel and drive off the edge at the end of the line.');
+    if(!st.solved&&route.length<2)hint('Drag the locomotive onto the board and drive it to the buffer stop.');
   },30);
 }
 function loadEndless(code){
@@ -520,8 +519,10 @@ function render(){
   const ep=np(P.end),xp=np(EX),[dx,dy]=exitDir(),hutOff=4;
   s+=`<line class="slot" x1="${ep.x}" y1="${ep.y}" x2="${xp.x}" y2="${xp.y}" style="stroke-dasharray:none;stroke-width:5"/><g transform="translate(${xp.x+dx*hutOff},${xp.y+dy*hutOff})">${terminusSVG(dx,dy)}</g>`;
   // the departure station sits just off the board beside the start junction
-  {const sp0=np(P.start),[ox,oy]=outDir(P.start),hx=sp0.x+ox*S*.4,hy=sp0.y+oy*S*.4;
-    s+=`<line class="spur" x1="${sp0.x}" y1="${sp0.y}" x2="${hx}" y2="${hy}"/><g transform="translate(${hx},${hy})">${departSVG()}</g>`}
+  // the start: a short siding off the board with the locomotive waiting on it, nose on the start junction
+  {const sp0=np(P.start),[ox,oy]=outDir(P.start),hx=sp0.x+ox*S*.5,hy=sp0.y+oy*S*.5,seg=`${hx},${hy} ${sp0.x},${sp0.y}`;
+    s+=`<polyline class="ballast" points="${seg}"/><polyline class="sleepers" points="${seg}"/><polyline class="rails" points="${seg}"/><polyline class="railgap" points="${seg}"/>`;
+    if(route.length<2&&!partial)s+=`<g id="waiting">${trainSVG([{x:hx,y:hy},{x:sp0.x,y:sp0.y}])}</g>`}
   // track
   const pts=route.map(np);if(partial)pts.push(partial);
   if(pts.length>1){const d=pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
@@ -542,7 +543,7 @@ function render(){
     else if(c.t==='spare'||c.t==='tun'){p=np(c.node);svg=`<g opacity="${route.includes(c.node)?0.35:1}">${D[c.t]()}</g>`}
     else{p=cc(c.cell);svg=c.t==='sig'?D.sig(c.k):c.t==='stn'?D.stn(c.col):c.t==='tkt'?D.tkt(c.col):D.plat(c.k)}
     s+=`<g class="${isBad(c)?'bad':''}" transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)})" pointer-events="none">${svg}</g>`});
-  const sp=np(P.start);s+=`<g transform="translate(${sp.x},${sp.y})">${startSVG(route.length<2&&!st.solved)}</g>`;
+  const sp=np(P.start);if(route.length<2&&!st.solved&&!partial)s+=`<g transform="translate(${sp.x},${sp.y})" pointer-events="none"><circle class="depart-halo" r="14"/></g>`;
   s+=`<g id="train">${trainSVG(pts)}</g>`;
   $('svg').innerHTML=s;
 }
@@ -589,7 +590,8 @@ function steer(p){
     partial={x:H.x+best.vx*best.t,y:H.y+best.vy*best.t};return}
 }
 $('svg').addEventListener('pointerdown',e=>{if(!P||st.solved)return;const p=svgPt(e),h=np(route[route.length-1]),s0=np(P.start);
-  if(Math.hypot(p.x-h.x,p.y-h.y)<28){drawing=true}else if(Math.hypot(p.x-s0.x,p.y-s0.y)<28){route=[P.start];drawing=true}else return;
+  const[ox,oy]=outDir(P.start),loco={x:s0.x+ox*S*.25,y:s0.y+oy*S*.25};
+  if(Math.hypot(p.x-h.x,p.y-h.y)<28){drawing=true}else if(Math.hypot(p.x-s0.x,p.y-s0.y)<28||Math.hypot(p.x-loco.x,p.y-loco.y)<30){route=[P.start];drawing=true}else return;
   badClues=[];e.preventDefault();try{$('svg').setPointerCapture(e.pointerId)}catch(err){}steer(p);render()});
 $('svg').addEventListener('pointermove',e=>{if(!drawing)return;steer(svgPt(e));render()});
 const up=()=>{if(!drawing)return;drawing=false;partial=null;render();persist();arrive()};
