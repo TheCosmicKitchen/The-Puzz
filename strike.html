@@ -70,6 +70,8 @@ details.rules p{margin:8px 0 0;max-width:62ch}
 .t{display:flex;flex-direction:column;align-items:center;justify-content:center;font:600 18px var(--display);font-variant-numeric:tabular-nums;border-radius:10px;background:var(--felt);color:var(--ink);line-height:1.05}
 .t small{font:500 11px var(--body);color:var(--muted)}
 .t.ok{background:var(--ok);color:var(--surface)}.t.ok small{color:var(--surface)}
+button.t{border:0;padding:0;cursor:pointer}
+button.t:hover{filter:brightness(1.08)}
 .t.over{background:var(--bad);color:var(--surface)}.t.over small{color:var(--surface)}
 .corner{background:none}
 .modes{display:flex;gap:8px;justify-content:center}
@@ -91,6 +93,7 @@ details.rules p{margin:8px 0 0;max-width:62ch}
   <details class="rules" id="rules"><summary>How to play</summary>
     <p>Each row and column has a target. Strike out numbers so the ones left add up to every target at once. A target turns green when its line adds up, and red when what's left is already too small to reach it.</p>
     <p>Use <b>Keep</b> to circle numbers you're sure about. Circles are just notes; only struck numbers change the sums.</p>
+    <p>Tap a green target to circle every number left in that line. Tap it again to clear those circles.</p>
   </details>
 </div>
 <script>
@@ -140,9 +143,11 @@ function sums(){const N=Pz.N,rs=[],cs=[],rmax=[],cmax=[];
   for(let c=0;c<N;c++){let s=0;for(let r=0;r<N;r++)if(st.mark[r*N+c]!==1)s+=Pz.g[r*N+c];cs.push(s)}return{rs,cs}}
 function render(){const N=Pz.N,{rs,cs}=sums(),size=N<=5?58:N===6?50:44;
   const b=$('board');b.style.gridTemplateColumns=`repeat(${N},minmax(0,${size}px)) minmax(0,${size}px)`;
-  let h='';const tcell=(sum,target)=>{const cls=sum===target?'ok':sum<target?'over':'';return `<div class="t ${cls}" style="aspect-ratio:1">${target}<small>${sum===target?'✓':sum<target?'short':(sum-target)+' over'}</small></div>`};
-  for(let r=0;r<N;r++){for(let c=0;c<N;c++){const i=r*N+c,m=st.mark[i];h+=`<button class="n ${m===1?'struck':m===2?'kept':''}" data-i="${i}" aria-label="${Pz.g[i]}${m===1?', struck':m===2?', kept':''}">${Pz.g[i]}</button>`}h+=tcell(rs[r],Pz.rt[r])}
-  for(let c=0;c<N;c++)h+=tcell(cs[c],Pz.ct[c]);h+='<div class="corner"></div>';
+  // a green (adding-up) target is a button: tapping it circles the rest of its line
+  let h='';const tcell=(sum,target,line,name)=>{const cls=sum===target?'ok':sum<target?'over':'',inner=`${target}<small>${sum===target?'✓':sum<target?'short':(sum-target)+' over'}</small>`;
+    return cls==='ok'&&!st.done?`<button class="t ok" style="aspect-ratio:1" data-line="${line}" aria-label="${name} adds up to ${target}. Tap to circle its numbers">${inner}</button>`:`<div class="t ${cls}" style="aspect-ratio:1">${inner}</div>`};
+  for(let r=0;r<N;r++){for(let c=0;c<N;c++){const i=r*N+c,m=st.mark[i];h+=`<button class="n ${m===1?'struck':m===2?'kept':''}" data-i="${i}" aria-label="${Pz.g[i]}${m===1?', struck':m===2?', kept':''}">${Pz.g[i]}</button>`}h+=tcell(rs[r],Pz.rt[r],'r'+r,`Row ${r+1}`)}
+  for(let c=0;c<N;c++)h+=tcell(cs[c],Pz.ct[c],'c'+c,`Column ${c+1}`);h+='<div class="corner"></div>';
   b.innerHTML=h}
 function tap(i){if(st.done)return;if(!st.started){st.started=true;Timer.start(st,$('timer'))}
   const want=tapMode==='strike'?1:2;st.mark[i]=st.mark[i]===want?0:want;
@@ -152,7 +157,10 @@ function shareText(){const N=Pz.N;let g='';for(let r=0;r<N;r++){for(let c=0;c<N;
   return `The Puzz · Strike ${Pz.label}\n${N}×${N} · ⏱ ${fmt(st.elapsed)}\n${g.trim()}`}
 function showWin(){const w=$('win');w.hidden=false;w.innerHTML=`<h2>Every line adds up</h2><pre id="shareTxt">${esc(shareText())}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New grid</button>':'<span class="sub">A new grid at midnight.</span>'}</div>`;
   wireCopy($('copyBtn'),shareText,'shareTxt');if($('nextBtn'))$('nextBtn').onclick=()=>load('endless')}
-$('board').addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(b)tap(+b.dataset.i)});
+// circle every unstruck number in a finished line; if they're all circled already, clear them
+function keepLine(line){if(st.done)return;const N=Pz.N,k=+line.slice(1),cells=[...Array(N).keys()].map(j=>line[0]==='r'?k*N+j:j*N+k).filter(i=>st.mark[i]!==1);
+  const v=cells.every(i=>st.mark[i]===2)?0:2;cells.forEach(i=>st.mark[i]=v);render();persist()}
+$('board').addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(b)return tap(+b.dataset.i);const t=e.target.closest('[data-line]');if(t)keepLine(t.dataset.line)});
 document.querySelectorAll('[data-tm]').forEach(b=>b.onclick=()=>{tapMode=b.dataset.tm;document.querySelectorAll('[data-tm]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
 $('clearBtn').onclick=()=>{if(st.done)return;st.mark.fill(0);render();persist()};
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>load(b.dataset.mode));$('newBtn').onclick=()=>load('endless');$('size').onchange=()=>load('endless');
