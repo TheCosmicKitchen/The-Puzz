@@ -83,7 +83,7 @@ button.t:hover{filter:brightness(1.08)}
     <div><a class="eyebrow" href="./">← The Puzz</a><h1>Str<span>ike</span><span class="proto-tag">Prototype</span></h1><div class="sub" id="sub"></div></div>
     <div class="tabs" role="group" aria-label="Mode"><button data-mode="daily" aria-pressed="true">Daily</button><button data-mode="endless" aria-pressed="false">Endless</button></div>
   </header>
-  <div class="bar"><div class="row" id="endCtl" hidden><select class="btn" id="size" aria-label="Size"><option value="4">4 × 4</option><option value="5" selected>5 × 5</option><option value="6">6 × 6</option><option value="7">7 × 7</option></select><button class="btn" id="newBtn">New grid</button></div><span></span><div class="row"><button class="btn" id="clearBtn">Clear</button><span class="timer" id="timer">0:00</span></div></div>
+  <div class="bar"><div class="row" id="endCtl" hidden><select class="btn" id="size" aria-label="Size"><option value="4">4 × 4</option><option value="5" selected>5 × 5</option><option value="6">6 × 6</option><option value="7">7 × 7</option></select><button class="btn" id="newBtn">New grid</button></div><span></span><div class="row"><button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button class="btn" id="clearBtn">Clear</button><span class="timer" id="timer">0:00</span></div></div>
   <section class="card">
     <div class="modes" role="group" aria-label="Tap mode"><button class="chip" data-tm="strike" aria-pressed="true">✕ Strike</button><button class="chip" data-tm="keep" aria-pressed="false">◯ Keep</button></div>
     <div class="board" id="board"></div>
@@ -94,6 +94,7 @@ button.t:hover{filter:brightness(1.08)}
     <p>Each row and column has a target. Strike out numbers so the ones left add up to every target at once. A target turns green when its line adds up, and red when what's left is already too small to reach it.</p>
     <p>Use <b>Keep</b> to circle numbers you're sure about. Circles are just notes; only struck numbers change the sums.</p>
     <p>Tap a green target to circle every number left in that line. Tap it again to clear those circles.</p>
+    <p><b>Undo</b> steps back one move at a time, all the way to the start, even after a Clear.</p>
   </details>
 </div>
 <script>
@@ -135,7 +136,7 @@ function gen(seed,N){for(let a=0;a<500;a++){const r=mulberry(hseed(seed+'#'+a));
 function load(m,code){mode=m;setTabs(m);$('endCtl').hidden=m!=='endless';$('win').hidden=true;Timer.stop();let saved=null;
   if(m==='daily'){const d=dayInfo(),N=d.weekend?6:5;Pz=gen('strike-'+d.iso,N);Pz.label=`#${d.num} · ${d.label}`;Pz.iso=d.iso;$('sub').textContent=`Daily ${N}×${N} · ${Pz.label}`;saved=store.get('strike-daily');if(saved&&saved.iso!==d.iso)saved=null}
   else{const c=code||newCode(),N=+$('size').value;Pz=gen('strike-e-'+c+N,N);Pz.label='Endless · '+c+N;$('sub').textContent=`Endless ${N}×${N} · ${c}${N}`;try{history.replaceState(null,'','#'+c+N)}catch(e){}}
-  st=saved?saved.st:{mark:new Array(Pz.N*Pz.N).fill(0),elapsed:0,started:false,done:false,checks:0};
+  st=saved?saved.st:{mark:new Array(Pz.N*Pz.N).fill(0),elapsed:0,started:false,done:false,checks:0};if(!st.hist)st.hist=[];
   $('timer').textContent=fmt(st.elapsed);render();if(st.done)showWin();else if(st.started)Timer.start(st,$('timer'))}
 function persist(){if(mode==='daily')store.set('strike-daily',{iso:Pz.iso,st})}
 function sums(){const N=Pz.N,rs=[],cs=[],rmax=[],cmax=[];
@@ -148,8 +149,11 @@ function render(){const N=Pz.N,{rs,cs}=sums(),size=N<=5?58:N===6?50:44;
     return cls==='ok'&&!st.done?`<button class="t ok" style="aspect-ratio:1" data-line="${line}" aria-label="${name} adds up to ${target}. Tap to circle its numbers">${inner}</button>`:`<div class="t ${cls}" style="aspect-ratio:1">${inner}</div>`};
   for(let r=0;r<N;r++){for(let c=0;c<N;c++){const i=r*N+c,m=st.mark[i];h+=`<button class="n ${m===1?'struck':m===2?'kept':''}" data-i="${i}" aria-label="${Pz.g[i]}${m===1?', struck':m===2?', kept':''}">${Pz.g[i]}</button>`}h+=tcell(rs[r],Pz.rt[r],'r'+r,`Row ${r+1}`)}
   for(let c=0;c<N;c++)h+=tcell(cs[c],Pz.ct[c],'c'+c,`Column ${c+1}`);h+='<div class="corner"></div>';
-  b.innerHTML=h}
-function tap(i){if(st.done)return;if(!st.started){st.started=true;Timer.start(st,$('timer'))}
+  b.innerHTML=h;$('undoBtn').disabled=st.done||!st.hist.length}
+// undo history: the board as it was before each change, newest last (kept in the save, so it survives a reload)
+function snap(){st.hist.push(st.mark.join(''));if(st.hist.length>300)st.hist.shift()}
+function undo(){if(st.done||!st.hist.length)return;st.mark=st.hist.pop().split('').map(Number);render();persist()}
+function tap(i){if(st.done)return;if(!st.started){st.started=true;Timer.start(st,$('timer'))}snap();
   const want=tapMode==='strike'?1:2;st.mark[i]=st.mark[i]===want?0:want;
   const {rs,cs}=sums();render();persist();
   if(rs.every((s,r)=>s===Pz.rt[r])&&cs.every((s,c)=>s===Pz.ct[c])){st.done=true;Timer.stop();persist();showWin()}}
@@ -159,10 +163,12 @@ function showWin(){const w=$('win');w.hidden=false;w.innerHTML=`<h2>Every line a
   wireCopy($('copyBtn'),shareText,'shareTxt');if($('nextBtn'))$('nextBtn').onclick=()=>load('endless')}
 // circle every unstruck number in a finished line; if they're all circled already, clear them
 function keepLine(line){if(st.done)return;const N=Pz.N,k=+line.slice(1),cells=[...Array(N).keys()].map(j=>line[0]==='r'?k*N+j:j*N+k).filter(i=>st.mark[i]!==1);
-  const v=cells.every(i=>st.mark[i]===2)?0:2;cells.forEach(i=>st.mark[i]=v);render();persist()}
+  const v=cells.every(i=>st.mark[i]===2)?0:2;snap();cells.forEach(i=>st.mark[i]=v);render();persist()}
 $('board').addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(b)return tap(+b.dataset.i);const t=e.target.closest('[data-line]');if(t)keepLine(t.dataset.line)});
 document.querySelectorAll('[data-tm]').forEach(b=>b.onclick=()=>{tapMode=b.dataset.tm;document.querySelectorAll('[data-tm]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
-$('clearBtn').onclick=()=>{if(st.done)return;st.mark.fill(0);render();persist()};
+$('clearBtn').onclick=()=>{if(st.done||st.mark.every(m=>!m))return;snap();st.mark.fill(0);render();persist()};
+$('undoBtn').onclick=undo;
+addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>load(b.dataset.mode));$('newBtn').onclick=()=>load('endless');$('size').onchange=()=>load('endless');
 (function(){const h=(location.hash||'').slice(1),m=/^([a-z0-9]{5})([4-7])$/.exec(h);if(m){$('size').value=m[2];load('endless',m[1])}else{load('daily');if(!store.get('strike-seen')){$('rules').open=true;store.set('strike-seen',1)}}})();
 </script>
