@@ -83,7 +83,6 @@ h1 span{color:var(--loco)}
 .pole{stroke:var(--rail);stroke-width:2;stroke-linecap:round}
 .loco .body{fill:var(--loco)}.loco .cab{fill:var(--rail)}.loco .win{fill:var(--lamp)}.loco .chim{fill:var(--rail)}
 .car .body{fill:var(--k0)}.car .win{fill:var(--surface)}
-.puff{fill:var(--surface);opacity:.85}
 .legend{background:var(--surface);border-radius:14px;padding:12px 16px}
 .legend summary{font:600 15px var(--display);cursor:pointer}
 .legend ul{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
@@ -165,7 +164,7 @@ h1 span{color:var(--loco)}
   <details class="legend" id="legend">
     <summary id="legendSum">Sign book</summary>
     <ul>
-      <li data-k="base"><svg viewBox="-24 -24 48 48" id="lg-start"></svg><span>Drag the <b>locomotive</b> onto the board and drive it to the <b>buffer stop</b> at the end of the line. Track can't run over itself. Drag back to take track up, or use the arrow keys.</span></li>
+      <li data-k="base"><svg viewBox="-24 -24 48 48" id="lg-start"></svg><span>Drag the <b>locomotive</b> onto the board and drive it to the <b>buffer stop</b> at the end of the line. Track can't run over itself. Drag back to take track up, or tap anywhere on your track to jump back to that point. Arrow keys work too.</span></li>
       <li data-k="stop"><svg viewBox="-24 -24 48 48" id="lg-stop"></svg><span><b>Stop.</b> The train must call here, at a junction or along a stretch of track.</span></li>
       <li data-k="buf"><svg viewBox="-24 -24 48 48" id="lg-buf"></svg><span><b>Buffers.</b> The line can't pass this junction.</span></li>
       <li data-k="gap"><svg viewBox="-24 -24 48 48" id="lg-gap"></svg><span><b>Broken track.</b> No line along this stretch, unless you're carrying a spare rail.</span></li>
@@ -370,6 +369,8 @@ function tryGen(rand,spec){
     if(spec.focus&&g[0].t===spec.focus&&rest.filter(c=>c.t===spec.focus).length<(spec.focusMin||0)*fUnit)continue;
     if(solve(G,P,rest,2).count===1)P.clues=rest}
   if(spec.focus&&P.clues.filter(c=>c.t===spec.focus).length<Math.max(1,spec.focusMin||0)*fUnit)return null;
+  // stations all of one colour can never clash, so they'd be signs that do nothing
+  {const stc=new Set(P.clues.filter(c=>c.t==='stn').map(c=>c.col));if(stc.size===1)return null}
   if(spec.maxClues&&P.clues.length>spec.maxClues)return null;
   if(P.clues.some(c=>c.node===start||c.node===end))return null;
   P.clues.forEach(c=>delete c.core);
@@ -591,9 +592,17 @@ function steer(p){
 }
 $('svg').addEventListener('pointerdown',e=>{if(!P||st.solved)return;const p=svgPt(e),h=np(route[route.length-1]),s0=np(P.start);
   const[ox,oy]=outDir(P.start),loco={x:s0.x+ox*S*.25,y:s0.y+oy*S*.25};
-  if(Math.hypot(p.x-h.x,p.y-h.y)<28){drawing=true}else if(Math.hypot(p.x-s0.x,p.y-s0.y)<28||Math.hypot(p.x-loco.x,p.y-loco.y)<30){route=[P.start];drawing=true}else return;
+  let k;
+  if(Math.hypot(p.x-h.x,p.y-h.y)<28){drawing=true}else if(Math.hypot(p.x-s0.x,p.y-s0.y)<28||Math.hypot(p.x-loco.x,p.y-loco.y)<30){route=[P.start];drawing=true}
+  else if((k=routeIndexAt(p))>=0){route=route.slice(0,k+1);drawing=true}else return;
   badClues=[];e.preventDefault();try{$('svg').setPointerCapture(e.pointerId)}catch(err){}steer(p);render()});
 $('svg').addEventListener('pointermove',e=>{if(!drawing)return;steer(svgPt(e));render()});
+// which point of the laid route a tap lands on: a junction (the latest pass, where the line crosses itself), or the nearer end of a stretch of track
+function routeIndexAt(p){const pts=route.map(np);let best=-1,bd=24;
+  pts.forEach((q,k)=>{const d=Math.hypot(p.x-q.x,p.y-q.y);if(d<=bd){bd=d;best=k}});if(best>=0)return best;bd=16;
+  for(let k=0;k<pts.length-1;k++){const a=pts[k],b=pts[k+1],vx=b.x-a.x,vy=b.y-a.y,L2=vx*vx+vy*vy||1,t=Math.max(0,Math.min(1,((p.x-a.x)*vx+(p.y-a.y)*vy)/L2)),d=Math.hypot(p.x-a.x-vx*t,p.y-a.y-vy*t);
+    if(d<bd){bd=d;best=t<0.5?k:k+1}}
+  return best}
 const up=()=>{if(!drawing)return;drawing=false;partial=null;render();persist();arrive()};
 $('svg').addEventListener('pointerup',up);$('svg').addEventListener('pointercancel',up);
 document.addEventListener('keydown',e=>{if(!P||st.solved||$('svg').style.display==='none')return;const dir={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key];if(!dir)return;e.preventDefault();
@@ -626,7 +635,7 @@ function runTrain(){const pts=route.map(np),total=pts.slice(1).reduce((s,p,k)=>s
   const step=now=>{const f=Math.min(1,(now-t0)/dur),dist=total*(1-f);
     const sub=[];let acc=0;sub.push(pts[0]);
     for(let k=1;k<pts.length;k++){const L=Math.hypot(pts[k].x-pts[k-1].x,pts[k].y-pts[k-1].y);if(acc+L>=total-dist){const t=(total-dist-acc)/L;sub.push({x:pts[k-1].x+(pts[k].x-pts[k-1].x)*t,y:pts[k-1].y+(pts[k].y-pts[k-1].y)*t});break}sub.push(pts[k]);acc+=L}
-    const g=$('train');if(g)g.innerHTML=trainSVG(sub.length>1?sub:pts.slice(0,2))+(f<1?`<circle class="puff" cx="${sub[sub.length-1].x+6*Math.sin(now/90)}" cy="${sub[sub.length-1].y-16-6*((now/300)%1)}" r="${4+3*((now/300)%1)}"/>`:'');
+    const g=$('train');if(g)g.innerHTML=trainSVG(sub.length>1?sub:pts.slice(0,2));
     if(f<1)anim=requestAnimationFrame(step)};
   anim=requestAnimationFrame(step)}
 function journeySolved(){
