@@ -58,8 +58,8 @@ h1 span{color:var(--y0)}
 .w.new i{animation:pulse .5s ease-out}
 .pattern .len{color:var(--y0)}
 .w i.mk{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--y2);border-radius:50%}
-.blanket{background:var(--surface);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;align-items:center}
-.bh{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}.bh b{font:600 17px var(--display)}.bh span{font-size:13px;color:var(--muted);max-width:42ch}
+.blanket{background:var(--surface);border:2px solid var(--y0);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.bh{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}.bh b{font:600 17px var(--display)}.bh span{font-size:13px;color:var(--muted);max-width:42ch}.bh .eb{font:600 12px var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--y0)}.bh b{font-size:19px}
 .tiles,.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .tile{width:44px;height:44px;border-radius:10px;border:2px dashed var(--line);background:var(--bg);font:600 22px var(--display);color:var(--ink);text-transform:uppercase;cursor:pointer}
 .tile.done{border:2px solid var(--y0);background:var(--y0);color:var(--surface)}
@@ -114,6 +114,9 @@ details p{margin:8px 0 0;max-width:62ch}
   </header>
   <div class="endless" id="endlessCtl" hidden><button class="btn" id="newBtn">New skein</button><span>skein <b id="seedTxt"></b></span></div>
 
+  <section class="blanket" id="blanket"></section>
+  <section class="win" id="win" hidden></section>
+
   <section class="top">
     <svg id="granny" viewBox="-66 -66 132 132" aria-label="Granny square progress"></svg>
     <div class="stats">
@@ -125,8 +128,6 @@ details p{margin:8px 0 0;max-width:62ch}
 
   <section class="slots" id="slots" aria-label="Words to find"></section>
 
-  <section class="blanket" id="blanket" hidden></section>
-
   <div class="chain" id="chain" aria-live="polite"></div>
   <div class="toast" id="toast" role="status"></div>
   <div class="ringbox"><svg id="ring" viewBox="-150 -150 300 300" aria-label="Letter ring"></svg></div>
@@ -137,13 +138,12 @@ details p{margin:8px 0 0;max-width:62ch}
     <button class="btn" id="thread" title="Reveal a letter">Pull a thread</button>
   </div>
   <div class="bonus" id="bonus"></div>
-  <section class="win" id="win" hidden></section>
 
   <details id="rules">
     <summary>How to play</summary>
-    <p>Today's skein has seven letters that unwind into one seven-letter <b>pattern word</b>. Drag across the yarn balls, or tap them one at a time, to chain letters into words of three letters or more. Each ball can be used once per word.</p>
-    <p>Every hidden word you find crochets a cluster onto the granny square. Find them all to finish the square. Real words that aren't on the pattern card still count as bonus stitches.</p>
-    <p>Some slots have a <b>marked stitch</b>, a ringed letter. Find those words to unpick their marked letters, then tap them into <b>the blanket</b> in the right order to spell the day's hidden word.</p>
+    <p><b>The goal:</b> find today's hidden word, shown at the top. Its letters are unpicked from the words you find.</p>
+    <p>Drag across the yarn balls, or tap them one at a time, to chain letters into words of three letters or more. Each ball can be used once per word. Some slots in the word list have a <b>marked stitch</b>, a ringed letter. Find those words to unpick their letters, then tap the letters into the right order at the top.</p>
+    <p>That finishes the day. If you want more, every hidden word also crochets a cluster onto the granny square, including the seven-letter <b>pattern word</b> that uses every ball. Real words that aren't on the pattern card count as bonus stitches.</p>
     <p><b>Rewind</b> shuffles the balls. <b>Frog it</b> rips out your current chain. <b>Pull a thread</b> reveals a letter of a hidden word, and your result shows how many you pulled. Type on a keyboard if you prefer.</p>
   </details>
   <div class="foot">Made for <b>Joanna</b>, who can crochet anything.</div>
@@ -199,28 +199,35 @@ function load(m,idxOverride){
     try{history.replaceState(null,'','#j'+G.code)}catch(e){}}
   st=saved?saved.st:{found:[],bonus:[],hints:{},pulled:0,done:false,blanket:[],metaDone:false};
   if(!st.blanket)st.blanket=[];
+  if(!G.meta&&!st.metaDone&&st.found.some(w=>w.length===7))st.metaDone=true;
   // shuffle until the root isn't spelled out in order
   const r=mulberry(hseed(G.root+'ring'));letters=G.root.split('');do{for(let i=6;i>0;i--){const j=Math.floor(r()*(i+1));[letters[i],letters[j]]=[letters[j],letters[i]]}}while(letters.join('')===G.root);
-  chain=[];$('win').hidden=true;toast('');render();if(st.done||st.metaDone)showWin();
+  chain=[];$('win').hidden=true;toast('');render();if(st.metaDone)showWin();
 }
 function persist(){if(mode==='daily')store.set('joannagrams-daily',{iso:G.iso,st})}
 
 // ---- the blanket meta ----
 function blanket(){
-  const sec=$('blanket');if(!G.meta){sec.hidden=true;return}sec.hidden=false;
-  const M=G.meta,n=M.word.length,inB=new Set(st.blanket.filter(x=>x!=null));
-  let h=`<div class="bh"><b>The blanket</b><span>${st.metaDone?'Joined!':'Unpick the marked stitches and rearrange them into a '+n+'-letter word.'}</span></div><div class="tiles">`;
+  const sec=$('blanket'),eb=`<span class="eb">${mode==='daily'?"Today's goal":'The goal'}</span>`;
+  // the few skeins with no blanket word make the pattern word the goal
+  if(!G.meta){const pat=G.answers.find(w=>w.length===7)||G.root;
+    sec.innerHTML=`<div class="bh">${eb}<b>${st.metaDone?'Pattern word found':'Find the 7-letter pattern word'}</b><span>${st.metaDone?'Finishing the square is an optional extra.':'It uses all seven letters on the ring.'}</span></div><div class="tiles">${[...pat].map(c=>`<span class="tile ${st.metaDone?'done':''}" style="display:flex;align-items:center;justify-content:center;cursor:default">${st.metaDone?c:''}</span>`).join('')}</div>`;return}
+  const M=G.meta,n=M.word.length,inB=new Set(st.blanket.filter(x=>x!=null)),got=M.marks.filter(m=>st.found.includes(m.w)).length;
+  let h=`<div class="bh">${eb}<b>${st.metaDone?'Blanket joined':`Find the hidden ${n}-letter word`}</b><span>${st.metaDone?'Finishing the square is an optional extra.':got<n?`Find words with a ringed letter to unpick its letters. ${got} of ${n} unpicked.`:'All the letters are unpicked. Tap them into the right order.'}</span></div><div class="tiles">`;
   for(let k=0;k<n;k++){const c=st.blanket[k];h+=`<button class="tile ${st.metaDone?'done':''}" data-t="${k}" aria-label="Blanket slot ${k+1}${c!=null?': '+M.marks[c].ch:''}">${c!=null?M.marks[c].ch:''}</button>`}
-  h+='</div><div class="chips">';
-  M.marks.forEach((m,i)=>{const have=st.found.includes(m.w);
-    h+=`<button class="chip y${i%4}" data-c="${i}" ${!have||inB.has(i)||st.metaDone?'disabled':''} aria-label="${have?'Marked stitch '+m.ch:'Locked: find its word first'}">${have?(inB.has(i)?'':m.ch):'?'}</button>`});
-  h+='</div>';sec.innerHTML=h;
+  h+='</div>';
+  if(!st.metaDone){h+='<div class="chips">';
+    M.marks.forEach((m,i)=>{const have=st.found.includes(m.w);
+      h+=`<button class="chip y${i%4}" data-c="${i}" ${!have||inB.has(i)?'disabled':''} aria-label="${have?'Marked stitch '+m.ch:'Locked: find its word first'}">${have?(inB.has(i)?'':m.ch):'?'}</button>`});
+    h+='</div>'}
+  sec.innerHTML=h;
 }
 function tapChip(i){if(st.metaDone)return;const k=st.blanket.findIndex(x=>x==null);const at=k<0?st.blanket.length:k;if(at>=G.meta.word.length)return;st.blanket[at]=i;
   if(st.blanket.filter(x=>x!=null).length===G.meta.word.length){const w=st.blanket.map(c=>G.meta.marks[c].ch).join('');
-    if(G.meta.accept.includes(w)){st.metaDone=true;toast(`🧶 Blanket joined: ${w.toUpperCase()}`,'good');persist();render();showWin();return}
+    if(G.meta.accept.includes(w)){reachGoal();toast(`🧶 Blanket joined: ${w.toUpperCase()}`,'good');return}
     toast(`${w.toUpperCase()} doesn't join the blanket`,'bad')}
   persist();render()}
+function reachGoal(){st.metaDone=true;st.solvedAt=st.found.length;persist();render();showWin()}
 function tapTile(k){if(st.metaDone)return;st.blanket[k]=null;persist();render()}
 
 // ---- granny square: one cluster per hidden word, rounds grow outward ----
@@ -250,7 +257,7 @@ function render(){
   granny();
   const T=G.answers.length,n=st.found.length;
   $('count').textContent=`${n} / ${T}`;
-  $('statLine').textContent=st.done?'Square finished':n?`${T-n} clusters to go`:'Find the hidden words';
+  $('statLine').textContent=st.done?'Square finished':st.metaDone?`${T-n} more for the full square`:'Every word adds to the square';
   const pat=G.answers.filter(w=>w.length===7);
   $('statSub').textContent=pat.some(w=>st.found.includes(w))?'Pattern word found':'Pattern word still hidden';
   const groups={};G.answers.forEach(w=>(groups[w.length]=groups[w.length]||[]).push(w));
@@ -292,11 +299,12 @@ function submit(){
   if(st.found.includes(w)||st.bonus.includes(w)){toast(`Already stitched ${w.toUpperCase()}`);render();return}
   if(G.answers.includes(w)){st.found.push(w);G.justFound=w;
     toast(w.length===7?`★ ${w.toUpperCase()}: the pattern word!`:`+1 cluster · ${w.toUpperCase()}`,'good');
-    if(st.found.length===G.answers.length){st.done=true;persist();render();showWin();return}
-    const mk=G.meta&&G.meta.marks.find(m=>m.w===w);if(mk)toast(`+1 cluster · ${w.toUpperCase()} · marked stitch ${mk.ch.toUpperCase()} unpicked`,'good')}
+    if(st.found.length===G.answers.length){st.done=true;persist();render();if(st.metaDone)showWin();else if(!G.meta)reachGoal();else toast('Square finished. Now join the blanket.','good');return}
+    const mk=G.meta&&!st.metaDone&&G.meta.marks.find(m=>m.w===w);if(mk)toast(G.meta.marks.every(m=>st.found.includes(m.w))?'All the letters are unpicked. Join the blanket!':`+1 cluster · ${w.toUpperCase()} · marked stitch ${mk.ch.toUpperCase()} unpicked`,'good');
+    if(!G.meta&&w.length===7&&!st.metaDone){reachGoal();return}}
   else if(VALID.has(w)){st.bonus.push(w);toast(`Bonus stitch · ${w.toUpperCase()}`,'good')}
   else toast(`${w.toUpperCase()} isn't in the pattern book`,'bad');
-  persist();render();
+  persist();render();if(st.metaDone)showWin();
 }
 function pull(){
   if(st.done)return;
@@ -311,9 +319,11 @@ const fmtShare=()=>{
   const groups={};G.answers.forEach(w=>(groups[w.length]=groups[w.length]||[]).push(w));
   const rows=Object.keys(groups).map(Number).sort((a,b)=>a-b).map(L=>`${L===7?'★':L} `+groups[L].map(w=>st.found.includes(w)?(st.hints[w]?'🟨':'🟪'):'⬜').join(''));
   const head=mode==='daily'?`Joannagrams ${G.label}`:`Joannagrams ${G.label}`;
-  return `The Puzz · ${head} 🧶\n${st.done?'Square finished':st.found.length+'/'+G.answers.length+' clusters'} · ${st.pulled?st.pulled+' thread'+(st.pulled>1?'s':'')+' pulled':'no threads pulled'}${st.bonus.length?' · '+st.bonus.length+' bonus':''}\n${G.meta?(st.metaDone?'🧶 Blanket joined':'🧶 Blanket not joined yet')+'\n':''}${rows.join('\n')}`};
+  const after=st.solvedAt?`${st.solvedAt} word${st.solvedAt===1?'':'s'}`:'';
+  const goal=G.meta?`🧶 Blanket joined${after?' after '+after:''}`:`★ Pattern word found${after?' after '+after:''}`;
+  return `The Puzz · ${head} 🧶\n${goal} · ${st.pulled?st.pulled+' thread'+(st.pulled>1?'s':'')+' pulled':'no threads pulled'}\n${st.done?'Square finished':st.found.length+'/'+G.answers.length+' words'}${st.bonus.length?' · '+st.bonus.length+' bonus':''}\n${rows.join('\n')}`};
 function showWin(){const w=$('win');w.hidden=false;
-  w.innerHTML=`<h2>${st.done&&st.metaDone?'Square finished, blanket joined':st.metaDone?'Blanket joined':'Square finished'}</h2>${st.metaDone&&!st.done?'<p class="sub" style="margin:0">Keep stitching to finish every square.</p>':''}<pre id="shareTxt">${fmtShare()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New skein</button>':'<span class="sub">A new skein arrives at midnight.</span>'}</div>`;
+  w.innerHTML=`<h2>${G.meta?'Blanket joined':'Pattern word found'}${st.done?', square finished':''}</h2>${st.done?'':`<p class="sub" style="margin:0">That's the day done. Want more? ${G.answers.length-st.found.length} word${G.answers.length-st.found.length===1?'':'s'} left for the full square.</p>`}<pre id="shareTxt">${fmtShare()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New skein</button>':'<span class="sub">A new skein arrives at midnight.</span>'}</div>`;
   $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected · copy it'};
     try{navigator.clipboard.writeText(fmtShare()).then(ok,fb)}catch(err){fb()}};
   if($('nextBtn'))$('nextBtn').onclick=()=>load('endless')}
