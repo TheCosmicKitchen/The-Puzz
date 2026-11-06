@@ -127,7 +127,7 @@ details li svg{flex:none;width:38px;height:38px}
     </div>
     <div id="dailyInfo"></div>
     <div class="row">
-      <button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button>
+      <button class="btn" id="undoBtn" title="Undo your last move" disabled>↶ Undo</button>
       <button class="btn" id="resetBtn">Clear board</button>
       <span class="timer" id="timer">0:00</span>
     </div>
@@ -431,7 +431,6 @@ $('newBtn').onclick=()=>{stopTimer();load('endless')};
 $('size').onchange=()=>{stopTimer();load('endless')};
 $('resetBtn').onclick=()=>{if(st.solved||st.board.every((v,i)=>v===P.fixed[i]))return;snap();st.board=P.fixed.slice();render();persist()};
 $('undoBtn').onclick=undo;
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
 $('r1').innerHTML=PATDEFS+tileSVG(2,17);
 $('r2').innerHTML=`<g class="goal"><polygon class="gb" points="${hexPts(18)}"/>${pipsSVG([3,2,1],[2,0,0,1])}</g>`;
