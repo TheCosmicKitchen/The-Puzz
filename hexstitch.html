@@ -42,6 +42,7 @@ h1 span{color:var(--f0)}
 .btn{font:600 13px var(--display);border:1.5px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 12px;border-radius:10px;cursor:pointer}
 .btn:hover{border-color:var(--ink)}
 .btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:default}
 select.btn{padding-right:8px}
 :focus-visible{outline:2.5px solid var(--f1);outline-offset:2px}
 .board{background:var(--surface);border-radius:18px;padding:10px;touch-action:manipulation}
@@ -126,6 +127,7 @@ details li svg{flex:none;width:38px;height:38px}
     </div>
     <div id="dailyInfo"></div>
     <div class="row">
+      <button class="btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button>
       <button class="btn" id="resetBtn">Clear board</button>
       <span class="timer" id="timer">0:00</span>
     </div>
@@ -145,6 +147,7 @@ details li svg{flex:none;width:38px;height:38px}
       <li><svg viewBox="-20 -20 40 40" id="r3"></svg><span>A crossed swatch means that fabric can't go in that hex.</span></li>
       <li><svg viewBox="-20 -20 40 40" id="r4"></svg><span>A stitch on an edge links two hexes: <b>=</b> means same fabric, <b>≠</b> means different fabrics.</span></li>
       <li><svg viewBox="-20 -20 40 40" id="r5"></svg><span>Pinned tiles are already sewn in and can't move. Tap a pattern hex to outline its neighbours.</span></li>
+      <li><svg viewBox="-20 -20 40 40" id="r7"></svg><span>Tap a piece you've sewn in to take it back out, pairs included. <b>Undo</b> steps back one move at a time, even after Clear board.</span></li>
     </ul>
   </details>
 </div>
@@ -264,8 +267,10 @@ const PATDEFS=`<defs>
 <pattern id="w1" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2" height="6" class="weave"/></pattern>
 <pattern id="w2" width="8" height="8" patternUnits="userSpaceOnUse"><rect x="3.3" y="1.5" width="1.4" height="5" class="weave"/><rect x="1.5" y="3.3" width="5" height="1.4" class="weave"/></pattern>
 <pattern id="w3" width="8" height="6" patternUnits="userSpaceOnUse"><rect y="1" width="8" height="1.2" class="weave"/><rect y="3.4" width="8" height="1.2" class="weave"/></pattern>
+<pattern id="linen" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height=".7" fill="#000" opacity=".1"/><rect width=".7" height="3" fill="#fff" opacity=".12"/><rect x="1.5" y="1.5" width="1.5" height=".5" fill="#fff" opacity=".08"/></pattern>
+<radialGradient id="puff" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#fff" stop-opacity=".26"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".24"/></radialGradient>
 </defs>`;
-const tileSVG=(c,r=R-2.5,cx=0,cy=0)=>`<g class="tile"><polygon points="${hexPts(r,cx,cy)}" class="c${c}"/><polygon points="${hexPts(r,cx,cy)}" fill="url(#w${c})"/><polygon points="${hexPts(r-4,cx,cy)}" class="stitch"/></g>`;
+const tileSVG=(c,r=R-2.5,cx=0,cy=0)=>{const h=hexPts(r,cx,cy);return `<g class="tile"><polygon points="${h}" class="c${c}"/><polygon points="${h}" fill="url(#w${c})"/><polygon points="${h}" fill="url(#linen)"/><polygon points="${h}" fill="url(#puff)"/><polygon points="${hexPts(r-4,cx,cy)}" class="stitch"/></g>`};
 const xmarkSVG=c=>`<g class="xm"><polygon class="sw c${c}" points="${hexPts(10)}"/><polygon points="${hexPts(10)}" fill="url(#w${c})"/><line x1="-10" y1="10" x2="10" y2="-10"/></g>`;
 // direction vectors (unit = one hex step) for pair axes
 const axVec=ax=>{const [dq,dr]=DIRS[ax];return pos({q:dq,r:dr})};
@@ -352,29 +357,36 @@ function render(){
   const keys=Object.keys(P.trayD).map(Number).sort((a,b)=>a-b);
   if(keys.length){b+=`<div class="lbl">Stitched pairs</div><div class="pairs">`+keys.map(k=>`<button class="fab dom" aria-pressed="${sel==='d'+k}" data-k="d${k}" ${(rem.d[k]||0)<=0?'disabled':''} aria-label="Pair ${FAB[k>>2&3].n} then ${FAB[k&3].n}, ${rem.d[k]} left"><svg viewBox="-36 -24 72 48">${PATDEFS}${dominoSVG(k,15)}</svg><span class="n">${rem.d[k]}</span></button>`).join('')+'</div>'}
   $('basket').innerHTML=b;
+  $('undoBtn').disabled=st.solved||!(st.hist&&st.hist.length);
   const empty=st.board.filter(v=>v<0).length;
   $('hint').textContent=st.solved?'':msg||(empty===0?'Every hex is filled, but something doesn’t fit yet. Red marks show what to fix.':`${empty} hexes to fill · tap a filled hex to take its piece back`);
   msg='';
 }
 
+function snap(){st.hist=st.hist||[];st.hist.push(st.board.slice());if(st.hist.length>200)st.hist.shift()}
+function undo(){if(st.solved||!st.hist||!st.hist.length)return;st.board=st.hist.pop();msg='Undone';render();persist()}
 function unitCells(i){const k=P.pairOf[i];return k>=0?[P.pairs[k].a,P.pairs[k].b]:[i]}
 function place(i){
   if(st.solved)return; if(P.fixed[i]>=0){flash(i,'That piece is pinned in place.');return}
   const k=P.pairOf[i], cells=unitCells(i), filled=st.board[i]>=0;
   const curKey=filled?(k>=0?'d'+pairKey(P.pairs[k]):'s'+st.board[i]):null;
   const clear=()=>{cells.forEach(c=>st.board[c]=-1)};
-  if(filled&&(curKey===sel||!avail(remaining(),sel))){clear();sel=firstAvail(curKey);render();persist();return}
+  // a tap on a placed piece swaps it only for a piece that fits here; otherwise it takes the piece back up
+  const fitsHere=()=>{if(!avail(remaining(),sel))return false;
+    if(k>=0){if(sel[0]!=='d')return false;const key=+sel.slice(1),p=P.pairs[k];return (key>>4)===p.ax&&!(P.excl[p.a]>>(key>>2&3)&1)&&!(P.excl[p.b]>>(key&3)&1)}
+    return sel[0]==='s'&&!(P.excl[i]>>+sel.slice(1)&1)};
+  if(filled&&(curKey===sel||!fitsHere())){snap();clear();sel=curKey;render();persist();return}
   if(k>=0){
     if(sel[0]!=='d'){flash(i,'These two hexes are stitched together. Pick a pair from the basket.');return}
     const key=+sel.slice(1),p=P.pairs[k];
     if((key>>4)!==p.ax){flash(i,'That pair points the other way. Pieces can’t rotate.');return}
     const ca=key>>2&3,cb=key&3;
     if((P.excl[p.a]>>ca&1)||(P.excl[p.b]>>cb&1)){flash(i,'A crossed swatch rules that fabric out there.');return}
-    if(filled)clear(); st.board[p.a]=ca; st.board[p.b]=cb;
+    snap(); if(filled)clear(); st.board[p.a]=ca; st.board[p.b]=cb;
   }else{
     if(sel[0]!=='s'){flash(i,'Pairs only fit outlined double slots.');return}
     const c=+sel.slice(1); if(P.excl[i]>>c&1){flash(i,'A crossed swatch rules that fabric out there.');return}
-    st.board[i]=c;
+    snap(); st.board[i]=c;
   }
   if(!st.started){st.started=true;startTimer()}
   st.log.push(cells[0]+':'+sel); lastPlaced=i;
@@ -417,7 +429,9 @@ $('tDaily').onclick=()=>{stopTimer();load('daily');if(st.started&&!st.solved)sta
 $('tEndless').onclick=()=>{stopTimer();load('endless')};
 $('newBtn').onclick=()=>{stopTimer();load('endless')};
 $('size').onchange=()=>{stopTimer();load('endless')};
-$('resetBtn').onclick=()=>{if(st.solved)return;st.board=P.fixed.slice();render();persist()};
+$('resetBtn').onclick=()=>{if(st.solved||st.board.every((v,i)=>v===P.fixed[i]))return;snap();st.board=P.fixed.slice();render();persist()};
+$('undoBtn').onclick=undo;
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
 
 $('r1').innerHTML=PATDEFS+tileSVG(2,17);
 $('r2').innerHTML=`<g class="goal"><polygon class="gb" points="${hexPts(18)}"/>${pipsSVG([3,2,1],[2,0,0,1])}</g>`;
@@ -425,6 +439,7 @@ $('r3').innerHTML=`<polygon points="${hexPts(18)}" fill="none" stroke="var(--lin
 $('r4').innerHTML=`<g class="st"><circle r="9"/><text style="font-size:12px">≠</text></g>`;
 $('r5').innerHTML=PATDEFS+tileSVG(1,17)+'<circle class="pin" r="4"/>';
 $('r6').innerHTML=PATDEFS+dominoSVG(0*16+0*4+1,14);
+$('r7').innerHTML=PATDEFS+tileSVG(3,17)+'<path d="M-6,-2 a7,7 0 1 1 1,8 M-6,-2 l-1,-6 M-6,-2 l6,-1" fill="none" stroke="var(--surface)" stroke-width="2.2" stroke-linecap="round"/>';
 
 (function boot(){const h=(location.hash||'').slice(1);
   if(/^[a-z0-9]{5}[345]$/.test(h)){$('size').value=h[5];load('endless',h.slice(0,5));}
