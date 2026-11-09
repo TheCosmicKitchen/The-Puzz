@@ -58,6 +58,17 @@ h1 span{color:var(--y0)}
 .w.new i{animation:pulse .5s ease-out}
 .pattern .len{color:var(--y0)}
 .w i.mk{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--y2);border-radius:50%}
+.week{background:var(--surface);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.wkh{display:flex;flex-direction:column;gap:2px}.wkh b{font:600 16px var(--display)}.wkh span{font-size:13px;color:var(--muted)}
+.wkrow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.wk{border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;color:var(--muted);min-width:0;font-family:var(--display)}
+.wk svg{width:100%;height:auto;aspect-ratio:1;display:block;border-radius:3px}
+.wk.done svg{border-radius:1px}
+.wk b{font-size:12px;font-weight:600;color:var(--ink)}.wk small{font-size:10.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.wk.cur svg{outline:2.5px solid var(--ink);outline-offset:1px}
+.wk:disabled{opacity:.35;cursor:default}
+.btn.small{font-size:12px;padding:2px 9px;margin-left:6px;vertical-align:1px}
+@media (prefers-reduced-motion:no-preference){.wk.new svg{animation:uncover .7s cubic-bezier(.3,1.5,.6,1)}@keyframes uncover{from{transform:scale(.4) rotate(-10deg);opacity:0}to{transform:none;opacity:1}}}
 .blanket{background:var(--surface);border:2px solid var(--y0);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;align-items:center}
 .bh{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}.bh b{font:600 17px var(--display)}.bh span{font-size:13px;color:var(--muted);max-width:42ch}.bh .eb{font:600 12px var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--y0)}.bh b{font-size:19px}
 .tiles,.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
@@ -126,6 +137,7 @@ details p{margin:8px 0 0;max-width:62ch}
     </div>
   </section>
 
+  <section class="week" id="week" aria-label="This week's picture" hidden></section>
   <section class="slots" id="slots" aria-label="Words to find"></section>
 
   <div class="chain" id="chain" aria-live="polite"></div>
@@ -144,6 +156,7 @@ details p{margin:8px 0 0;max-width:62ch}
     <p><b>The goal:</b> find today's hidden word, shown at the top. Its letters are unpicked from the words you find.</p>
     <p>Drag across the yarn balls, or tap them one at a time, to chain letters into words of three letters or more. Each ball can be used once per word. Some slots in the word list have a <b>marked stitch</b>, a ringed letter. Find those words to unpick their letters, then tap the letters into the right order at the top.</p>
     <p>That finishes the day. If you want more, every hidden word also crochets a cluster onto the granny square, including the seven-letter <b>pattern word</b> that uses every ball. Real words that aren't on the pattern card count as bonus stitches.</p>
+    <p><b>This week's picture.</b> Each day you finish the whole square uncovers that day's piece of a pixel-art picture: a new little scene every day, and the full picture by Sunday. Missed a day? Tap it in the strip to go back and play it.</p>
     <p><b>Rewind</b> shuffles the balls. <b>Frog it</b> rips out your current chain. <b>Pull a thread</b> reveals a letter of a hidden word, and your result shows how many you pulled. Type on a keyboard if you prefer.</p>
   </details>
   <div class="foot">Made for <b>Joanna</b>, who can crochet anything.</div>
@@ -163,8 +176,78 @@ const VALID=new Set([...WORDS.answers,...WORDS.valid]);
 // fixed shuffle of roots so each day gets a different one
 const ORDER=(()=>{const r=mulberry(hseed('joannagrams-v1')),a=WORDS.roots.map((_,i)=>i);for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a})();
 
+// ---- the week's picture: seven 16x16 pixel tiles, Monday to Sunday ----
+// Each tile holds a whole little subject of its own; the sky and ground run on across the week,
+// so finished days build one long scene. Scenes rotate week by week.
+const PIX={y:'#F6D24A',o:'#EE9A3A',w:'#FFFFFF',r:'#C8463A',b:'#8A5A3A',d:'#33292A',g:'#3E8E45',l:'#62B85F',p:'#E98BB5',k:'#8C96A2',c:'#F4EBDD',B:'#3F6FB5',s:'#E3C887',m:'#F5E7A1'};
+// scattered, not lined up: a small integer hash of the pixel position
+const speck=(x,y,n)=>(Math.imul(x*131+y*7919+17,2654435761)>>>0)%n===0;
+const SCENES=[
+ {name:'Village Green',
+  bg:(x,y)=>y<12?(y<6?'#9FD3F0':'#BCE2F4'):y===12?((x*7)%5===0?'#8FD08A':'#7BC277'):y<15?'#6DB36B':'#5A9E58',
+  tiles:[
+   {name:'the sun',y:2,rows:['..y....y..','...y..y...','y..yyyy..y','..yyyyyy..','.yyydyydy.','.yyyyyyyy.','..yyddyy..','y..yyyy..y','...y..y...','..y....y..']},
+   {name:'a cottage',y:2,rows:['.....rr.....','....rrrr....','...rrrrrr...','..rrrrrrrr..','.rrrrrrrrrr.','..cccccccc..','..cBBcccbc..','..cBBcccbc..','..ccccccbc..','..ccccccbc..']},
+   {name:'an apple tree',y:0,rows:['...llll...','..llrllll.','.llllllgl.','lglllllrl.','llrlgllllg','.lllllgll.','..lglllg..','....bb....','....bb....','....bb....','....bb....','...bbbb...']},
+   {name:'a sheep',y:6,rows:['...wwwww....','.wwwwwwwwdd.','wwwwwwwwwddd','wwwwwwwwwdwd','.wwwwwwwww..','..d.d..d.d..','..d.d..d.d..']},
+   {name:'a hot-air balloon',y:0,rows:['..rrrrr..','.rrwrrrr.','rrrwrrrrr','rrwrrrrrr','rrwrrrrrr','.rrwrrrr.','..rrrrr..','...k.k...','...k.k...','...bbb...','...bbb...']},
+   {name:'a cat and her yarn',y:4,rows:['.o.o.........','.ooo.........','oyoyo........','ooooo....ppp.','.oooooo.ppppp','.oooooo.ppppp','.o.o.oo..ppp.','.o.o..o......']},
+   {name:'flowers and a butterfly',y:2,rows:['.....p.p......','......d.......','.....p.p......','..............','.r.....y....p.','rrr...yyy..ppp','.r..y..y....p.','.g.yyy.g..r.g.','.g..y..g.rrrg.','gggg.g.gggrggg']}]},
+ {name:'Seaside',
+  bg:(x,y)=>y<9?(y<5?'#A3DAF1':'#C6E9F6'):y<12?(y===9?'#5FB0DA':speck(x,y,7)?'#E6F4FB':'#3E8DC0'):speck(x,y,6)?'#DCC285':'#E9D49B',
+  tiles:[
+   {name:'a lighthouse',y:2,rows:['..yy..','.dddd.','.wBBw.','.rrrr.','.wwww.','.rrrr.','.wwww.','.rrrr.','.wwww.','rrrrrr']},
+   {name:'a sailboat',y:2,rows:['....w.....','....ww....','....www...','....wwww..','....wwwww.','....d.....','bbbbbbbbbb','.bbbbbbbb.','..bbbbbb..']},
+   {name:'a gull under a cloud',y:1,rows:['....wwww......','..wwwwwwww....','.wwwwwwwwwww..','..............','.......d...d..','........d.d...','.........d....']},
+   {name:'a crab',y:9,rows:['r........r','rr.d..d.rr','.r.rrrr.r.','..rrrrrr..','.rrrrrrrr.','.r.r..r.r.']},
+   {name:'a sandcastle',y:6,rows:['.r..........','.rr.........','.r..........','.s.s.s.s.s..','.sssssssss..','.ssdsssdss..','.sssssssss..','sssssbsssss.','sssssbsssss.']},
+   {name:'a palm tree',y:0,rows:['..gg..gg....','.g..gggg.g..','g..gggggg.g.','..g..bb..g..','.g...b....g.','.....b......','.....bb.....','......b.....','......b.....','.....bb.....','.....b......','.....bb.....','....ssss....']},
+   {name:'a beach umbrella',y:3,rows:['....rrwrr....','..rrwwrrwwr..','.rwwrrwwrrww.','rrrrwwrrwwrrr','......d......','......d......','......d......','......d..ByB.','......d.ByyyB','......d..ByB.','.....ddd.....']}]},
+ {name:'Starry Night',
+  bg:(x,y)=>y<12?(speck(x,y,19)?'#FFF4C2':y<6?'#1C2350':'#2A3470'):y===12?'#EEF3FA':'#D3DDEB',
+  tiles:[
+   {name:'the moon',y:1,rows:['..mmmm...','.mmmm....','mmmm.....','mmm......','mmm......','mmmm.....','.mmmm....','..mmmm...']},
+   {name:'an owl',y:2,rows:['..b....b..','..bbbbbb..','.bwwbbwwb.','.bwdbbwdb.','.bbbyybbb.','..bccccb..','..bccccb..','..bbbbbb..','bbbbbbbbbb','.....b....']},
+   {name:'a fox',y:4,rows:['.o.o........','.ooo........','odood.......','.oooo.......','..oooooooo..','..ooooooooww','..o.o..o.o..','..d.d..d.d..']},
+   {name:'a tent and a campfire',y:4,rows:['.....d........','....dyd.......','...dyyyd......','..dyyyyyd.....','.dyyydyyyd..r.','dyyyddyyyyd.o.','yyyyddyyyyyorr','..........bbbb']},
+   {name:'a snowy pine',y:0,rows:['....w....','...gwg...','...ggg...','..gwggg..','..ggggg..','.gggwggg.','.ggggggg.','gggwgggwg','ggggggggg','....b....','....b....','...bbb...']},
+   {name:'a rabbit',y:5,rows:['.w.w...','.w.w...','.www...','wdwww..','wwwwww.','.wwwwww','.wwwww.','.w..w..']},
+   {name:'a shooting star',y:1,rows:['............m.','..........mmm.','.......wwmmmmm','....ww.....mm.','.ww........m.m']}]}];
+// colour of every pixel in one day's tile: the tile's subject over that stretch of the scene's sky and ground
+function tilePixels(scene,day){const t=scene.tiles[day],w=Math.max(...t.rows.map(r=>r.length)),x0=Math.floor((16-w)/2),out=[];
+  for(let y=0;y<16;y++)for(let x=0;x<16;x++){const ch=(t.rows[y-t.y]||'')[x-x0];out.push(ch&&ch!=='.'?PIX[ch]:scene.bg(day*16+x,y))}
+  return out}
+function tileSVG(scene,day){const px=tilePixels(scene,day);let s='';
+  for(let y=0;y<16;y++){let x=0;while(x<16){const c=px[y*16+x];let e=x+1;while(e<16&&px[y*16+e]===c)e++;s+=`<rect x="${x}" y="${y}" width="${e-x}" height="1" fill="${c}"/>`;x=e}}
+  return `<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">${s}</svg>`}
+// a day not finished yet: a plain granny square in the yarn colours
+const plainSquare=`<svg viewBox="0 0 16 16" aria-hidden="true"><rect x=".5" y=".5" width="15" height="15" rx="1.5" fill="var(--felt)"/><rect x="2.5" y="2.5" width="11" height="11" rx="1" fill="none" stroke="var(--y0)" stroke-width="1.2" stroke-dasharray="1.6 1"/><rect x="5" y="5" width="6" height="6" rx=".8" fill="none" stroke="var(--y1)" stroke-width="1.2" stroke-dasharray="1.6 1"/><circle cx="8" cy="8" r="1.2" fill="var(--y2)"/></svg>`;
+
+// ---- every day keeps its own save, so earlier days this week can still be finished ----
+const DAYS_KEY='joannagrams-days';
+const allDays=()=>store.get(DAYS_KEY)||{};
+const isoOf=t=>`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+const dateOf=iso=>{const [y,m,d]=iso.split('-').map(Number);return new Date(y,m-1,d)};
+const rootFor=iso=>WORDS.roots[ORDER[(dayInfo(iso).num-1+ORDER.length*10)%ORDER.length]];
+const sizeCache={};const sizeFor=iso=>sizeCache[iso]||(sizeCache[iso]=setup(rootFor(iso)).answers.length);
+function weekOf(iso){const t=dateOf(iso),mon=new Date(t);mon.setDate(t.getDate()-((t.getDay()+6)%7));
+  const n=Math.floor(Math.round((mon-new Date(2026,9,26))/864e5)/7);
+  return{mon,scene:SCENES[((n%SCENES.length)+SCENES.length)%SCENES.length],days:[...Array(7)].map((_,k)=>{const d=new Date(mon);d.setDate(mon.getDate()+k);return isoOf(d)})}}
+// what finishing this day's square uncovers in this week's picture (null if it's not this week)
+function pieceFor(iso){const w=weekOf(dayInfo().iso),k=w.days.indexOf(iso);return k<0?null:w.scene.tiles[k].name}
+let justDone=null;
+function week(){
+  const sec=$('week');if(mode!=='daily'){sec.hidden=true;return}sec.hidden=false;
+  const today=dayInfo().iso,w=weekOf(today),all=allDays();let n=0,row='';
+  w.days.forEach((iso,k)=>{const s=iso===G.iso?st:all[iso],done=!!(s&&s.done),fut=iso>today,cur=iso===G.iso;if(done)n++;
+    const day=dateOf(iso).toLocaleDateString(undefined,{weekday:'short'}),prog=done||fut?'':s&&s.found&&s.found.length?`${s.found.length}/${sizeFor(iso)}`:iso===today?'today':'play';
+    row+=`<button class="wk ${done?'done':''} ${cur?'cur':''} ${justDone===iso?'new':''}" data-day="${iso}" ${fut?'disabled':''} aria-label="${dateOf(iso).toLocaleDateString(undefined,{weekday:'long'})}: ${done?'finished, '+w.scene.tiles[k].name:fut?'not yet':'tap to play'}">${done?tileSVG(w.scene,k):plainSquare}<b>${day}</b><small>${done?'✓':prog}</small></button>`});
+  sec.innerHTML=`<div class="wkh"><b>${n===7?w.scene.name+': finished!':"This week's picture"}</b><span>${n===7?'Every square this week is done. A new picture starts on Monday.':`Finish a day's whole square to uncover its piece of the picture. ${n} of 7 so far${n<7&&w.days.some(d=>d<today&&!(all[d]&&all[d].done))?'. Missed a day? Tap it to catch up.':'.'}`}</span></div><div class="wkrow">${row}</div>`;
+  justDone=null;
+}
+
 let G,st,mode='daily',chain=[],letters=[],dragging=false,dragMoved=false;
-function dayInfo(){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
+function dayInfo(on){const d=on?dateOf(on):new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
   const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
   return{num:Math.round((t-s)/864e5)+1,iso,label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
 function setup(root){
@@ -189,11 +272,13 @@ function pickMeta(G){
   }
   return null;
 }
-function load(m,idxOverride){
+function load(m,idxOverride,dayIso){
   mode=m;$('tDaily').setAttribute('aria-pressed',m==='daily');$('tEndless').setAttribute('aria-pressed',m==='endless');$('endlessCtl').hidden=m!=='endless';
   let saved=null;
-  if(m==='daily'){const d=dayInfo();G=setup(WORDS.roots[ORDER[(d.num-1+ORDER.length*10)%ORDER.length]]);G.label=`#${d.num} · ${d.label}`;G.iso=d.iso;
-    $('sub').textContent='Daily skein '+G.label;saved=store.get('joannagrams-daily');if(saved&&saved.iso!==d.iso)saved=null}
+  if(m==='daily'){const d=dayInfo(dayIso);G=setup(WORDS.roots[ORDER[(d.num-1+ORDER.length*10)%ORDER.length]]);G.label=`#${d.num} · ${d.label}`;G.iso=d.iso;
+    const today=dayInfo().iso;$('sub').textContent=d.iso===today?'Daily skein '+G.label:'Catching up · skein '+G.label+' ';
+    if(d.iso!==today){const b=document.createElement('button');b.className='btn small';b.textContent='Back to today';b.onclick=()=>load('daily');$('sub').append(b)}
+    const legacy=store.get('joannagrams-daily');saved=allDays()[d.iso]?{st:allDays()[d.iso]}:legacy&&legacy.iso===d.iso?legacy:null}
   else{const i=idxOverride!=null?idxOverride:Math.floor(Math.random()*WORDS.roots.length);G=setup(WORDS.roots[i]);G.code=(i+1000).toString(36);
     G.label='Endless · skein '+G.code;$('seedTxt').textContent=G.code;$('sub').textContent='Endless mode · wind a new skein any time';
     try{history.replaceState(null,'','#j'+G.code)}catch(e){}}
@@ -204,7 +289,9 @@ function load(m,idxOverride){
   const r=mulberry(hseed(G.root+'ring'));letters=G.root.split('');do{for(let i=6;i>0;i--){const j=Math.floor(r()*(i+1));[letters[i],letters[j]]=[letters[j],letters[i]]}}while(letters.join('')===G.root);
   chain=[];$('win').hidden=true;toast('');render();if(st.metaDone)showWin();
 }
-function persist(){if(mode==='daily')store.set('joannagrams-daily',{iso:G.iso,st})}
+function persist(){if(mode!=='daily')return;
+  const all=allDays();all[G.iso]=st;const keep=Object.keys(all).sort().slice(-21),out={};keep.forEach(k=>out[k]=all[k]);store.set(DAYS_KEY,out);
+  if(G.iso===dayInfo().iso)store.set('joannagrams-daily',{iso:G.iso,st})}
 
 // ---- the blanket meta ----
 function blanket(){
@@ -269,6 +356,7 @@ function render(){
     h+='</div></div>'});
   $('slots').innerHTML=h;G.justFound=null;
   blanket();
+  week();
   $('chain').innerHTML=chain.map(i=>`<span class="lk">${letters[i]}</span>`).join('')||'<span style="color:var(--muted);font-size:15px;font-family:var(--body);letter-spacing:0;text-transform:none">Chain letters from the ring</span>';
   $('bonus').textContent=st.bonus.length?`Bonus stitches: ${st.bonus.join(', ')}`:'';
   $('thread').disabled=st.done;$('stitch').disabled=st.done||chain.length<3;
@@ -299,7 +387,9 @@ function submit(){
   if(st.found.includes(w)||st.bonus.includes(w)){toast(`Already stitched ${w.toUpperCase()}`);render();return}
   if(G.answers.includes(w)){st.found.push(w);G.justFound=w;
     toast(w.length===7?`★ ${w.toUpperCase()}: the pattern word!`:`+1 cluster · ${w.toUpperCase()}`,'good');
-    if(st.found.length===G.answers.length){st.done=true;persist();render();if(st.metaDone)showWin();else if(!G.meta)reachGoal();else toast('Square finished. Now join the blanket.','good');return}
+    if(st.found.length===G.answers.length){st.done=true;const pc=mode==='daily'&&pieceFor(G.iso);if(pc)justDone=G.iso;persist();render();
+      if(st.metaDone)showWin();else if(!G.meta)reachGoal();
+      toast(pc?`Square finished! You uncovered ${pc} in this week's picture.${G.meta&&!st.metaDone?' Now join the blanket.':''}`:G.meta&&!st.metaDone?'Square finished. Now join the blanket.':'Square finished!','good');return}
     const mk=G.meta&&!st.metaDone&&G.meta.marks.find(m=>m.w===w);if(mk)toast(G.meta.marks.every(m=>st.found.includes(m.w))?'All the letters are unpicked. Join the blanket!':`+1 cluster · ${w.toUpperCase()} · marked stitch ${mk.ch.toUpperCase()} unpicked`,'good');
     if(!G.meta&&w.length===7&&!st.metaDone){reachGoal();return}}
   else if(VALID.has(w)){st.bonus.push(w);toast(`Bonus stitch · ${w.toUpperCase()}`,'good')}
@@ -344,7 +434,8 @@ $('stitch').onclick=submit;$('frog').onclick=()=>{chain=[];render()};$('rewind')
 document.addEventListener('keydown',e=>{if(e.metaKey||e.ctrlKey||e.altKey)return;const k=e.key.toLowerCase();
   if(k==='enter'){submit();e.preventDefault()}else if(k==='backspace'){chain.pop();render()}else if(k===' '){shuffle();e.preventDefault()}
   else if(/^[a-z]$/.test(k)){const i=letters.findIndex((c,j)=>c===k&&!chain.includes(j));if(i>=0){chain.push(i);render()}}});
-$('tDaily').onclick=()=>load('daily');$('tEndless').onclick=()=>load('endless');$('newBtn').onclick=()=>load('endless');
+$('tDaily').onclick=()=>load('daily');
+$('week').addEventListener('click',e=>{const b=e.target.closest('[data-day]');if(!b||b.disabled||b.dataset.day===G.iso)return;load('daily',null,b.dataset.day);window.scrollTo({top:0,behavior:'smooth'})});$('tEndless').onclick=()=>load('endless');$('newBtn').onclick=()=>load('endless');
 
 (function boot(){const h=(location.hash||'').slice(1);const m=/^j([a-z0-9]{2,3})$/.exec(h);
   if(m){const i=parseInt(m[1],36)-1000;if(i>=0&&i<WORDS.roots.length){load('endless',i);return}}
