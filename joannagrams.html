@@ -61,14 +61,16 @@ h1 span{color:var(--y0)}
 .week{background:var(--surface);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
 .wkh{display:flex;flex-direction:column;gap:2px}.wkh b{font:600 16px var(--display)}.wkh span{font-size:13px;color:var(--muted)}
 .wkrow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
-.wk{border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;color:var(--muted);min-width:0;font-family:var(--display)}
-.wk svg{width:100%;height:auto;aspect-ratio:1;display:block;border-radius:3px}
-.wk.done svg{border-radius:1px}
+.wkpic{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.pc svg{width:100%;height:auto;aspect-ratio:1;display:block;border-radius:3px}
+.wkpic:has(.pc.done){gap:0}.pc.done svg{border-radius:0}
+.wk{border:0;background:var(--felt);border-radius:8px;padding:3px 0 2px;display:flex;flex-direction:column;align-items:center;gap:0;cursor:pointer;color:var(--muted);min-width:0;font-family:var(--display)}
+.wk.done{color:var(--y1)}
 .wk b{font-size:12px;font-weight:600;color:var(--ink)}.wk small{font-size:10.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
-.wk.cur svg{outline:2.5px solid var(--ink);outline-offset:1px}
+.wk.cur{outline:2.5px solid var(--ink);outline-offset:-2.5px}
 .wk:disabled{opacity:.35;cursor:default}
 .btn.small{font-size:12px;padding:2px 9px;margin-left:6px;vertical-align:1px}
-@media (prefers-reduced-motion:no-preference){.wk.new svg{animation:uncover .7s cubic-bezier(.3,1.5,.6,1)}@keyframes uncover{from{transform:scale(.4) rotate(-10deg);opacity:0}to{transform:none;opacity:1}}}
+@media (prefers-reduced-motion:no-preference){.pc.new svg{animation:uncover .7s cubic-bezier(.3,1.5,.6,1)}@keyframes uncover{from{transform:scale(.4) rotate(-10deg);opacity:0}to{transform:none;opacity:1}}}
 .blanket{background:var(--surface);border:2px solid var(--y0);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;align-items:center}
 .bh{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}.bh b{font:600 17px var(--display)}.bh span{font-size:13px;color:var(--muted);max-width:42ch}.bh .eb{font:600 12px var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--y0)}.bh b{font-size:19px}
 .tiles,.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
@@ -156,7 +158,7 @@ details p{margin:8px 0 0;max-width:62ch}
     <p><b>The goal:</b> find today's hidden word, shown at the top. Its letters are unpicked from the words you find.</p>
     <p>Drag across the yarn balls, or tap them one at a time, to chain letters into words of three letters or more. Each ball can be used once per word. Some slots in the word list have a <b>marked stitch</b>, a ringed letter. Find those words to unpick their letters, then tap the letters into the right order at the top.</p>
     <p>That finishes the day. If you want more, every hidden word also crochets a cluster onto the granny square, including the seven-letter <b>pattern word</b> that uses every ball. Real words that aren't on the pattern card count as bonus stitches.</p>
-    <p><b>This week's picture.</b> Each day you finish the whole square uncovers that day's piece of a pixel-art picture: a new little scene every day, and the full picture by Sunday. Missed a day? Tap it in the strip to go back and play it.</p>
+    <p><b>This week's picture.</b> Each day you finish the whole square uncovers a piece of a pixel-art picture, in a surprise order: a new little scene every time, and the full picture once all seven squares are done. Missed a day? Tap it in the strip to go back and play it.</p>
     <p><b>Rewind</b> shuffles the balls. <b>Frog it</b> rips out your current chain. <b>Pull a thread</b> reveals a letter of a hidden word, and your result shows how many you pulled. Type on a keyboard if you prefer.</p>
   </details>
   <div class="foot">Made for <b>Joanna</b>, who can crochet anything.</div>
@@ -234,15 +236,22 @@ function weekOf(iso){const t=dateOf(iso),mon=new Date(t);mon.setDate(t.getDate()
   const n=Math.floor(Math.round((mon-new Date(2026,9,26))/864e5)/7);
   return{mon,scene:SCENES[((n%SCENES.length)+SCENES.length)%SCENES.length],days:[...Array(7)].map((_,k)=>{const d=new Date(mon);d.setDate(mon.getDate()+k);return isoOf(d)})}}
 // what finishing this day's square uncovers in this week's picture (null if it's not this week)
-function pieceFor(iso){const w=weekOf(dayInfo().iso),k=w.days.indexOf(iso);return k<0?null:w.scene.tiles[k].name}
+function revealOrder(w){const r=mulberry(hseed('joannagrams-picture-'+isoOf(w.mon))),a=[0,1,2,3,4,5,6];
+  for(let i=6;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const doneIn=(w,skip)=>{const all=allDays();return w.days.filter(d=>d!==skip&&(d===G.iso&&mode==='daily'?st.done:all[d]&&all[d].done)).length};
+// what finishing this day's square uncovers: the next tile in this week's shuffled order (null if it's not this week)
+function pieceFor(iso){const w=weekOf(dayInfo().iso);if(!w.days.includes(iso))return null;const n=doneIn(w,iso);return n>6?null:w.scene.tiles[revealOrder(w)[n]].name}
 let justDone=null;
 function week(){
   const sec=$('week');if(mode!=='daily'){sec.hidden=true;return}sec.hidden=false;
-  const today=dayInfo().iso,w=weekOf(today),all=allDays();let n=0,row='';
-  w.days.forEach((iso,k)=>{const s=iso===G.iso?st:all[iso],done=!!(s&&s.done),fut=iso>today,cur=iso===G.iso;if(done)n++;
-    const day=dateOf(iso).toLocaleDateString(undefined,{weekday:'short'}),prog=done||fut?'':s&&s.found&&s.found.length?`${s.found.length}/${sizeFor(iso)}`:iso===today?'today':'play';
-    row+=`<button class="wk ${done?'done':''} ${cur?'cur':''} ${justDone===iso?'new':''}" data-day="${iso}" ${fut?'disabled':''} aria-label="${dateOf(iso).toLocaleDateString(undefined,{weekday:'long'})}: ${done?'finished, '+w.scene.tiles[k].name:fut?'not yet':'tap to play'}">${done?tileSVG(w.scene,k):plainSquare}<b>${day}</b><small>${done?'✓':prog}</small></button>`});
-  sec.innerHTML=`<div class="wkh"><b>${n===7?w.scene.name+': finished!':"This week's picture"}</b><span>${n===7?'Every square this week is done. A new picture starts on Monday.':`Finish a day's whole square to uncover its piece of the picture. ${n} of 7 so far${n<7&&w.days.some(d=>d<today&&!(all[d]&&all[d].done))?'. Missed a day? Tap it to catch up.':'.'}`}</span></div><div class="wkrow">${row}</div>`;
+  const today=dayInfo().iso,w=weekOf(today),all=allDays(),n=doneIn(w),ord=revealOrder(w),shown=new Set(ord.slice(0,n));
+  const fresh=justDone?ord[n-1]:-1;let pic='',row='';
+  for(let k=0;k<7;k++)pic+=`<div class="pc ${shown.has(k)?'done':''} ${k===fresh?'new':''}">${shown.has(k)?tileSVG(w.scene,k):plainSquare}</div>`;
+  w.days.forEach(iso=>{const s=iso===G.iso?st:all[iso],done=!!(s&&s.done),fut=iso>today,cur=iso===G.iso;
+    const day=dateOf(iso).toLocaleDateString(undefined,{weekday:'short'}),prog=done?'✓':fut?'':s&&s.found&&s.found.length?`${s.found.length}/${sizeFor(iso)}`:iso===today?'today':'play';
+    row+=`<button class="wk ${done?'done':''} ${cur?'cur':''}" data-day="${iso}" ${fut?'disabled':''} aria-label="${dateOf(iso).toLocaleDateString(undefined,{weekday:'long'})}: ${done?'finished':fut?'not yet':'tap to play'}"><b>${day}</b><small>${prog}</small></button>`});
+  const missed=w.days.some(d=>d<today&&!(d===G.iso?st.done:all[d]&&all[d].done));
+  sec.innerHTML=`<div class="wkh"><b>${n===7?w.scene.name+': finished!':"This week's picture"}</b><span>${n===7?'Every square this week is done. A new picture starts on Monday.':`Each square you finish uncovers a surprise piece of the picture. ${n} of 7 so far${n<7&&missed?'. Missed a day? Tap it to catch up.':'.'}`}</span></div><div class="wkpic" role="img" aria-label="${n} of 7 pieces uncovered${n?': '+ord.slice(0,n).map(k=>w.scene.tiles[k].name).join(', '):''}">${pic}</div><div class="wkrow">${row}</div>`;
   justDone=null;
 }
 
