@@ -19,3 +19,7 @@ Every puzzle is generated in the browser from a seed. The daily seed is the date
 - `sampler.html`: nonogram stitched as cross-stitch; every pattern is solvable by line logic alone.
 - `tally.html`: six numbers, + − × ÷, exact target guaranteed, par = fewest steps.
 - `ladder.html`: four-letter word ladders with par and hints.
+
+## Streaks
+
+Streaks live in `streak.js` (the same file in The Puzz and The Muze; keep both copies identical). It keeps one small cookie, `ck1`, on path `/` so both sites share it: the last 42 days of which dailies you finished, plus each site's best streak. It is only read by the pages themselves, though as a cookie the browser also sends it to GitHub Pages with each request (about 120 bytes, unused there).

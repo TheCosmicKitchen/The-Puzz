@@ -98,6 +98,7 @@ details.rules p{margin:8px 0 0;max-width:62ch}
     <p>Hint shows the next rung on a shortest route from where you are, faintly. Type it to use it.</p>
   </details>
 </div>
+<script src="streak.js"></script>
 <script>
 // The Puzz shared prototype helpers
 const $=id=>document.getElementById(id);
@@ -159,7 +160,7 @@ $('hintBtn').onclick=()=>{if(st.done)return;const cur=last(),{d}=bfs(Pz.end,CS);
 $('undoBtn').onclick=()=>{if(st.done)return;st.rungs.pop();st.shown=null;typed='';persist();render()};
 function shareText(){const n=st.rungs.length,diff=n-Pz.par,bar=st.rungs.map(w=>w===Pz.end?'🟩':'🟦').join('');
   return `The Puzz · Ladder ${Pz.label}\n${Pz.start.toUpperCase()} → ${Pz.end.toUpperCase()} in ${n} (par ${Pz.par})${st.hints?` · ${st.hints} hint${st.hints>1?'s':''}`:''}\n🪜${bar} ${diff<=0?'⭐':''}`}
-function showWin(){const w=$('win');w.hidden=false;w.innerHTML=`<h2>${st.rungs.length<=Pz.par?'At par. Top of the ladder!':'Made it down!'}</h2><pre id="shareTxt">${esc(shareText())}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New ladder</button>':'<span class="sub">A new ladder at midnight.</span>'}</div>`;
+function showWin(){if(mode==="daily"&&window.Kitchen)Kitchen.mark("la");hint('');const w=$('win');w.hidden=false;w.innerHTML=`<h2>${st.rungs.length<=Pz.par?'At par. Top of the ladder!':'Made it down!'}</h2><pre id="shareTxt">${esc(shareText())}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New ladder</button>':'<span class="sub">A new ladder at midnight.</span>'}</div>`;
   wireCopy($('copyBtn'),shareText,'shareTxt');if($('nextBtn'))$('nextBtn').onclick=()=>load('endless')}
 $('kb').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(b)press(b.dataset.k)});
 document.addEventListener('keydown',e=>{if(e.metaKey||e.ctrlKey||e.altKey)return;if(e.key==='Enter')press('enter');else if(e.key==='Backspace')press('back');else if(/^[a-zA-Z]$/.test(e.key))press(e.key.toLowerCase())});

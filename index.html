@@ -39,6 +39,19 @@ a.card:focus-visible{outline:2.5px solid var(--f1);outline-offset:2px}
 .sect h3{font:600 15px var(--display);letter-spacing:.12em;text-transform:uppercase;margin:6px 0 0;color:var(--muted)}
 .sect p{margin:2px 0 0;color:var(--muted);font-size:14px}
 footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
+/* Streak card: days in a row with any daily finished, and this week as hex stamps. */
+.streak{background:var(--surface);border-radius:18px;padding:14px 16px 12px;display:flex;flex-direction:column;gap:10px}
+.streak .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.streak .eb{font:600 11px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.streak .big{display:flex;align-items:baseline;gap:8px;margin-top:2px}
+.streak .n{font:600 44px/1 var(--display);color:var(--f0);font-variant-numeric:tabular-nums}
+.streak .lab{font:600 20px var(--display)}
+.streak .note{color:var(--muted);font-size:14px;margin:0}
+.streak .best{color:var(--muted);font-size:13px;white-space:nowrap}
+.streak .days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;border-top:1.5px solid var(--felt);padding-top:10px}
+.streak .day{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--muted)}
+.streak .day svg{width:34px;height:38px}
+.streak .day.today{color:var(--f1);font-weight:700}
 @media (max-width:420px){a.card,.soon{grid-template-columns:56px 1fr}.card svg,.soon svg{width:56px;height:56px}.pill{grid-column:2;justify-self:start}}
 </style>
 </head>
@@ -49,6 +62,7 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
     <div class="date" id="date"></div>
   </div>
   <p class="tag">A fresh set of puzzles every day, free. Endless mode when one isn't enough.</p>
+  <section class="streak" id="streak" aria-label="Your streak" hidden></section>
   <div class="cards">
     <a class="card" href="hexstitch.html">
       <svg viewBox="-36 -36 72 72" aria-hidden="true">
@@ -133,6 +147,7 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
   </div>
   <footer>New puzzles at local midnight · progress stays on this device</footer>
 </div>
+<script src="streak.js"></script>
 <script>
 const t=new Date();document.getElementById('date').textContent=t.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
 const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
@@ -145,6 +160,23 @@ const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return nul
   if(t&&t.day===dn&&el){if(t.i>=t.rounds.length){el.textContent='Stamped';el.classList.add('done')}else if(t.i>0)el.textContent='In progress'}}
 [['crosslight-daily','s-cl'],['strike-daily','s-st'],['sampler-daily','s-sm'],['tally-daily','s-ta'],['ladder-daily','s-la']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
   if(s&&s.iso===iso&&el){if(s.st.done){el.textContent='Done';el.classList.add('done')}else if(s.st.started||(s.st.guesses&&s.st.guesses.length)||(s.st.rungs&&s.st.rungs.length))el.textContent='In progress'}});
+
+// Streak card. Anything already finished today counts too (in case it was solved before streaks existed).
+if(window.Kitchen){
+  const code={'s-hex':'hex','s-sb':'sb','s-jg':'jg','s-ws':'ws','s-hk':'hk','s-cl':'cl','s-st':'st','s-sm':'sm','s-ta':'ta','s-la':'la'};
+  document.querySelectorAll('.pill.done').forEach(el=>{if(code[el.id])Kitchen.mark(code[el.id])});
+  const S=Kitchen.streak('puzz'),W=Kitchen.week('puzz'),cols=['--f0','--f1','--f2','--f3'];
+  const hex=(d,i)=>{const p='17,2 32,10.5 32,27.5 17,36 2,27.5 2,10.5';
+    if(d.done)return`<svg viewBox="0 0 34 38" aria-hidden="true"><polygon points="${p}" fill="var(${cols[i%4]})"/><path d="M11,19 l4,4 l8,-8" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    if(d.today)return`<svg viewBox="0 0 34 38" aria-hidden="true"><polygon points="${p}" fill="none" stroke="var(--f1)" stroke-width="2.2" stroke-dasharray="4 3"/></svg>`;
+    return`<svg viewBox="0 0 34 38" aria-hidden="true"><polygon points="${p}" fill="${d.future?'none':'var(--felt)'}" stroke="var(--felt)" stroke-width="1.6"/></svg>`};
+  const n=S.current,note=n===0?'Finish any puzzle today to start a streak.':S.doneToday?'Done for today. See you tomorrow.':'Finish one today to keep it going.';
+  const el=document.getElementById('streak');
+  el.innerHTML=`<div class="top"><div><div class="eb">Your streak</div>
+      <div class="big"><span class="n">${n}</span><span class="lab">${n===1?'day in a row':'days in a row'}</span></div>
+      <p class="note">${note}</p></div>${S.best>1?`<span class="best">Best ${S.best}</span>`:''}</div>
+    <div class="days">${W.map((d,i)=>`<div class="day ${d.today?'today':''}" aria-label="${d.date.toLocaleDateString(undefined,{weekday:'long'})}: ${d.done?'done':d.future?'still to come':d.today?'not yet':'missed'}">${hex(d,i)}<span>${d.today?'today':d.date.toLocaleDateString(undefined,{weekday:'short'})}</span></div>`).join('')}</div>`;
+  el.hidden=false}
 </script>
 </body>
 </html>

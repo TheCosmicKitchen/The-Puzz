@@ -110,6 +110,7 @@ details.rules p{margin:8px 0 0;max-width:62ch}
     <p>You share one pool of 15 guesses across the whole grid. Letters you've already revealed fill themselves in as you type.</p>
   </details>
 </div>
+<script src="streak.js"></script>
 <script>
 // The Puzz shared prototype helpers
 const $=id=>document.getElementById(id);
@@ -194,7 +195,7 @@ function submit(){if(slotSolved(sel)){hint('That word is already solved. Pick an
 function hint(t,c=''){$('hint').textContent=t;$('hint').className='hint '+c}
 function shareText(){let g='';for(let r=0;r<5;r++){for(let c=0;c<5;c++){if(isHole(r,c)){g+='⬛';continue}const n=st.got[key(r,c)];g+=!n?'⬜':n<=5?'🟦':n<=10?'🟩':'🟨'}g+='\n'}
   return `The Puzz · Crosslight ${Pz.label}\n${st.lost?'Out of guesses':`Solved in ${st.guesses.length}/${MAXG}`}\n${g.trim()}`}
-function showEnd(){const w=$('win');w.hidden=false;w.style.borderColor=st.lost?'var(--bad)':'var(--ok)';
+function showEnd(){if(mode==="daily"&&window.Kitchen)Kitchen.mark("cl");const w=$('win');w.hidden=false;w.style.borderColor=st.lost?'var(--bad)':'var(--ok)';
   w.innerHTML=`<h2>${st.lost?'Out of guesses':'Grid lit up!'}</h2>${st.lost?`<p style="margin:0">The words were ${Pz.words.map(x=>x.toUpperCase()).join(', ')}.</p>`:''}<pre id="shareTxt">${esc(shareText())}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New grid</button>':'<span class="sub">A new grid lights up at midnight.</span>'}</div>`;
   wireCopy($('copyBtn'),shareText,'shareTxt');if($('nextBtn'))$('nextBtn').onclick=()=>load('endless');
   if(st.lost){Object.assign(st.got,Object.fromEntries([...Array(25).keys()].filter(i=>!isHole(Math.floor(i/5),i%5)&&answerAt(Math.floor(i/5),i%5)).map(i=>[key(Math.floor(i/5),i%5),99])));render()}}
