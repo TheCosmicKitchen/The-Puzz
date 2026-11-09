@@ -12,8 +12,8 @@
 /* Layout: one centred column — header, quilt board, fabric basket, rules. */
 :root{
   --bg:#E6EBEE; --surface:#F6F8F9; --ink:#1C2530; --muted:#5A6772; --felt:#CDD5DB; --line:#A9B5BE;
-  --ok:#2C7A4C; --bad:#C2372A; --weave:rgba(255,255,255,.42);
-  --f0:#B5432F; --f1:#2C4B88; --f2:#D69720; --f3:#4D8257;
+  --ok:#2C7A4C; --bad:#C2372A; --weave:rgba(255,255,255,.55); --weave-dk:rgba(60,40,0,.34);
+  --f0:#D1561C; --f1:#1F4A8C; --f2:#EFC43A; --f3:#0B6F5C;
   --backing:#DDD5C6; --quilting:rgba(92,72,44,.11); --paper:#FCF9F2; --paper-edge:#CBBFA8; --tack:#B4A385; --mark:#2B2620;
   --display:"Fredoka",ui-rounded,"Segoe UI",system-ui,sans-serif;
   --body:"Atkinson Hyperlegible",system-ui,sans-serif;
@@ -21,13 +21,13 @@
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#121820; --surface:#1A222B; --ink:#E4EAEE; --muted:#93A1AC; --felt:#26323C; --line:#3B4954;
-  --ok:#62C38A; --bad:#FF6D5C; --weave:rgba(255,255,255,.3);
-  --f0:#D2583F; --f1:#4C70C4; --f2:#E7AE3A; --f3:#66A271;
+  --ok:#62C38A; --bad:#FF6D5C; --weave:rgba(255,255,255,.5); --weave-dk:rgba(60,40,0,.34);
+  --f0:#DE6428; --f1:#3563B0; --f2:#F2CB4A; --f3:#13846D;
   --backing:#1F2B38; --quilting:rgba(255,255,255,.055); --paper:#DCD4C3; --paper-edge:#8F846E; --tack:#9D8F73; --mark:#2B2620; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#121820; --surface:#1A222B; --ink:#E4EAEE; --muted:#93A1AC; --felt:#26323C; --line:#3B4954;
-  --ok:#62C38A; --bad:#FF6D5C; --weave:rgba(255,255,255,.3);
-  --f0:#D2583F; --f1:#4C70C4; --f2:#E7AE3A; --f3:#66A271;
+  --ok:#62C38A; --bad:#FF6D5C; --weave:rgba(255,255,255,.5); --weave-dk:rgba(60,40,0,.34);
+  --f0:#DE6428; --f1:#3563B0; --f2:#F2CB4A; --f3:#13846D;
   --backing:#1F2B38; --quilting:rgba(255,255,255,.055); --paper:#DCD4C3; --paper-edge:#8F846E; --tack:#9D8F73; --mark:#2B2620; color-scheme:dark}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
 .wrap{max-width:560px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
@@ -56,7 +56,8 @@ select.btn{padding-right:8px}
 .cell:hover .base{stroke:var(--mark);stroke-width:1.6}
 .tile .stitch{fill:none;stroke:var(--weave);stroke-width:1.3;stroke-dasharray:3 2.5}
 .c0{fill:var(--f0)}.c1{fill:var(--f1)}.c2{fill:var(--f2)}.c3{fill:var(--f3)}
-.weave{fill:var(--weave)}
+.weave{fill:var(--weave)}.weave-dk{fill:var(--weave-dk)}
+.tile.k2 .stitch{stroke:var(--weave-dk)}
 .goal .gb{fill:var(--felt);stroke:var(--line);stroke-width:1.5}
 .goal .gring{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:2.2 2.4;opacity:.7}
 .goal .pip{fill:var(--ink)}
@@ -94,7 +95,8 @@ select.btn{padding-right:8px}
 .fab:disabled{opacity:.35;cursor:default}
 .fab svg{width:40px;height:44px}
 .fab .n{font:600 16px var(--display);font-variant-numeric:tabular-nums}
-.fab .nm{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.fab .nm{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center}
+.fab .nm svg{width:10px;height:10px;overflow:visible}
 .win{background:var(--surface);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;border:2px solid var(--ok)}
 .win h2{font:600 22px var(--display);margin:0}
 .win pre{font-family:var(--body);margin:0;white-space:pre-wrap;word-break:break-word;background:var(--bg);padding:10px 12px;border-radius:10px;font-size:15px;line-height:1.45;user-select:all}
@@ -149,7 +151,7 @@ details li svg{flex:none;width:38px;height:38px}
     <summary>How to play</summary>
     <ul>
       <li><svg viewBox="-20 -20 40 40" id="r1"></svg><span>Fill every empty hex from the basket. The basket holds exactly the pieces you need, no more.</span></li>
-      <li><svg viewBox="-20 -20 40 40" id="r2"></svg><span>Each pattern hex asks how its six neighbours group. Every row of holes is one fabric, and each row is a different fabric. As you sew neighbours in, the holes fill with the fabrics you used, so you can see what is still missing. This one wants three of one fabric, two of another and one of a third.</span></li>
+      <li><svg viewBox="-20 -20 40 40" id="r2"></svg><span>Each pattern hex asks how its six neighbours group. Every row of holes is one fabric, and each row is a different fabric. As you sew neighbours in, the holes fill with the fabrics you used, so you can see what is still missing. This one wants three of one fabric, two of another and one of a third. Each fabric fills its holes with its own shape: a dot for Madder, a diamond for Indigo, a square for Saffron and a triangle for Sage.</span></li>
       <li><svg viewBox="-30 -20 60 40" id="r6"></svg><span><b>Stitched pairs.</b> Hexes outlined together take a two-fabric piece from the basket. Pieces never rotate: a pair with red on the left only fits a slot pointing the same way, red end first.</span></li>
       <li><svg viewBox="-20 -20 40 40" id="r3"></svg><span>A crossed swatch means that fabric can't go in that hex.</span></li>
       <li><svg viewBox="-20 -20 40 40" id="r4"></svg><span>A stitch on an edge links two hexes: <b>=</b> means same fabric, <b>≠</b> means different fabrics.</span></li>
@@ -270,27 +272,33 @@ const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){retu
 const pos=c=>({x:R*S3*(c.q+c.r/2),y:R*1.5*c.r});
 const hexPts=(r,cx=0,cy=0)=>Array.from({length:6},(_,k)=>{const a=Math.PI/180*(60*k+30);return (cx+r*Math.cos(a)).toFixed(2)+','+(cy+r*Math.sin(a)).toFixed(2)}).join(' ');
 const PATDEFS=`<defs>
-<pattern id="w0" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="1.25" class="weave"/></pattern>
-<pattern id="w1" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2" height="6" class="weave"/></pattern>
-<pattern id="w2" width="8" height="8" patternUnits="userSpaceOnUse"><rect x="3.3" y="1.5" width="1.4" height="5" class="weave"/><rect x="1.5" y="3.3" width="5" height="1.4" class="weave"/></pattern>
-<pattern id="w3" width="8" height="6" patternUnits="userSpaceOnUse"><rect y="1" width="8" height="1.2" class="weave"/><rect y="3.4" width="8" height="1.2" class="weave"/></pattern>
+<pattern id="w0" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="2.5" cy="2.5" r="2" class="weave"/><circle cx="7.5" cy="7.5" r="2" class="weave"/></pattern>
+<pattern id="w1" width="10" height="12" patternUnits="userSpaceOnUse"><path d="M5,.8L9.2,6L5,11.2L.8,6Z" class="weave"/></pattern>
+<pattern id="w2" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="4" height="4" class="weave-dk"/><rect x="4" y="4" width="4" height="4" class="weave-dk" opacity=".45"/><rect y="4" width="4" height="4" class="weave-dk" opacity=".45"/></pattern>
+<pattern id="w3" width="11" height="10" patternUnits="userSpaceOnUse"><path d="M5.5,1.2L9.6,8.4H1.4Z" class="weave"/></pattern>
 <pattern id="linen" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height=".7" fill="#000" opacity=".1"/><rect width=".7" height="3" fill="#fff" opacity=".12"/><rect x="1.5" y="1.5" width="1.5" height=".5" fill="#fff" opacity=".08"/></pattern>
 <filter id="lift" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="1.6" stdDeviation="1.3" flood-color="#000" flood-opacity=".32"/></filter>
 <radialGradient id="puff" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#fff" stop-opacity=".26"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".24"/></radialGradient>
 </defs>`;
-const tileSVG=(c,r=R-2.5,cx=0,cy=0)=>{const h=hexPts(r,cx,cy);return `<g class="tile"><polygon points="${h}" class="c${c}" filter="url(#lift)"/><polygon points="${h}" fill="url(#w${c})"/><polygon points="${h}" fill="url(#linen)"/><polygon points="${h}" fill="url(#puff)"/><polygon points="${hexPts(r-4,cx,cy)}" class="stitch"/></g>`};
+const tileSVG=(c,r=R-2.5,cx=0,cy=0)=>{const h=hexPts(r,cx,cy);return `<g class="tile k${c}"><polygon points="${h}" class="c${c}" filter="url(#lift)"/><polygon points="${h}" fill="url(#w${c})"/><polygon points="${h}" fill="url(#linen)"/><polygon points="${h}" fill="url(#puff)"/><polygon points="${hexPts(r-4,cx,cy)}" class="stitch"/></g>`};
 const xmarkSVG=c=>`<g class="xm"><polygon class="sw c${c}" points="${hexPts(10)}"/><polygon points="${hexPts(10)}" fill="url(#w${c})"/><line x1="-10" y1="10" x2="10" y2="-10"/></g>`;
 // direction vectors (unit = one hex step) for pair axes
 const axVec=ax=>{const [dq,dr]=DIRS[ax];return pos({q:dq,r:dr})};
 function dominoSVG(key,r){const ax=key>>4,v=axVec(ax),k=r/(R-2.5)*1.0;const dx=v.x*k/2,dy=v.y*k/2;
   return `${tileSVG(key>>2&3,r,-dx,-dy)}${tileSVG(key&3,r,dx,dy)}<line class="pairline" x1="${(-dx*.35).toFixed(1)}" y1="${(-dy*.35).toFixed(1)}" x2="${(dx*.35).toFixed(1)}" y2="${(dy*.35).toFixed(1)}" stroke-dasharray="2.5 2.5"/>`}
 // pattern hex: rows of holes that fill with the fabrics you've placed
+// a filled pip, in its fabric's colour and motif shape
+function pipShape(c,x,y){const k=`class="fillp c${c}"`;
+  if(c===0)return `<circle ${k} cx="${x}" cy="${y}" r="3.1"/>`;
+  if(c===1)return `<path ${k} d="M${x},${y-3.9}L${x+3.4},${y}L${x},${y+3.9}L${x-3.4},${y}Z"/>`;
+  if(c===2)return `<rect ${k} x="${x-2.8}" y="${y-2.8}" width="5.6" height="5.6"/>`;
+  return `<path ${k} d="M${x},${y-3.6}L${x+3.6},${y+2.8}H${x-3.6}Z"/>`}
 function pipsSVG(pat,cnt){
   const cur=cnt?cnt.map((n,c)=>({n,c})).filter(o=>o.n).sort((a,b)=>b.n-a.n):[];
   const rows=pat.length,gap=8.5;let s='';
   pat.forEach((k,ri)=>{const y=(ri-(rows-1)/2)*gap,g=cur[ri];
     for(let j=0;j<k;j++){const x=((j-(k-1)/2)*7.5).toFixed(2);
-      s+=g&&j<g.n?`<circle class="fillp c${g.c}" cx="${x}" cy="${y}" r="3"/>`:`<circle class="hole" cx="${x}" cy="${y}" r="2.6"/>`}});
+      s+=g&&j<g.n?pipShape(g.c,+x,y):`<circle class="hole" cx="${x}" cy="${y}" r="2.6"/>`}});
   return s}
 
 let P=null, st=null, mode='daily', sel='s0', focusGoal=-1, timerInt=null, lastPlaced=-1, nopeCell=-1, msg='';
@@ -362,7 +370,7 @@ function render(){
   P.stitches.forEach(t=>{const a=pos(P.cells[t.a]),b=pos(P.cells[t.b]);s+=`<g class="st ${stitchBad(t)?'bad':''}" transform="translate(${((a.x+b.x)/2).toFixed(2)},${((a.y+b.y)/2).toFixed(2)})" pointer-events="none"><circle r="7.5"/><circle class="rim" r="5.6"/><text>${t.same?'=':'≠'}</text></g>`});
   svg.innerHTML=s; lastPlaced=-1;
   const rem=remaining();
-  let b=FAB.map((f,c)=>`<button class="fab" aria-pressed="${sel==='s'+c}" data-k="s${c}" ${rem.s[c]<=0?'disabled':''} aria-label="${f.n}, ${rem.s[c]} left"><svg viewBox="-22 -24 44 48">${PATDEFS}${tileSVG(c,21)}</svg><span class="n">${rem.s[c]}</span><span class="nm">${f.n}</span></button>`).join('');
+  let b=FAB.map((f,c)=>`<button class="fab" aria-pressed="${sel==='s'+c}" data-k="s${c}" ${rem.s[c]<=0?'disabled':''} aria-label="${f.n}, ${rem.s[c]} left"><svg viewBox="-22 -24 44 48">${PATDEFS}${tileSVG(c,21)}</svg><span class="n">${rem.s[c]}</span><span class="nm"><svg viewBox="-5 -5 10 10" width="10" height="10" style="vertical-align:-1px;margin-right:3px">${pipShape(c,0,0)}</svg>${f.n}</span></button>`).join('');
   const keys=Object.keys(P.trayD).map(Number).sort((a,b)=>a-b);
   if(keys.length){b+=`<div class="lbl">Stitched pairs</div><div class="pairs">`+keys.map(k=>`<button class="fab dom" aria-pressed="${sel==='d'+k}" data-k="d${k}" ${(rem.d[k]||0)<=0?'disabled':''} aria-label="Pair ${FAB[k>>2&3].n} then ${FAB[k&3].n}, ${rem.d[k]} left"><svg viewBox="-36 -24 72 48">${PATDEFS}${dominoSVG(k,15)}</svg><span class="n">${rem.d[k]}</span></button>`).join('')+'</div>'}
   $('basket').innerHTML=b;
