@@ -50,6 +50,7 @@ select.btn{padding-right:8px}
 :focus-visible{outline:2.5px solid var(--f1);outline-offset:2px}
 .board{background-color:var(--backing);background-image:repeating-linear-gradient(45deg,var(--quilting) 0 1px,transparent 1px 22px),repeating-linear-gradient(-45deg,var(--quilting) 0 1px,transparent 1px 22px);border-radius:18px;padding:10px;touch-action:manipulation;box-shadow:inset 0 0 0 1px var(--quilting)}
 .board svg{display:block;width:100%;height:auto;max-height:62vh;user-select:none;-webkit-user-select:none}
+@media (max-width:640px){.board svg{max-height:78vh}}
 .cell{cursor:pointer}
 .cell .base{fill:var(--paper);stroke:var(--paper-edge);stroke-width:1}
 .cell .tack{fill:none;stroke:var(--tack);stroke-width:1.1;stroke-dasharray:2.4 3.2;pointer-events:none}
@@ -269,8 +270,9 @@ const FAB=[{n:'Madder'},{n:'Indigo'},{n:'Saffron'},{n:'Sage'}];
 const R=30, S3=Math.sqrt(3);
 const $=id=>document.getElementById(id);
 const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-const pos=c=>({x:R*S3*(c.q+c.r/2),y:R*1.5*c.r});
-const hexPts=(r,cx=0,cy=0)=>Array.from({length:6},(_,k)=>{const a=Math.PI/180*(60*k+30);return (cx+r*Math.cos(a)).toFixed(2)+','+(cy+r*Math.sin(a)).toFixed(2)}).join(' ');
+const tallMQ=window.matchMedia('(max-width:640px)');let TALL=tallMQ.matches;
+const pos=c=>{const x=R*S3*(c.q+c.r/2),y=R*1.5*c.r;return TALL?{x:y,y:x}:{x,y}};
+const hexPts=(r,cx=0,cy=0)=>Array.from({length:6},(_,k)=>{const a=Math.PI/180*(60*k+(TALL?0:30));return (cx+r*Math.cos(a)).toFixed(2)+','+(cy+r*Math.sin(a)).toFixed(2)}).join(' ');
 const PATDEFS=`<defs>
 <pattern id="w0" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="2.5" cy="2.5" r="2" class="weave"/><circle cx="7.5" cy="7.5" r="2" class="weave"/></pattern>
 <pattern id="w1" width="10" height="12" patternUnits="userSpaceOnUse"><path d="M5,.8L9.2,6L5,11.2L.8,6Z" class="weave"/></pattern>
@@ -449,6 +451,7 @@ $('size').onchange=()=>{stopTimer();load('endless')};
 $('resetBtn').onclick=()=>{if(st.solved||st.board.every((v,i)=>v===P.fixed[i]))return;snap();st.board=P.fixed.slice();render();persist()};
 $('undoBtn').onclick=undo;
 
+function rulesArt(){
 $('r1').innerHTML=PATDEFS+tileSVG(2,17);
 $('r2').innerHTML=`<g class="goal"><polygon class="gb" points="${hexPts(18)}"/>${pipsSVG([3,2,1],[2,0,0,1])}</g>`;
 $('r3').innerHTML=`<polygon points="${hexPts(18)}" fill="var(--paper)" stroke="var(--paper-edge)"/>${PATDEFS}${xmarkSVG(0)}`;
@@ -456,6 +459,9 @@ $('r4').innerHTML=`<g class="st"><circle r="9"/><circle class="rim" r="6.8"/><te
 $('r5').innerHTML=PATDEFS+tileSVG(1,17)+'<circle class="pin" r="4"/>';
 $('r6').innerHTML=PATDEFS+dominoSVG(0*16+0*4+1,14);
 $('r7').innerHTML=PATDEFS+tileSVG(3,17)+'<path d="M-6,-2 a7,7 0 1 1 1,8 M-6,-2 l-1,-6 M-6,-2 l6,-1" fill="none" stroke="var(--surface)" stroke-width="2.2" stroke-linecap="round"/>';
+$('r6').setAttribute('viewBox',TALL?'-20 -30 40 60':'-30 -20 60 40')}
+rulesArt();
+tallMQ.addEventListener('change',e=>{TALL=e.matches;rulesArt();if(P)render()});
 
 (function boot(){const h=(location.hash||'').slice(1);
   if(/^[a-z0-9]{5}[345]$/.test(h)){$('size').value=h[5];load('endless',h.slice(0,5));}
