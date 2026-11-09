@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>*{box-sizing:border-box}:root{color-scheme:light;padding-block:env(safe-area-inset-top,0px) env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}a.eyebrow{display:block;text-decoration:none}a.eyebrow:hover{color:var(--ink)}</style>
+<title>Typeset</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one centred column. Header, the printer's sheet (11 x 11), the line of words your tiles make,
+   your seven type blocks, the lock-in button, then the result and how to play. */
+:root{
+  --bg:#E6EBEE; --surface:#F6F8F9; --ink:#1C2530; --muted:#5A6772; --felt:#CDD5DB; --line:#A9B5BE;
+  --ok:#2C7A4C; --bad:#C2372A; --accent:#D1561C;
+  --sheet:#F4EEE2; --rule:#D9CFBC; --block:#E9D3A8; --block-edge:#B8995F; --block-ink:#2B2620;
+  --new:#F2CB4A; --new-edge:#B98F12; --mine:#9CCBB4; --mine-edge:#3E8E6A;
+  --p1:#CFE3D3; --p1-ink:#2E5A3A; --p2:#2F8C88; --p2-ink:#FFFFFF; --p3:#F1CF73; --p3-ink:#5A4300; --p4:#D1561C; --p4-ink:#FFFFFF;
+  --display:"Fredoka",ui-rounded,"Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121820; --surface:#1A222B; --ink:#E4EAEE; --muted:#93A1AC; --felt:#26323C; --line:#3B4954;
+  --ok:#62C38A; --bad:#FF6D5C; --accent:#E8743A;
+  --sheet:#222B35; --rule:#323E4A; --block:#E2CC9F; --block-edge:#9E8455; --block-ink:#2B2620;
+  --new:#F2CB4A; --new-edge:#C79C1C; --mine:#8CC4A8; --mine-edge:#4FA07A;
+  --p1:#2E4A38; --p1-ink:#BFE0C8; --p2:#237470; --p2-ink:#E6FFFD; --p3:#7A6420; --p3-ink:#FFF0C4; --p4:#B84A16; --p4-ink:#FFFFFF; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121820; --surface:#1A222B; --ink:#E4EAEE; --muted:#93A1AC; --felt:#26323C; --line:#3B4954;
+  --ok:#62C38A; --bad:#FF6D5C; --accent:#E8743A;
+  --sheet:#222B35; --rule:#323E4A; --block:#E2CC9F; --block-edge:#9E8455; --block-ink:#2B2620;
+  --new:#F2CB4A; --new-edge:#C79C1C; --mine:#8CC4A8; --mine-edge:#4FA07A;
+  --p1:#2E4A38; --p1-ink:#BFE0C8; --p2:#237470; --p2-ink:#E6FFFD; --p3:#7A6420; --p3-ink:#FFF0C4; --p4:#B84A16; --p4-ink:#FFFFFF; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;padding-block:20px 48px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-inline:4px}
+h1{font-family:var(--display);font-weight:600;font-size:34px;line-height:1;margin:0;letter-spacing:-.01em}
+h1 span{color:var(--accent)}
+.eyebrow{font:600 12px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.sub{color:var(--muted);font-size:13px;margin-top:4px}
+.tabs{display:flex;background:var(--felt);border-radius:999px;padding:3px}
+.tabs button{font:600 14px var(--display);border:0;background:none;color:var(--muted);padding:6px 14px;border-radius:999px;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--surface);color:var(--ink)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted);padding-inline:4px}
+.btn{font:600 13px var(--display);border:1.5px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 12px;border-radius:10px;cursor:pointer}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:default}
+:focus-visible{outline:2.5px solid var(--p2);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* the sheet */
+.sheet{background:var(--sheet);border-radius:14px;padding:6px;box-shadow:inset 0 0 0 1.5px var(--rule)}
+.grid{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:2px;touch-action:manipulation}
+.sq{aspect-ratio:1;border:0;padding:0;margin:0;border-radius:4px;background:color-mix(in srgb,var(--rule) 45%,transparent);position:relative;cursor:pointer;
+  font:600 clamp(7px,2.1vw,11px)/1 var(--display);color:var(--muted);display:grid;place-items:center;min-width:0;letter-spacing:-.02em}
+.sq.p1{background:var(--p1);color:var(--p1-ink)}.sq.p2{background:var(--p2);color:var(--p2-ink)}
+.sq.p3{background:var(--p3);color:var(--p3-ink)}.sq.p4{background:var(--p4);color:var(--p4-ink)}
+.sq.cur{box-shadow:inset 0 0 0 2.5px var(--ink)}
+.sq .arrow{position:absolute;right:1px;bottom:0;font-size:9px;color:var(--ink)}
+.sq.drop{box-shadow:inset 0 0 0 3px var(--accent)}
+/* type blocks: on the sheet and in your rack */
+.tile{position:absolute;inset:0;border-radius:4px;background:var(--block);box-shadow:inset 0 -2px 0 var(--block-edge),inset 0 0 0 1px var(--block-edge);color:var(--block-ink);
+  display:grid;place-items:center;font:600 clamp(13px,4.4vw,21px)/1 var(--display);text-transform:uppercase}
+.tile sub{position:absolute;right:2px;bottom:1px;font:600 clamp(6px,1.8vw,9px)/1 var(--body);opacity:.8}
+.tile.new{background:var(--new);box-shadow:inset 0 -2px 0 var(--new-edge),inset 0 0 0 1.5px var(--new-edge);cursor:grab}
+.tile.mine{background:var(--mine);box-shadow:inset 0 -2px 0 var(--mine-edge),inset 0 0 0 1.5px var(--mine-edge)}
+.tile.bad{box-shadow:inset 0 -2px 0 var(--new-edge),inset 0 0 0 2.5px var(--bad)}
+@media (prefers-reduced-motion:no-preference){.tile.new.pop{animation:pop .16s ease-out}@keyframes pop{from{transform:scale(.7)}to{transform:none}}}
+
+/* what your tiles spell */
+.preview{min-height:46px;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;text-align:center;font-size:14px;color:var(--muted);padding-inline:4px}
+.wd{font:600 14px var(--display);background:var(--surface);border-radius:8px;padding:3px 8px;color:var(--ink);letter-spacing:.04em}
+.wd b{font-family:var(--mono);font-weight:500;color:var(--muted);margin-left:5px;letter-spacing:0}
+.wd.bad{color:var(--bad);text-decoration:line-through;text-decoration-thickness:1.5px}
+.wd.bonus{background:var(--new);color:var(--block-ink)}
+.why{color:var(--bad)}
+
+/* the rack */
+.rackrow{display:flex;gap:8px;align-items:center;justify-content:center}
+.rack{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;flex:1;max-width:400px;touch-action:none}
+.slot{aspect-ratio:1;position:relative;border:0;padding:0;border-radius:7px;background:color-mix(in srgb,var(--rule) 60%,transparent);cursor:pointer;min-width:0}
+.slot .tile{border-radius:7px;font-size:clamp(20px,6.4vw,28px);box-shadow:inset 0 -3px 0 var(--block-edge),inset 0 0 0 1px var(--block-edge)}
+.slot .tile sub{font-size:clamp(9px,2.6vw,11px);right:4px;bottom:3px}
+.slot.sel .tile{transform:translateY(-5px);box-shadow:inset 0 -3px 0 var(--block-edge),inset 0 0 0 1px var(--block-edge),0 0 0 2.5px var(--ink)}
+.slot.used{cursor:default}
+.side{display:flex;flex-direction:column;gap:6px}
+.side .btn{padding:5px 8px;font-size:12px}
+.ghost{position:fixed;width:44px;height:44px;pointer-events:none;z-index:10;transform:translate(-50%,-70%)}
+.ghost .tile{border-radius:7px;font-size:24px;box-shadow:0 6px 16px rgba(0,0,0,.25),inset 0 -3px 0 var(--block-edge)}
+.lock{font:600 17px var(--display);padding:12px;border-radius:14px;width:100%}
+.lock.arm{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.result{background:var(--surface);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;border:2px solid var(--ok)}
+.result h2{font:600 22px var(--display);margin:0}
+.big{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:8px 22px;align-items:end}
+.big div{display:flex;flex-direction:column}
+.big b{font:600 clamp(26px,8vw,34px)/1 var(--display);font-variant-numeric:tabular-nums}
+.big span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.meter{height:10px;border-radius:99px;background:var(--felt);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--ok);border-radius:99px}
+.result pre{font-family:var(--body);margin:0;white-space:pre-wrap;word-break:break-word;background:var(--bg);padding:10px 12px;border-radius:10px;font-size:15px;line-height:1.45;user-select:all}
+.note{font-size:13px;color:var(--muted);margin:0}
+details{background:var(--surface);border-radius:14px;padding:12px 16px}
+summary{font:600 15px var(--display);cursor:pointer}
+details p{margin:8px 0}
+.legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;margin:8px 0}
+.legend div{display:flex;align-items:center;gap:8px;font-size:13px}
+.legend .sq{width:26px;flex:none;cursor:default}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <a class="eyebrow" href="./">← The Puzz</a>
+      <h1>Type<span>set</span></h1>
+      <div class="sub" id="sub"></div>
+    </div>
+    <div class="tabs" role="group" aria-label="Mode">
+      <button id="tDaily" aria-pressed="true">Daily</button>
+      <button id="tPractice" aria-pressed="false">Practice</button>
+    </div>
+  </header>
+  <div class="bar">
+    <span id="info">One play. Make it your best.</span>
+    <div class="row" id="practiceCtl" hidden><button class="btn" id="newBtn">New sheet</button><span>sheet <b id="seedTxt"></b></span></div>
+  </div>
+  <div class="sheet"><div class="grid" id="grid" role="grid" aria-label="The sheet"></div></div>
+  <div class="preview" id="preview" aria-live="polite"></div>
+  <div class="rackrow" id="rackRow">
+    <div class="rack" id="rack" role="group" aria-label="Your type"></div>
+    <div class="side"><button class="btn" id="shuffleBtn" title="Shuffle your tiles">Shuffle</button><button class="btn" id="recallBtn" title="Take all your tiles back">Recall</button></div>
+  </div>
+  <button class="btn primary lock" id="lockBtn" disabled>Place tiles to make a word</button>
+  <section class="result" id="result" hidden></section>
+  <details id="rules">
+    <summary>How to play</summary>
+    <p>Everyone gets the same sheet and the same seven pieces of type today. You get <b>one play</b>: lay some of your tiles in a single row or column so they join the words already on the sheet. Every word your tiles make, across and down, has to be a real word.</p>
+    <p>Tap a tile and then a square, or drag it there. On a keyboard, click a square and type; click it again to switch between across and down. Tap a placed tile to take it back. Try as many layouts as you like: the line under the sheet shows what each one scores. When you're happy, lock it in.</p>
+    <div class="legend">
+      <div><span class="sq p1">2L</span>Doubles the letter on it</div>
+      <div><span class="sq p2">3L</span>Triples the letter on it</div>
+      <div><span class="sq p3">2W</span>Doubles the whole word</div>
+      <div><span class="sq p4">3W</span>Triples the whole word</div>
+    </div>
+    <p>Bonus squares only count for tiles you place this turn. Use all seven tiles for a <b>+35 full set</b> bonus.</p>
+    <p><b>Today's record</b> is the best play on the sheet using everyday words. You see it once you've locked in, and so does everyone else, so you can compare. Rarer words are allowed too, so it can be beaten.</p>
+    <p class="note">Word list: SCOWL by Kevin Atkinson (<a href="typeset-words-LICENSE.txt">licence</a>).</p>
+  </details>
+</div>
+<script src="typeset-words.js"></script>
+<script>
+// ---- engine: words, board generation, scoring, best-play search (no DOM) ----
+const N=11, MID=5, RACK=7, FULL_BONUS=35;
+const VAL={a:1,b:3,c:3,d:2,e:1,f:4,g:3,h:3,i:1,j:8,k:5,l:2,m:3,n:1,o:1,p:3,q:10,r:1,s:1,t:1,u:2,v:5,w:4,x:8,y:3,z:9};
+const BAG={a:9,b:2,c:2,d:4,e:12,f:2,g:3,h:2,i:9,j:1,k:1,l:4,m:2,n:6,o:8,p:2,q:1,r:6,s:4,t:6,u:4,v:2,w:2,x:1,y:2,z:1};
+const VOW=new Set('aeiou');
+function hseed(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19}h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return (h^h>>>16)>>>0}
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const pick=(r,a)=>a[Math.floor(r()*a.length)];
+const shuffle=(r,a)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+// prefix-decoded word lists: COMMON (the board and the best play only use these), VALID (anything a player may play)
+function decode(s){const out=[];let prev='';for(const m of s.match(/[A-K][a-z]*/g)){const w=prev.slice(0,m.charCodeAt(0)-65)+m.slice(1);out.push(w);prev=w}return out}
+let COMMON,VALID,TRIE,BYLEN;
+function initWords(data){
+  const c=decode(data.common),x=decode(data.extra);
+  COMMON=new Set(c);VALID=new Set([...c,...x]);
+  TRIE={};for(const w of c){let n=TRIE;for(const ch of w)n=n[ch]||(n[ch]={});n.$=1}
+  BYLEN={};for(const w of c)(BYLEN[w.length]||(BYLEN[w.length]=[])).push(w);
+}
+
+// ---- premium squares: an 8-way symmetric pattern, fresh each puzzle ----
+// 0 plain, 1 double letter, 2 triple letter, 3 double word, 4 triple word
+function premiums(r){
+  const P=new Array(N*N).fill(0),fold=v=>Math.min(v,N-1-v);
+  const cells=[];for(let a=0;a<=MID;a++)for(let b=a;b<=MID;b++)if(!(a===MID&&b===MID))cells.push([a,b]);
+  const kinds=shuffle(r,[4,3,3,2,2,1,1,1].concat(r()<.5?[1]:[]));
+  const chosen=[];
+  for(const k of kinds){for(let t=0;t<40;t++){const [a,b]=pick(r,cells);
+      if(chosen.some(([x,y])=>Math.abs(x-a)+Math.abs(y-b)<2))continue;
+      if(k===4&&a+b>4)continue;            // triple words stay out toward the edges
+      if(k===3&&(a===b&&a>3))continue;
+      chosen.push([a,b,k]);break}}
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){const a=Math.min(fold(i),fold(j)),b=Math.max(fold(i),fold(j));const c=chosen.find(([x,y])=>x===a&&y===b);if(c)P[i*N+j]=c[2]}
+  return P}
+
+// ---- board checks ----
+const at=(B,r,c)=>r<0||c<0||r>=N||c>=N?'':B[r*N+c];
+// every run of 2+ letters, across and down
+function runs(B){const out=[];
+  for(let d=0;d<2;d++)for(let i=0;i<N;i++){let w='',st=0;
+    for(let j=0;j<=N;j++){const ch=j<N?(d?at(B,j,i):at(B,i,j)):'';if(ch){if(!w)st=j;w+=ch}else{if(w.length>1)out.push({w,d,i,st});w=''}}}
+  return out}
+// lay down the day's starting words, crossword style, all from the common list
+function seedBoard(r){
+  for(let tries=0;tries<200;tries++){
+    const B=new Array(N*N).fill('');
+    const first=pick(r,BYLEN[pick(r,[5,6,7])]);const c0=MID-Math.floor(r()*first.length);
+    if(c0<0||c0+first.length>N)continue;
+    for(let k=0;k<first.length;k++)B[MID*N+c0+k]=first[k];
+    const words=[first];let want=4+Math.floor(r()*3),guard=0;
+    while(words.length<want+1&&guard++<400){
+      const filled=[];B.forEach((ch,i)=>{if(ch)filled.push(i)});
+      const i=pick(r,filled),R=Math.floor(i/N),C=i%N;
+      // cross in the direction this letter isn't already part of
+      const across=at(B,R,C-1)||at(B,R,C+1),d=across?1:0;   // d=1 lays the new word down
+      if((d?(at(B,R-1,C)||at(B,R+1,C)):(at(B,R,C-1)||at(B,R,C+1))))continue;
+      const len=pick(r,[3,4,4,5,5,6,7]),list=BYLEN[len].filter(w=>w.includes(B[i]));if(!list.length)continue;
+      const w=pick(r,list),offs=[];for(let k=0;k<w.length;k++)if(w[k]===B[i])offs.push(k);const k=pick(r,offs);
+      const sr=d?R-k:R,sc=d?C:C-k;
+      if(sr<0||sc<0||(d?sr+len:sc+len)>N)continue;
+      const T=B.slice();let ok=true;
+      for(let t=0;t<len&&ok;t++){const rr=d?sr+t:sr,cc=d?sc:sc+t,cur=T[rr*N+cc];if(cur&&cur!==w[t])ok=false;T[rr*N+cc]=w[t]}
+      if(!ok)continue;
+      if(runs(T).some(x=>!COMMON.has(x.w)))continue;
+      // keep some breathing room: no more than 34 letters on the board
+      if(T.filter(Boolean).length>34)continue;
+      B.splice(0,N*N,...T);words.push(w)}
+    if(words.length>=5)return {B,words}}
+  return null}
+function drawRack(r,B){
+  const bag=[];for(const k in BAG)for(let i=0;i<BAG[k];i++)bag.push(k);
+  for(let t=0;t<200;t++){const rack=shuffle(r,bag).slice(0,RACK),v=rack.filter(c=>VOW.has(c)).length,hard=rack.filter(c=>'jqxz'.includes(c)).length;
+    if(v<2||v>4||hard>1||(rack.includes('q')&&!rack.includes('u')))continue;
+    if(new Set(rack).size<5)continue;
+    return rack}
+  return null}
+
+// ---- scoring a set of newly placed tiles: [{i,ch}] ----
+function evaluate(B,P,placed,dict){
+  if(!placed.length)return {ok:false,why:''};
+  const T=B.slice(),pos=new Set();for(const p of placed){if(T[p.i])return {ok:false,why:'That square is taken.'};T[p.i]=p.ch;pos.add(p.i)}
+  const rows=new Set(placed.map(p=>Math.floor(p.i/N))),cols=new Set(placed.map(p=>p.i%N));
+  if(rows.size>1&&cols.size>1)return {ok:false,why:'Tiles go in one row or one column.'};
+  const line=placed.length===1?null:rows.size===1?0:1;
+  // the run through the tiles must have no gaps
+  if(line!==null){const idx=placed.map(p=>line?Math.floor(p.i/N):p.i%N),lo=Math.min(...idx),hi=Math.max(...idx),fix=line?placed[0].i%N:Math.floor(placed[0].i/N);
+    for(let k=lo;k<=hi;k++)if(!T[line?k*N+fix:fix*N+k])return {ok:false,why:'Leave no gaps between your tiles.'}}
+  const touches=placed.some(p=>{const r=Math.floor(p.i/N),c=p.i%N;return [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].some(([a,b])=>at(B,a,b))});
+  if(!touches)return {ok:false,why:'Join on to the words already on the sheet.'};
+  const words=[];
+  const readRun=(i,d)=>{let r=Math.floor(i/N),c=i%N;while(at(T,d?r-1:r,d?c:c-1)){d?r--:c--}
+    let w='',sum=0,mult=1,cells=[];while(at(T,r,c)){const k=r*N+c,ch=T[k];let v=VAL[ch];if(pos.has(k)){const pm=P[k];if(pm===1)v*=2;if(pm===2)v*=3;if(pm===3)mult*=2;if(pm===4)mult*=3}
+      w+=ch;sum+=v;cells.push(k);d?r++:c++}
+    return {w,score:sum*mult,cells}};
+  const dirs=line===null?[0,1]:[line];
+  for(const d of dirs){const x=readRun(placed[0].i,d);if(x.w.length>1)words.push(x)}
+  if(line!==null)for(const p of placed){const x=readRun(p.i,1-line);if(x.w.length>1)words.push(x)}
+  if(!words.length)return {ok:false,why:'Make a word of two letters or more.'};
+  const bad=words.filter(x=>!dict.has(x.w));
+  let total=words.reduce((s,x)=>s+x.score,0);const full=placed.length===RACK;if(full)total+=FULL_BONUS;
+  if(bad.length)return {ok:false,words,bad:bad.map(x=>x.w),why:bad.map(x=>x.w.toUpperCase()).join(', ')+(bad.length>1?' aren\'t':' isn\'t')+' in the word list.'};
+  return {ok:true,words,total,full}}
+
+// ---- best play: anchor-and-extend over the common-word trie ----
+function bestPlay(B,P,rack){
+  let best=null,count=0;
+  for(let d=0;d<2;d++){
+    const idx=(a,b)=>d?b*N+a:a*N+b;            // a = line, b = position along it
+    const get=(a,b)=>a<0||b<0||a>=N||b>=N?'':B[idx(a,b)];
+    for(let a=0;a<N;a++){
+      // which letters can sit in each empty square without spoiling the crossing word
+      const cross=[];for(let b=0;b<N;b++){if(get(a,b)){cross.push(null);continue}
+        let up='',dn='',k=a-1;while(get(k,b)){up=get(k,b)+up;k--}k=a+1;while(get(k,b)){dn+=get(k,b);k++}
+        if(!up&&!dn){cross.push('*');continue}
+        let s='';for(const ch in VAL)if(COMMON.has(up+ch+dn))s+=ch;cross.push(s)}
+      const anchor=b=>!get(a,b)&&(get(a,b-1)||get(a,b+1)||get(a-1,b)||get(a+1,b));
+      const left={};rack.forEach(c=>left[c]=(left[c]||0)+1);
+      const placed=[];
+      const record=()=>{count++;const ev=evaluate(B,P,placed.map(p=>({i:idx(a,p.b),ch:p.ch})),COMMON);
+        if(ev.ok&&(!best||ev.total>best.total))best={...ev,placed:placed.map(p=>({i:idx(a,p.b),ch:p.ch}))}};
+      const extend=(node,b,anch)=>{
+        const ch=get(a,b);
+        if(ch){const nx=node[ch];if(nx)extend(nx,b+1,anch);return}
+        if(node.$&&b>anch&&placed.length)record();
+        if(b>=N)return;
+        const cs=cross[b];if(cs==='')return;
+        for(const L in left){if(!left[L]||!node[L])continue;if(cs!=='*'&&!cs.includes(L))continue;
+          left[L]--;placed.push({b,ch:L});extend(node[L],b+1,anch);placed.pop();left[L]++}};
+      for(let b=0;b<N;b++){if(!anchor(b))continue;
+        if(get(a,b-1)){let s=b-1;while(get(a,s-1))s--;let node=TRIE;for(let k=s;k<b&&node;k++)node=node[get(a,k)];if(node)extend(node,b,b);continue}
+        let lim=0;while(b-lim-1>=0&&!get(a,b-lim-1)&&!anchor(b-lim-1))lim++;
+        // try every start square from the anchor back to the limit; tiles fill rightwards from there
+        for(let s=b-lim;s<=b;s++)extendFrom(s,b)}
+      function extendFrom(s,anch){ // start placing at s (empty), must reach the anchor
+        const go=(node,b)=>{
+          if(b>=anch){extend(node,b,anch);return}
+          const cs=cross[b];if(cs==='')return;
+          for(const L in left){if(!left[L]||!node[L])continue;if(cs!=='*'&&!cs.includes(L))continue;
+            left[L]--;placed.push({b,ch:L});go(node[L],b+1);placed.pop();left[L]++}};
+        if(s<anch&&get(a,s-1))return;
+        go(TRIE,s)}
+    }}
+  return best&&{...best,count}}
+// the record must not depend on the order you try things in, only on the board and the tiles
+function makePuzzle(seed){
+  const r=mulberry(hseed(seed));
+  for(let tries=0;tries<30;tries++){
+    const P=premiums(r),sb=seedBoard(r);if(!sb)continue;
+    const rack=drawRack(r,sb.B);if(!rack)continue;
+    const best=bestPlay(sb.B,P,rack);
+    if(!best||best.count<30||best.total<24||best.total>140)continue;
+    return {B:sb.B,P,rack,best,startWords:sb.words}}
+  return null}
+
+// ---- the page ----
+const $=id=>document.getElementById(id);
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const PREM=['','2L','3L','2W','3W'];
+let G=null,st=null,mode='daily',sel=-1,cursor=null,armed=null,lastPop=-1;
+
+function dayInfo(){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
+  const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+  return {num:Math.round((t-s)/864e5)+1,iso,label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
+
+function load(m,code){
+  mode=m;$('tDaily').setAttribute('aria-pressed',m==='daily');$('tPractice').setAttribute('aria-pressed',m==='practice');
+  $('practiceCtl').hidden=m!=='practice';let saved=null;
+  if(m==='daily'){const d=dayInfo();G=makePuzzle('typeset-'+d.iso);G.iso=d.iso;G.num=d.num;G.label=`#${d.num} · ${d.label}`;
+    $('sub').textContent='Daily sheet '+G.label;$('info').textContent='One play. Make it your best.';
+    saved=store.get('typeset-daily');if(saved&&saved.iso!==d.iso)saved=null;
+    try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+  else{code=code||Math.random().toString(36).slice(2,7);G=makePuzzle('typeset-p-'+code);G.code=code;
+    $('sub').textContent='Practice · a fresh sheet every time';$('seedTxt').textContent=code;$('info').textContent='';
+    try{history.replaceState(null,'','#'+code)}catch(e){}}
+  st=saved?saved.st:{order:[0,1,2,3,4,5,6],placed:[],done:false,started:false};
+  sel=-1;cursor=null;disarm();render();if(st.done)showResult()}
+function persist(){if(mode==='daily')store.set('typeset-daily',{iso:G.iso,st})}
+
+const usedSlots=()=>new Set(st.placed.map(p=>p.t));
+const board=()=>{const B=G.B.slice();if(st.done&&st.final)st.final.placed.forEach(p=>B[p.i]=p.ch);return B};
+const current=()=>st.placed.length?evaluate(G.B,G.P,st.placed.map(p=>({i:p.i,ch:G.rack[p.t]})),VALID):null;
+
+function render(){
+  const B=board(),pend=new Map(st.placed.map(p=>[p.i,p])),ev=current(),badCells=new Set();
+  if(ev&&ev.words&&ev.bad)ev.words.filter(w=>ev.bad.includes(w.w)).forEach(w=>w.cells.forEach(c=>{if(pend.has(c))badCells.add(c)}));
+  const mineSet=new Set(st.done&&st.final?st.final.placed.map(p=>p.i):[]);
+  let h='';
+  for(let i=0;i<N*N;i++){const r=Math.floor(i/N),c=i%N,p=G.P[i],ch=B[i],pd=pend.get(i);
+    const cls=['sq',!ch&&!pd&&p?'p'+p:'',cursor&&cursor.i===i?'cur':''].join(' ');
+    let inner='',label;
+    if(pd){const L=G.rack[pd.t];inner=`<span class="tile new ${badCells.has(i)?'bad':''} ${lastPop===i?'pop':''}" data-pend="${i}">${L}<sub>${VAL[L]}</sub></span>`;label=`${L.toUpperCase()}, your tile`}
+    else if(ch){inner=`<span class="tile ${mineSet.has(i)?'mine':''}">${ch}<sub>${VAL[ch]}</sub></span>`;label=ch.toUpperCase()}
+    else{inner=PREM[p]+(cursor&&cursor.i===i?`<span class="arrow">${cursor.d?'↓':'→'}</span>`:'');label=p?['','double letter','triple letter','double word','triple word'][p]:'empty'}
+    h+=`<button class="${cls}" data-i="${i}" role="gridcell" aria-label="Row ${r+1}, column ${c+1}: ${label}">${inner}</button>`}
+  $('grid').innerHTML=h;lastPop=-1;
+  // the rack
+  const used=usedSlots();let rk='';
+  st.order.forEach(t=>{const L=G.rack[t],u=used.has(t)||st.done;
+    rk+=`<button class="slot ${u?'used':''} ${sel===t&&!u?'sel':''}" data-t="${t}" ${u?'aria-disabled="true"':''} aria-label="${u?'empty slot':L.toUpperCase()+', '+VAL[L]+' point'+(VAL[L]>1?'s':'')}">${u?'':`<span class="tile">${L}<sub>${VAL[L]}</sub></span>`}</button>`});
+  $('rack').innerHTML=rk;
+  $('rackRow').hidden=st.done;$('lockBtn').hidden=st.done;
+  // what the tiles spell
+  const pv=$('preview');
+  if(st.done){pv.innerHTML=st.final?st.final.words.map(w=>`<span class="wd">${w.w.toUpperCase()}<b>${w.score}</b></span>`).join('')+(st.final.full?`<span class="wd bonus">FULL SET<b>+35</b></span>`:''):''}
+  else if(!ev)pv.innerHTML=`<span>${cursor?'Type a letter from your tiles.':'Tap a tile, then a square. Or drag it there.'}</span>`;
+  else if(!ev.words)pv.innerHTML=`<span class="why">${ev.why}</span>`;
+  else pv.innerHTML=ev.words.map(w=>`<span class="wd ${ev.bad&&ev.bad.includes(w.w)?'bad':''}">${w.w.toUpperCase()}<b>${w.score}</b></span>`).join('')+(ev.ok&&ev.full?`<span class="wd bonus">FULL SET<b>+35</b></span>`:'')+(ev.ok?'':`<span class="why">${ev.why}</span>`);
+  const lb=$('lockBtn');
+  if(!st.done){if(armed){lb.textContent=`Tap again to lock in ${armed.total}`;lb.classList.add('arm');lb.disabled=false}
+    else{lb.classList.remove('arm');lb.disabled=!(ev&&ev.ok);lb.textContent=ev&&ev.ok?`Lock in ${ev.total} points`:'Place tiles to make a word'}}
+}
+function disarm(){if(armed){clearTimeout(armed.tm);armed=null}}
+
+// ---- moves ----
+function placeAt(i,t){if(st.done||G.B[i]||st.placed.some(p=>p.i===i)||usedSlots().has(t))return false;
+  st.placed.push({i,t});st.started=true;lastPop=i;disarm();persist();return true}
+function takeBack(i){const k=st.placed.findIndex(p=>p.i===i);if(k<0)return;st.placed.splice(k,1);disarm();persist()}
+function nextFree(){const u=usedSlots();return st.order.find(t=>!u.has(t))}
+function tapSquare(i){
+  if(st.done)return;
+  if(st.placed.some(p=>p.i===i)){takeBack(i);sel=-1;render();return}
+  if(G.B[i])return;
+  if(sel>=0){placeAt(i,sel);sel=-1;cursor=null;render();return}
+  cursor=cursor&&cursor.i===i?{i,d:1-cursor.d}:{i,d:cursor?cursor.d:0};render()}
+function typeLetter(L){
+  if(st.done||!cursor)return;const u=usedSlots(),t=st.order.find(t=>!u.has(t)&&G.rack[t]===L);if(t===undefined)return;
+  if(!placeAt(cursor.i,t))return;
+  let r=Math.floor(cursor.i/N),c=cursor.i%N;const B=G.B;
+  do{cursor.d?r++:c++}while(r<N&&c<N&&(B[r*N+c]||st.placed.some(p=>p.i===r*N+c)));
+  cursor=r<N&&c<N?{i:r*N+c,d:cursor.d}:null;render()}
+function backspace(){if(st.done||!st.placed.length)return;const p=st.placed[st.placed.length-1];takeBack(p.i);cursor={i:p.i,d:cursor?cursor.d:0};render()}
+function recall(){if(st.done)return;st.placed=[];sel=-1;disarm();persist();render()}
+function shuffleRack(){if(st.done)return;const a=st.order.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}st.order=a;persist();render()}
+function lockIn(){
+  const ev=current();if(!ev||!ev.ok)return;
+  if(mode==='daily'&&!armed){armed={total:ev.total,tm:setTimeout(()=>{armed=null;render()},3500)};render();return}
+  disarm();st.done=true;st.final={total:ev.total,words:ev.words.map(w=>({w:w.w,score:w.score})),full:ev.full,placed:st.placed.map(p=>({i:p.i,ch:G.rack[p.t]}))};
+  st.placed=[];cursor=null;sel=-1;persist();render();showResult();$('result').scrollIntoView({behavior:'smooth',block:'nearest'})}
+
+// ---- result and share ----
+const tier=p=>p>100?'Stop the presses!':p>=100?'Front page':p>=85?'Above the fold':p>=65?'Good copy':p>=40?'In print':'Rough draft';
+function shareText(){const f=st.final,rec=G.best.total,p=Math.round(f.total/rec*100),n=Math.min(10,Math.round(f.total/rec*10));
+  return `Typeset ${mode==='daily'?'#'+G.num:'practice '+G.code} · ${f.total} pts\n${'🟧'.repeat(n)}${'⬜'.repeat(Math.max(0,10-n))} ${p}% of ${mode==='daily'?"today's":'the'} record\n${tier(p)}\nthecosmickitchen.github.io/The-Puzz/typeset.html${mode==='practice'?'#'+G.code:''}`}
+function showResult(){
+  const f=st.final,rec=G.best.total,p=Math.round(f.total/rec*100),R=$('result');R.hidden=false;
+  R.innerHTML=`<h2>${tier(p)}</h2>
+    <div class="big"><div><b>${f.total}</b><span>your play</span></div><div><b>${rec}</b><span>today's record</span></div><div><b>${p}%</b><span>of the record</span></div></div>
+    <div class="meter" role="img" aria-label="${p}% of the record"><i style="width:${Math.min(100,p)}%"></i></div>
+    <p class="note">${p>100?'You beat the best everyday-word play on this sheet.':p===100?'That matches the best play on this sheet.':'The record play stays secret, so your friends can hunt for it too.'}</p>
+    <pre id="shareTxt">${shareText()}</pre>
+    <div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='practice'?'<button class="btn" id="againBtn">Try this sheet again</button><button class="btn" id="nextBtn">New sheet</button>':'<span class="note">A new sheet tomorrow.</span>'}</div>`;
+  $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},
+    fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const sl=getSelection();sl.removeAllRanges();sl.addRange(r);try{document.execCommand('copy');ok()}catch(err){}};
+    try{navigator.clipboard.writeText(shareText()).then(ok,fb)}catch(err){fb()}};
+  if($('againBtn'))$('againBtn').onclick=()=>{st={order:st.order,placed:[],done:false,started:false};R.hidden=true;render()};
+  if($('nextBtn'))$('nextBtn').onclick=()=>{R.hidden=true;load('practice')};
+}
+
+// ---- input: taps, drags, keys ----
+let drag=null;
+function startDrag(e,src){drag={src,x:e.clientX,y:e.clientY,moved:false,ghost:null,over:-1};}
+document.addEventListener('pointerdown',e=>{if(st.done)return;
+  const s=e.target.closest('.slot:not(.used)');if(s){startDrag(e,{t:+s.dataset.t});return}
+  const p=e.target.closest('[data-pend]');if(p){const i=+p.dataset.pend;startDrag(e,{t:st.placed.find(q=>q.i===i).t,from:i})}});
+document.addEventListener('pointermove',e=>{if(!drag)return;
+  if(!drag.moved){if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<7)return;drag.moved=true;
+    const L=G.rack[drag.src.t],g=document.createElement('div');g.className='ghost';g.innerHTML=`<span class="tile">${L}<sub>${VAL[L]}</sub></span>`;document.body.append(g);drag.ghost=g}
+  e.preventDefault();drag.ghost.style.left=e.clientX+'px';drag.ghost.style.top=e.clientY+'px';
+  const el=document.elementFromPoint(e.clientX,e.clientY),sq=el&&el.closest('.sq'),i=sq?+sq.dataset.i:-1;
+  if(i!==drag.over){document.querySelectorAll('.sq.drop').forEach(x=>x.classList.remove('drop'));if(sq&&!G.B[i])sq.classList.add('drop');drag.over=i}},{passive:false});
+document.addEventListener('pointerup',e=>{if(!drag)return;const d=drag;drag=null;if(!d.moved)return;
+  d.ghost.remove();const i=d.over;
+  if(d.src.from!==undefined){if(i<0||i===d.src.from){if(i<0)takeBack(d.src.from)}else if(!G.B[i]&&!st.placed.some(p=>p.i===i)){takeBack(d.src.from);placeAt(i,d.src.t)}}
+  else if(i>=0)placeAt(i,d.src.t);
+  sel=-1;suppressClick=true;setTimeout(()=>suppressClick=false,0);render()});
+let suppressClick=false;
+$('grid').addEventListener('click',e=>{if(suppressClick)return;const sq=e.target.closest('.sq');if(sq)tapSquare(+sq.dataset.i)});
+$('rack').addEventListener('click',e=>{if(suppressClick)return;const s=e.target.closest('.slot');if(!s||s.classList.contains('used'))return;const t=+s.dataset.t;
+  if(cursor&&sel<0){typeLetter(G.rack[t]);return}
+  sel=sel===t?-1:t;render()});
+document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||st.done)return;
+  if(/^[a-z]$/i.test(e.key)){typeLetter(e.key.toLowerCase());e.preventDefault()}
+  else if(e.key==='Backspace'){backspace();e.preventDefault()}
+  else if(e.key==='Enter'&&document.activeElement===document.body){lockIn()}
+  else if(e.key==='Escape'){cursor=null;sel=-1;render()}});
+$('shuffleBtn').onclick=shuffleRack;$('recallBtn').onclick=recall;$('lockBtn').onclick=lockIn;
+$('tDaily').onclick=()=>{$('result').hidden=true;load('daily')};
+$('tPractice').onclick=()=>{$('result').hidden=true;load('practice')};
+$('newBtn').onclick=()=>{$('result').hidden=true;load('practice')};
+
+initWords(window.TS_WORDS);
+(function boot(){const h=(location.hash||'').slice(1);
+  if(/^[a-z0-9]{5}$/.test(h))load('practice',h);
+  else{load('daily');if(!store.get('typeset-seen')){$('rules').open=true;store.set('typeset-seen',1)}}})();
+</script>
+</body>
+</html>
