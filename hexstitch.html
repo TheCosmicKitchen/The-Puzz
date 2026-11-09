@@ -159,6 +159,7 @@ details li svg{flex:none;width:38px;height:38px}
   </details>
 </div>
 
+<script src="streak.js"></script>
 <script>
 // ---- Hexstitch engine: seeded generator + uniqueness solver ----
 const DIRS = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
@@ -418,7 +419,7 @@ function shareText(){
   const head=mode==='daily'?`Hexstitch ${P.label}`:`Hexstitch Endless · ${P.code}`;
   return `The Puzz · ${head}\n🧵 ${P.goals.length} patterns · ${P.pairs.length} pairs · ⏱ ${fmt(st.elapsed)}\n${extra?extra+' re-stitch'+(extra>1?'es':''):'Clean run'} ${strip}`;
 }
-function showWin(){
+function showWin(){if(mode==="daily"&&window.Kitchen)Kitchen.mark("hex");
   const w=$('win');w.hidden=false;
   w.innerHTML=`<h2>Quilt complete</h2><pre id="shareTxt">${shareText()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">Next puzzle</button>':'<span class="sub">A new daily quilt arrives at midnight.</span>'}</div>`;
   $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const sl=getSelection();sl.removeAllRanges();sl.addRange(r);b.textContent='Selected · copy it'};

@@ -97,6 +97,7 @@ button.t:hover{filter:brightness(1.08)}
     <p><b>Undo</b> steps back one move at a time, all the way to the start, even after a Clear.</p>
   </details>
 </div>
+<script src="streak.js"></script>
 <script>
 // The Puzz shared prototype helpers
 const $=id=>document.getElementById(id);
@@ -152,14 +153,15 @@ function render(){const N=Pz.N,{rs,cs}=sums(),size=N<=5?58:N===6?50:44;
   b.innerHTML=h;$('undoBtn').disabled=st.done||!st.hist.length}
 // undo history: the board as it was before each change, newest last (kept in the save, so it survives a reload)
 function snap(){st.hist.push(st.mark.join(''));if(st.hist.length>300)st.hist.shift()}
-function undo(){if(st.done||!st.hist.length)return;st.mark=st.hist.pop().split('').map(Number);render();persist()}
+function undo(){if(st.done||!st.hist.length)return;st.mark=st.hist.pop().split('').map(Number);st.undos=(st.undos||0)+1;render();persist()}
 function tap(i){if(st.done)return;if(!st.started){st.started=true;Timer.start(st,$('timer'))}snap();
   const want=tapMode==='strike'?1:2;st.mark[i]=st.mark[i]===want?0:want;
   const {rs,cs}=sums();render();persist();
   if(rs.every((s,r)=>s===Pz.rt[r])&&cs.every((s,c)=>s===Pz.ct[c])){st.done=true;Timer.stop();persist();showWin()}}
-function shareText(){const N=Pz.N;let g='';for(let r=0;r<N;r++){for(let c=0;c<N;c++)g+=st.mark[r*N+c]===1?'❌':'🟦';g+='\n'}
-  return `The Puzz · Strike ${Pz.label}\n${N}×${N} · ⏱ ${fmt(st.elapsed)}\n${g.trim()}`}
-function showWin(){const w=$('win');w.hidden=false;w.innerHTML=`<h2>Every line adds up</h2><pre id="shareTxt">${esc(shareText())}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New grid</button>':'<span class="sub">A new grid at midnight.</span>'}</div>`;
+// Spoiler-free: everyone gets the same daily grid, so never show which numbers were struck.
+function shareText(){const N=Pz.N,u=st.undos||0;
+  return `The Puzz · Strike ${Pz.label}\n${N}×${N} · ⏱ ${fmt(st.elapsed)} · ${u?`${u} undo${u>1?'s':''}`:'no undos'}\n${'🟩'.repeat(N)} every line adds up`}
+function showWin(){if(mode==="daily"&&window.Kitchen)Kitchen.mark("st");const w=$('win');w.hidden=false;w.innerHTML=`<h2>Every line adds up</h2><pre id="shareTxt">${esc(shareText())}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New grid</button>':'<span class="sub">A new grid at midnight.</span>'}</div>`;
   wireCopy($('copyBtn'),shareText,'shareTxt');if($('nextBtn'))$('nextBtn').onclick=()=>load('endless')}
 // circle every unstruck number in a finished line; if they're all circled already, clear them
 function keepLine(line){if(st.done)return;const N=Pz.N,k=+line.slice(1),cells=[...Array(N).keys()].map(j=>line[0]==='r'?k*N+j:j*N+k).filter(i=>st.mark[i]!==1);

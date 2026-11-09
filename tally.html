@@ -99,6 +99,7 @@ details.rules p{margin:8px 0 0;max-width:62ch}
     <p>Every target can be hit exactly. Par is the fewest steps it can be done in.</p>
   </details>
 </div>
+<script src="streak.js"></script>
 <script>
 // The Puzz shared prototype helpers
 const $=id=>document.getElementById(id);
@@ -164,7 +165,7 @@ $('resetBtn').onclick=()=>{if(st.done)return;st.steps=[];pick=null;op=null;persi
 $('giveBtn').onclick=()=>{if(st.done)return;st.gave=true;st.done=true;Timer.stop();persist();showWin()};
 function shareText(){const n=st.steps.length,diff=n-Pz.par;
   return `The Puzz · Tally ${Pz.label}\n🎯 ${Pz.target} · ${st.gave?'shown the way':`hit in ${n} step${n>1?'s':''} (par ${Pz.par})`} · ⏱ ${fmt(st.elapsed)}\n${st.gave?'🏳️':diff<=0?'⭐⭐⭐':diff===1?'⭐⭐':'⭐'}`}
-function showWin(){const w=$('win');w.hidden=false;w.style.borderColor=st.gave?'var(--line)':'var(--ok)';
+function showWin(){if(mode==="daily"&&window.Kitchen)Kitchen.mark("ta");const w=$('win');w.hidden=false;w.style.borderColor=st.gave?'var(--line)':'var(--ok)';
   w.innerHTML=`<h2>${st.gave?'Here’s one way':st.steps.length<=Pz.par?'Bang on, at par!':'Bang on!'}</h2>${st.gave||st.steps.length>Pz.par?`<div class="work">${Pz.way.map(x=>`<div>${x}</div>`).join('')}</div>`:''}<pre id="shareTxt">${esc(shareText())}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New numbers</button>':'<span class="sub">New numbers at midnight.</span>'}</div>`;
   wireCopy($('copyBtn'),shareText,'shareTxt');if($('nextBtn'))$('nextBtn').onclick=()=>load('endless')}
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>load(b.dataset.mode));$('newBtn').onclick=()=>load('endless');

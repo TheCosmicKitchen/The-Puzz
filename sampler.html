@@ -98,6 +98,7 @@ details.rules p{margin:8px 0 0;max-width:62ch}
     <p>Mark squares you know stay bare with a dot. Every pattern can be solved by logic alone, without guessing.</p>
   </details>
 </div>
+<script src="streak.js"></script>
 <script>
 // The Puzz shared prototype helpers
 const $=id=>document.getElementById(id);
@@ -156,8 +157,11 @@ function persist(){if(mode==='daily')store.set('sampler-daily',{iso:Pz.iso,st})}
 function threadMap(pic,N){const id=new Array(N*N).fill(-1);let k=0;for(let i=0;i<N*N;i++){if(!pic[i]||id[i]>=0)continue;const q=[i];id[i]=k;while(q.length){const j=q.pop(),y=Math.floor(j/N),x=j%N;[[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=N||yy>=N)return;const t=yy*N+xx;if(pic[t]&&id[t]<0){id[t]=k;q.push(t)}})}k++}return id}
 const xsvg=col=>`<svg viewBox="0 0 10 10" class="x"><line x1="1.5" y1="1.5" x2="8.5" y2="8.5" stroke="${col}"/><line x1="8.5" y1="1.5" x2="1.5" y2="8.5" stroke="${col}"/></svg>`;
 function render(){const N=Pz.N,maxR=Math.max(...Pz.rc.map(c=>c.length||1)),maxC=Math.max(...Pz.cc.map(c=>c.length||1));
-  const cell=N<=5?44:N<=8?34:N<=10?28:24,lab=Math.max(40,maxR*15+10);
-  const pz=$('pz');pz.style.gridTemplateColumns=`${lab}px repeat(${N},${cell}px)`;
+  const pz=$('pz'),host=pz.parentElement,hs=getComputedStyle(host),room=host.clientWidth-parseFloat(hs.paddingLeft)-parseFloat(hs.paddingRight);
+  // Shrink the clue column and the cells to fit narrow screens (a 12×12 weekend grid is wider than a phone otherwise).
+  let lab=Math.max(40,maxR*15+10),cell=N<=5?44:N<=8?34:N<=10?28:24;
+  if(room>0&&lab+N*cell>room){lab=Math.max(34,maxR*13+8);cell=Math.max(16,Math.floor((room-lab)/N))}
+  pz.style.gridTemplateColumns=`${lab}px repeat(${N},${cell}px)`;
   const g=st.g,rowLine=r=>g.slice(r*N,r*N+N).map(v=>v===1?1:0),colLine=c=>[...Array(N).keys()].map(r=>g[r*N+c]===1?1:0);
   const same=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
   let h='<div></div>';for(let c=0;c<N;c++)h+=`<div class="cl col ${same(clues(colLine(c)),Pz.cc[c])?'done':''}" style="min-height:${maxC*14+6}px">${(Pz.cc[c].length?Pz.cc[c]:[0]).map(v=>`<span>${v}</span>`).join('')}</div>`;
@@ -166,6 +170,7 @@ function render(){const N=Pz.N,maxR=Math.max(...Pz.rc.map(c=>c.length||1)),maxC=
   pz.innerHTML=h}
 function setCell(i,v){if(st.g[i]===v)return false;st.g[i]=v;return true}
 function check(){if(st.g.every((v,i)=>(v===1)===!!Pz.pic[i])){st.done=true;Timer.stop();persist();showWin()}}
+{let rz=0;addEventListener('resize',()=>{if(!Pz)return;cancelAnimationFrame(rz);rz=requestAnimationFrame(render)})}
 $('pz').addEventListener('pointerdown',e=>{const c=e.target.closest('[data-i]');if(!c||st.done)return;e.preventDefault();const i=+c.dataset.i;
   if(!st.started){st.started=true;Timer.start(st,$('timer'))}
   const val=st.g[i]===tapMode?0:tapMode;drag={val,r:Math.floor(i/Pz.N),c:i%Pz.N,axis:null};setCell(i,val);render();try{$('pz').setPointerCapture(e.pointerId)}catch(err){}});
@@ -175,7 +180,7 @@ const end=()=>{if(!drag)return;drag=null;persist();check()};$('pz').addEventList
 function hoopSVG(){const N=Pz.N,ids=threadMap(Pz.pic,N);let s='';for(let i=0;i<N*N;i++)if(Pz.pic[i]){const x=i%N,y=Math.floor(i/N);s+=`<g transform="translate(${x*10},${y*10})">${xsvg(THREAD[ids[i]%4]).replace('<svg viewBox="0 0 10 10" class="x">','<g class="x">').replace('</svg>','</g>')}</g>`}
   return `<svg viewBox="-2 -2 ${N*10+4} ${N*10+4}">${s}</svg>`}
 function shareText(){const N=Pz.N;return `The Puzz · Sampler ${Pz.label}\n🧵 ${N}×${N} stitched · ⏱ ${fmt(st.elapsed)}\n${'🪡'.repeat(Math.max(1,Math.min(5,Math.round(st.elapsed/60)||1)))}`}
-function showWin(){const w=$('win');w.hidden=false;w.innerHTML=`<h2>Sampler finished</h2><div class="hoopwrap"><div class="hoop">${hoopSVG()}</div></div><pre id="shareTxt">${esc(shareText())}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New pattern</button>':'<span class="sub">A new pattern at midnight.</span>'}</div>`;
+function showWin(){if(mode==="daily"&&window.Kitchen)Kitchen.mark("sm");const w=$('win');w.hidden=false;w.innerHTML=`<h2>Sampler finished</h2><div class="hoopwrap"><div class="hoop">${hoopSVG()}</div></div><pre id="shareTxt">${esc(shareText())}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New pattern</button>':'<span class="sub">A new pattern at midnight.</span>'}</div>`;
   wireCopy($('copyBtn'),shareText,'shareTxt');if($('nextBtn'))$('nextBtn').onclick=()=>load('endless')}
 document.querySelectorAll('[data-tm]').forEach(b=>b.onclick=()=>{tapMode=+b.dataset.tm;document.querySelectorAll('[data-tm]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
 $('clearBtn').onclick=()=>{if(st.done)return;st.g.fill(0);render();persist()};

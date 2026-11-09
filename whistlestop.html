@@ -179,6 +179,7 @@ h1 span{color:var(--loco)}
   </details>
 </div>
 
+<script src="streak.js"></script>
 <script>
 // ---- Whistlestop engine: Witness-style route puzzles with railway signs ----
 function hseed(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19}h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return (h^h>>>16)>>>0}
@@ -656,7 +657,7 @@ function journeySolved(){
 const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
 function shareText(){const strip=st.tries.map(t=>t?'🟩':'🟥').join('');const fails=st.tries.filter(t=>!t).length;
   return `The Puzz · Whistlestop ${P.label} 🚂\n${THEME_NAMES[P.theme]} · ${P.W}×${P.H} · ⏱ ${fmt(st.elapsed)}\n${fails?fails+' wrong route'+(fails>1?'s':''):'Right first time'} 🚂${strip}`}
-function showWin(animate){const w=$('win');w.hidden=false;
+function showWin(animate){if(window.Kitchen&&(mode==="daily"||(mode==="journey"&&animate)))Kitchen.mark("ws");const w=$("win");w.hidden=false;
   if(mode==='journey'){w.innerHTML=`<h2>Already ridden</h2><div class="row"><button class="btn primary" id="nextStop">Next stop →</button><button class="btn" id="again">Ride it again</button></div>`;
     const nx=jNext();$('nextStop').onclick=()=>openJourney(nx.ci,nx.pi);$('again').onclick=()=>{st.solved=false;route=[P.start];w.hidden=true;render();hint('')};render();return}
   w.innerHTML=`<h2>All aboard!</h2><pre id="shareTxt">${shareText()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New route</button>':'<span class="sub">A new line opens at midnight.</span>'}</div>`;
