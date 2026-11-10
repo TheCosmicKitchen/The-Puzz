@@ -14,6 +14,7 @@ Free daily puzzles, served as plain static pages on GitHub Pages. No build step 
 Every puzzle is generated in the browser from a seed. The daily seed is the date, so everyone gets the same puzzle. Endless mode uses a random seed, which appears in the URL hash so a puzzle can be shared. A built-in solver checks that each puzzle has exactly one solution before showing it.
 
 ## Prototypes
+- `typeset.html`: one-play word game. Everyone gets the same 11 × 11 sheet with words already on it and the same seven tiles; make one play and compare your score with the day's record (the best play using everyday words, found by a built-in solver). Practice mode gives fresh sheets. Word list: SCOWL by Kevin Atkinson (`typeset-words.js`, licence in `typeset-words-LICENSE.txt`).
 - `crosslight.html`: six five-letter words in a waffle grid, shared pool of 15 guesses; green / yellow / blue (letter is in a crossing word).
 - `strike.html`: Sumplete-style number grid; strike numbers so every row and column hits its target. Unique solutions.
 - `sampler.html`: nonogram stitched as cross-stitch; every pattern is solvable by line logic alone.

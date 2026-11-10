@@ -109,6 +109,20 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
   </div>
   <div class="sect"><h3>Prototypes</h3><p>New ideas we're trying out. They all work, daily and endless, but they may change.</p></div>
   <div class="cards">
+    <a class="card" href="typeset.html">
+      <svg viewBox="0 0 72 72" aria-hidden="true">
+        <rect x="4" y="4" width="64" height="64" rx="8" fill="var(--felt)"/>
+        <rect x="10" y="10" width="16" height="16" rx="3" fill="var(--f0)"/><rect x="46" y="46" width="16" height="16" rx="3" fill="var(--f0)"/>
+        <g font-family="Fredoka,sans-serif" font-weight="600" font-size="15" text-anchor="middle" fill="#2B2620">
+          <rect x="10" y="28" width="16" height="16" rx="3" fill="#E9D3A8"/><text x="18" y="41">T</text>
+          <rect x="28" y="28" width="16" height="16" rx="3" fill="#F2CB4A"/><text x="36" y="41">O</text>
+          <rect x="46" y="28" width="16" height="16" rx="3" fill="#F2CB4A"/><text x="54" y="41">P</text>
+          <rect x="28" y="10" width="16" height="16" rx="3" fill="#E9D3A8"/><text x="36" y="23">S</text>
+        </g>
+      </svg>
+      <div><h2>Typeset</h2><p>One play on today's word sheet. Everyone gets the same tiles: chase the record and compare scores with friends.</p></div>
+      <span class="pill" id="s-ts">Today</span>
+    </a>
     <a class="card" href="hanko.html">
       <svg viewBox="0 0 72 72" aria-hidden="true">
         <rect x="10" y="10" width="44" height="44" rx="6" fill="var(--paper,var(--surface))" stroke="var(--line)" stroke-width="2"/>
@@ -158,7 +172,7 @@ const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return nul
   if(n<40&&el&&el.textContent==='Today'){el.textContent=n?`Journey ${n}/40`:'Start the journey'}}
 {const t=get('hanko-today'),el=document.getElementById('s-hk'),d0=new Date(2026,9,25),n=new Date(),dn=Math.round((new Date(n.getFullYear(),n.getMonth(),n.getDate())-d0)/864e5)+1;
   if(t&&t.day===dn&&el){if(t.i>=t.rounds.length){el.textContent='Stamped';el.classList.add('done')}else if(t.i>0)el.textContent='In progress'}}
-[['crosslight-daily','s-cl'],['strike-daily','s-st'],['sampler-daily','s-sm'],['tally-daily','s-ta'],['ladder-daily','s-la']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
+[['typeset-daily','s-ts'],['crosslight-daily','s-cl'],['strike-daily','s-st'],['sampler-daily','s-sm'],['tally-daily','s-ta'],['ladder-daily','s-la']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
   if(s&&s.iso===iso&&el){if(s.st.done){el.textContent='Done';el.classList.add('done')}else if(s.st.started||(s.st.guesses&&s.st.guesses.length)||(s.st.rungs&&s.st.rungs.length))el.textContent='In progress'}});
 
 // Streak card. Anything already finished today counts too (in case it was solved before streaks existed).
