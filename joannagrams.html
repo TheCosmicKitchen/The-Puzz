@@ -153,10 +153,10 @@ details p{margin:8px 0 0;max-width:62ch}
   <div class="toast" id="toast" role="status"></div>
   <div class="ringbox"><svg id="ring" viewBox="-150 -150 300 300" aria-label="Letter ring"></svg></div>
   <div class="ctrls">
-    <button class="btn" id="rewind" title="Shuffle the letters">Rewind</button>
-    <button class="btn" id="frog" title="Clear the chain">Frog it</button>
-    <button class="btn primary" id="stitch">Stitch it</button>
-    <button class="btn" id="thread" title="Reveal a letter">Pull a thread</button>
+    <button class="btn" id="frog" title="Clear the letters you've chained">Clear</button>
+    <button class="btn primary" id="stitch" title="Check the word">Enter</button>
+    <button class="btn" id="thread" title="Reveal a letter of a hidden word">Hint</button>
+    <button class="btn" id="rewind" title="Shuffle the letters">Shuffle</button>
   </div>
   <div class="bonus" id="bonus"></div>
 
@@ -166,7 +166,7 @@ details p{margin:8px 0 0;max-width:62ch}
     <p>Drag across the yarn balls, or tap them one at a time, to chain letters into words of three letters or more. Each ball can be used once per word. Some slots in the word list have a <b>marked stitch</b>, a ringed letter. Find those words to unpick their letters, then tap the letters into the right order at the top.</p>
     <p>That finishes the day. If you want more, every hidden word also crochets a cluster onto the granny square, including the seven-letter <b>pattern word</b> that uses every ball. Real words that aren't on the pattern card count as bonus stitches.</p>
     <p><b>This week's picture.</b> Each day you finish the whole square uncovers a piece of a pixel-art picture, in a surprise order: a new little scene every time, and the full picture once all seven squares are done. Missed a day? Tap it in the strip to go back and play it.</p>
-    <p><b>Rewind</b> shuffles the balls. <b>Frog it</b> rips out your current chain. <b>Pull a thread</b> reveals a letter of a hidden word, and your result shows how many you pulled. Type on a keyboard if you prefer.</p>
+    <p><b>Clear</b> empties your current chain. <b>Enter</b> checks the word. <b>Hint</b> reveals a letter of a hidden word, and your result shows how many hints you used. <b>Shuffle</b> mixes up the balls. Type on a keyboard if you prefer.</p>
   </details>
   <div class="foot">Made for <b>Joanna</b>, who can crochet anything.</div>
 </div>
@@ -430,7 +430,7 @@ function pull(){
   if(!left.length){toast('Every word already has all but one letter showing');return}
   // shortest unfinished word with the fewest letters showing
   left.sort((a,b)=>(st.hints[a]||0)-(st.hints[b]||0)||a.length-b.length);
-  const w=left[0];st.hints[w]=(st.hints[w]||0)+1;st.pulled++;toast('Pulled a thread');persist();render();
+  const w=left[0];st.hints[w]=(st.hints[w]||0)+1;st.pulled++;toast('Revealed a letter');persist();render();
 }
 function shuffle(){const sel=chain.map(i=>letters[i]);chain=[];for(let i=6;i>0;i--){const j=Math.floor(Math.random()*(i+1));[letters[i],letters[j]]=[letters[j],letters[i]]}render()}
 const fmtShare=()=>{
@@ -439,7 +439,7 @@ const fmtShare=()=>{
   const head=mode==='daily'?`Joannagrams ${G.label}`:`Joannagrams ${G.label}`;
   const after=st.solvedAt?`${st.solvedAt} word${st.solvedAt===1?'':'s'}`:'';
   const goal=G.meta?`🧶 Blanket joined${after?' after '+after:''}`:`★ Pattern word found${after?' after '+after:''}`;
-  return `The Puzz · ${head} 🧶\n${goal} · ${st.pulled?st.pulled+' thread'+(st.pulled>1?'s':'')+' pulled':'no threads pulled'}\n${st.done?'Square finished':st.found.length+'/'+G.answers.length+' words'}${st.bonus.length?' · '+st.bonus.length+' bonus':''}\n${rows.join('\n')}`};
+  return `The Puzz · ${head} 🧶\n${goal} · ${st.pulled?st.pulled+' hint'+(st.pulled>1?'s':''):'no hints'}\n${st.done?'Square finished':st.found.length+'/'+G.answers.length+' words'}${st.bonus.length?' · '+st.bonus.length+' bonus':''}\n${rows.join('\n')}`};
 function showWin(){if(mode==="daily"&&window.Kitchen)Kitchen.mark("jg");const w=$("win");w.hidden=false;
   w.innerHTML=`<h2>${G.meta?'Blanket joined':'Pattern word found'}${st.done?', square finished':''}</h2>${st.done?'':`<p class="sub" style="margin:0">That's the day done. Want more? ${G.answers.length-st.found.length} word${G.answers.length-st.found.length===1?'':'s'} left for the full square.</p>`}<pre id="shareTxt">${fmtShare()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New skein</button>':'<span class="sub">A new skein arrives at midnight.</span>'}</div>`;
   $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected · copy it'};
