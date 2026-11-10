@@ -152,6 +152,7 @@ details p{margin:8px 0}
   </details>
 </div>
 <script src="typeset-words.js"></script>
+<script src="streak.js"></script>
 <script>
 // ---- engine: words, board generation, scoring, best-play search (no DOM) ----
 const N=11, MID=5, RACK=7, FULL_BONUS=35;
@@ -396,7 +397,7 @@ function lockIn(){
 const tier=p=>p>100?'Stop the presses!':p>=100?'Front page':p>=85?'Above the fold':p>=65?'Good copy':p>=40?'In print':'Rough draft';
 function shareText(){const f=st.final,rec=G.best.total,p=Math.round(f.total/rec*100),n=Math.min(10,Math.round(f.total/rec*10));
   return `Typeset ${mode==='daily'?'#'+G.num:'practice '+G.code} · ${f.total} pts\n${'🟧'.repeat(n)}${'⬜'.repeat(Math.max(0,10-n))} ${p}% of ${mode==='daily'?"today's":'the'} record\n${tier(p)}\nthecosmickitchen.github.io/The-Puzz/typeset.html${mode==='practice'?'#'+G.code:''}`}
-function showResult(){
+function showResult(){if(mode==='daily'&&window.Kitchen)Kitchen.mark('ts');
   const f=st.final,rec=G.best.total,p=Math.round(f.total/rec*100),R=$('result');R.hidden=false;
   R.innerHTML=`<h2>${tier(p)}</h2>
     <div class="big"><div><b>${f.total}</b><span>your play</span></div><div><b>${rec}</b><span>today's record</span></div><div><b>${p}%</b><span>of the record</span></div></div>
