@@ -45,6 +45,9 @@ h1 span{color:var(--y0)}
 .top svg{width:132px;height:132px;display:block}
 .stats{display:flex;flex-direction:column;gap:4px;min-width:0}
 .big{font:600 28px/1 var(--display);font-variant-numeric:tabular-nums}
+.bon{display:inline-block;vertical-align:5px;margin-left:6px;font:600 13px/1 var(--display);color:var(--surface);background:var(--y3);border-radius:999px;padding:4px 9px;letter-spacing:.02em;white-space:nowrap}
+@media (prefers-reduced-motion:no-preference){.bon.new{animation:bonpop .6s cubic-bezier(.3,1.6,.6,1)}
+  @keyframes bonpop{0%{transform:scale(.4);box-shadow:0 0 0 0 var(--y2)}55%{transform:scale(1.25)}100%{transform:none;box-shadow:0 0 0 14px transparent}}}
 .stats .muted{color:var(--muted);font-size:13px}
 .slots{background:var(--surface);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
 .grp{display:flex;gap:10px;align-items:flex-start}
@@ -366,7 +369,9 @@ function granny(){
 function render(){
   granny();
   const T=G.answers.length,n=st.found.length;
-  $('count').textContent=`${n} / ${T}`;
+  const nb=st.bonus.length;
+  $('count').innerHTML=`${n} / ${T}`+(nb?`<span class="bon ${G.justBonus?'new':''}" title="Real words that aren't on the pattern card">+${nb} bonus</span>`:'');
+  $('count').setAttribute('aria-label',`${n} of ${T} words${nb?`, plus ${nb} bonus`:''}`);G.justBonus=false;
   $('statLine').textContent=st.done?'Square finished':st.metaDone?`${T-n} more for the full square`:'Every word adds to the square';
   const pat=G.answers.filter(w=>w.length===7);
   $('statSub').textContent=pat.some(w=>st.found.includes(w))?'Pattern word found':'Pattern word still hidden';
@@ -415,7 +420,7 @@ function submit(){
       toast(pc?`Square finished! You uncovered ${pc} in this week's picture.${G.meta&&!st.metaDone?' Now join the blanket.':''}`:G.meta&&!st.metaDone?'Square finished. Now join the blanket.':'Square finished!','good');return}
     const mk=G.meta&&!st.metaDone&&G.meta.marks.find(m=>m.w===w);if(mk)toast(G.meta.marks.every(m=>st.found.includes(m.w))?'All the letters are unpicked. Join the blanket!':`+1 cluster · ${w.toUpperCase()} · marked stitch ${mk.ch.toUpperCase()} unpicked`,'good');
     if(!G.meta&&w.length===7&&!st.metaDone){reachGoal();return}}
-  else if(VALID.has(w)){st.bonus.push(w);toast(`Bonus stitch · ${w.toUpperCase()}`,'good')}
+  else if(VALID.has(w)){st.bonus.push(w);G.justBonus=true;toast(`Bonus stitch · ${w.toUpperCase()}`,'good')}
   else toast(`${w.toUpperCase()} isn't in the pattern book`,'bad');
   persist();render();if(st.metaDone)showWin();
 }
