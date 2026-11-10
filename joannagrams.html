@@ -107,10 +107,8 @@ details p{margin:8px 0 0;max-width:62ch}
 .foot{text-align:center;color:var(--muted);font-size:13px}
 .foot b{color:var(--y0);font-weight:700}
 .endless{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
-/* Phones: keep the letter ring right under the goal, and move the progress square and word grid below the controls,
-   so finding a word doesn't mean scrolling past the whole grid every time. */
+/* Phones: a slightly smaller letter ring. The words stay on top, the hook and yarn at the bottom. */
 @media (max-width:700px){
-  .blanket,.win{order:1}.chain{order:2}.toast{order:3}.ringbox{order:4}.ctrls{order:5}.bonus{order:6}.top{order:7}.slots{order:8}#rules{order:9}.wrap>footer,.wrap>.foot{order:10}
   .chain{min-height:38px}#ring{width:min(270px,74vw)}}
 @media (max-width:400px){.top{grid-template-columns:104px 1fr}.top svg{width:104px;height:104px}.w i{width:18px;height:22px;font-size:14px;line-height:19px}}
 @media (prefers-reduced-motion:reduce){.w.new i{animation:none}}
