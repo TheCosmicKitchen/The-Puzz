@@ -177,7 +177,7 @@ const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return nul
 
 // Streak card. Anything already finished today counts too (in case it was solved before streaks existed).
 if(window.Kitchen){
-  const code={'s-hex':'hex','s-sb':'sb','s-jg':'jg','s-ws':'ws','s-hk':'hk','s-cl':'cl','s-st':'st','s-sm':'sm','s-ta':'ta','s-la':'la'};
+  const code={'s-hex':'hex','s-sb':'sb','s-jg':'jg','s-ws':'ws','s-hk':'hk','s-cl':'cl','s-st':'st','s-sm':'sm','s-ta':'ta','s-la':'la','s-ts':'ts'};
   document.querySelectorAll('.pill.done').forEach(el=>{if(code[el.id])Kitchen.mark(code[el.id])});
   const S=Kitchen.streak('puzz'),W=Kitchen.week('puzz'),cols=['--f0','--f1','--f2','--f3'];
   const hex=(d,i)=>{const p='17,2 32,10.5 32,27.5 17,36 2,27.5 2,10.5';
