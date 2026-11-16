@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>*{box-sizing:border-box}:root{color-scheme:light;padding-block:env(safe-area-inset-top,0px) env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>Joannagrams art preview</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: a drop zone for trying a PNG, then the weekly schedule with every listed picture. Same colours as Joannagrams. */
+:root{
+  --bg:#E6EBEE; --surface:#F6F8F9; --ink:#1C2530; --muted:#5A6772; --felt:#D3DADF; --line:#A9B5BE;
+  --y0:#C4577A; --y1:#2F8C88; --y2:#D69720; --y3:#7D63B6; --bad:#B5432F;
+  --display:"Fredoka",ui-rounded,"Segoe UI",system-ui,sans-serif; --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121820; --surface:#1A222B; --ink:#E4EAEE; --muted:#93A1AC; --felt:#26323C; --line:#3B4954;
+  --y0:#DA6F92; --y1:#46A9A4; --y2:#E7AE3A; --y3:#9A82D6; --bad:#EF7A5A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121820; --surface:#1A222B; --ink:#E4EAEE; --muted:#93A1AC; --felt:#26323C; --line:#3B4954;
+  --y0:#DA6F92; --y1:#46A9A4; --y2:#E7AE3A; --y3:#9A82D6; --bad:#EF7A5A; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+.wrap{max-width:720px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+a{color:inherit}
+.eyebrow{font:600 12px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-decoration:none}
+h1{font:600 32px/1.05 var(--display);margin:4px 0 6px}h1 span{color:var(--y0)}
+h2{font:600 20px var(--display);margin:8px 0 0}
+p{margin:0}.muted{color:var(--muted)}
+.drop{border:2.5px dashed var(--line);border-radius:18px;background:var(--surface);padding:22px 16px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center;cursor:pointer}
+.drop.over{border-color:var(--y1);background:color-mix(in srgb,var(--y1) 10%,var(--surface))}
+.drop b{font:600 18px var(--display)}
+.btn{font:600 14px var(--display);border:1.5px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 14px;border-radius:12px;cursor:pointer}
+.card{background:var(--surface);border-radius:18px;padding:14px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;align-items:start}
+@media (max-width:560px){.card{grid-template-columns:1fr}}
+.card h3{font:600 19px var(--display);margin:0}
+.when{font:600 12px var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--y1)}
+.art{display:flex;justify-content:center;align-items:center;background:var(--bg);border-radius:12px;padding:12px;min-height:140px}
+.art svg{width:100%;max-width:300px;max-height:300px;height:auto;display:block;border-radius:6px}
+.squares{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;width:100%}
+.squares svg{width:100%;height:auto;aspect-ratio:1;display:block;border-radius:0}
+.squares .off{background:var(--felt);aspect-ratio:1;border-radius:3px;margin:1px}
+.facts{display:flex;flex-direction:column;gap:8px;font-size:14px}
+.facts ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.ok{color:var(--y1)}.warn{color:var(--y2)}.err{color:var(--bad);font-weight:700}
+.step{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.step input{flex:1 1 160px;accent-color:var(--y0);min-width:0}
+.step output{font:600 13px var(--display);color:var(--ink);min-width:8ch}
+.order{font-size:13px;color:var(--muted)}
+.sched{background:var(--surface);border-radius:18px;padding:6px 14px}
+.sched div{display:grid;grid-template-columns:7.5em 1fr auto;gap:10px;padding:7px 0;border-bottom:1px solid var(--felt);font-size:14px}
+.sched div:last-child{border-bottom:0}
+.sched .tag{font:600 11px var(--display);letter-spacing:.06em;text-transform:uppercase;border-radius:99px;padding:2px 8px;align-self:center}
+.sched .hers{background:var(--y0);color:var(--surface)}.sched .built{border:1.5px solid var(--line);color:var(--muted)}
+code{font-size:13px;background:var(--bg);padding:1px 5px;border-radius:5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="eyebrow" href="../joannagrams.html">← Joannagrams</a>
+    <h1>Weekly picture <span>preview</span></h1>
+    <p class="muted">Drop a PNG to see it the way players will: uncovered one band (or one square) per finished day, in the order that week uses. Nothing here changes the game; to put a picture in, add it to <code>art.js</code> (see <a href="README.md">README.md</a>).</p>
+  </header>
+
+  <label class="drop" id="drop">
+    <b>Drop a PNG here</b>
+    <span class="muted">or</span>
+    <span class="btn">Choose a file</span>
+    <input type="file" id="file" accept="image/png,image/*" hidden>
+  </label>
+  <div id="tried"></div>
+
+  <h2>Coming up</h2>
+  <p class="muted">The next twelve weeks. Weeks with a picture in <code>art.js</code> show it; the rest show the built-in picture.</p>
+  <div class="sched" id="sched"></div>
+  <div id="listed"></div>
+</div>
+<script src="../blankets.js"></script>
+<script src="art.js"></script>
+<script src="loader.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+// The same reveal order as the game: a shuffle of the seven bands seeded by the week's Monday.
+function hseed(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19}h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return (h^h>>>16)>>>0}
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function revealOrder(mon){const r=mulberry(hseed('joannagrams-picture-'+mon)),a=[0,1,2,3,4,5,6];for(let i=6;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const isoOf = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const nice = iso => new Date(iso+'T12:00').toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// What the built-in rotation shows in a given week (mirrors weekOf in joannagrams.html: three tile scenes, then blankets.js).
+const BUILT = ['Village Green', 'Seaside', 'Starry Night', ...(typeof BLANKETS !== 'undefined' ? BLANKETS.map(b => b.name) : [])];
+const builtFor = mon => { const n = Math.floor(Math.round((new Date(mon+'T00:00') - new Date(2026,9,26)) / 864e5) / 7); return BUILT[((n % BUILT.length) + BUILT.length) % BUILT.length]; };
+
+// One preview card: the picture, a slider through the week, and what was read from the file.
+function card(host, art, { title, when, file, mon, pieces }) {
+  const order = revealOrder(mon || JGArt.monday(isoOf(new Date())));
+  const el = document.createElement('section'); el.className = 'card';
+  const notes = [];
+  if (art.scale > 1) notes.push(['ok', `Exported at ${art.scale}× and read back as ${art.width} × ${art.height} pixels.`]);
+  else notes.push(['ok', `${art.width} × ${art.height} pixels.`]);
+  if (art.kind === 'tiles') notes.push(['ok', `A strip of seven ${art.height} × ${art.height} squares: one square per finished day.`]);
+  else {
+    notes.push(['ok', 'One picture, uncovered in seven bands.']);
+    if (art.height % 7) notes.push(['warn', `${art.height} rows don't split evenly into seven bands, so some bands are a row taller. Heights like 14, 21 or 28 split evenly.`]);
+  }
+  notes.push([art.colours > 32 ? 'warn' : 'ok', `${art.colours} colour${art.colours === 1 ? '' : 's'}${art.colours > 32 ? '. That\'s a lot for pixel art; check nothing got smoothed when it was exported.' : '.'}`]);
+  el.innerHTML = `<div class="art"></div><div class="facts">
+      ${when ? `<span class="when">${esc(when)}</span>` : ''}<h3>${esc(title)}</h3>${file ? `<span class="muted">${esc(file)}</span>` : ''}
+      <ul>${notes.map(([c, t]) => `<li class="${c}">${esc(t)}</li>`).join('')}</ul>
+      <label class="step">Days finished <input type="range" min="0" max="7" value="7"><output>7 of 7</output></label>
+      <p class="order"></p></div>`;
+  host.append(el);
+  const box = el.querySelector('.art'), range = el.querySelector('input'), out = el.querySelector('output'), ord = el.querySelector('.order');
+  const draw = n => {
+    const shown = new Set(order.slice(0, n));
+    if (art.kind === 'tiles') box.innerHTML = `<div class="squares">${art.tiles.map((t, k) => shown.has(k) ? JGArt.squareSVG(t) : '<div class="off"></div>').join('')}</div>`;
+    else box.innerHTML = JGArt.pictureSVG(art.pic, shown, -1);
+    out.textContent = n === 7 ? '7 of 7 · done' : `${n} of 7`;
+    const next = order[n];
+    ord.textContent = n === 7 ? `"${title}: finished!"` : `Next square uncovers ${art.kind === 'tiles' ? `square ${next + 1}` : `band ${next + 1} from the top`}${pieces && pieces[next] ? ` ("${pieces[next]}")` : ''}.`;
+  };
+  range.oninput = () => draw(+range.value); draw(7);
+}
+function problem(host, message, { title, when, file }) {
+  const el = document.createElement('section'); el.className = 'card';
+  el.innerHTML = `<div class="art"><span class="err">Can't use this one</span></div><div class="facts">${when ? `<span class="when">${esc(when)}</span>` : ''}<h3>${esc(title)}</h3>${file ? `<span class="muted">${esc(file)}</span>` : ''}<p class="err">${esc(message)}</p></div>`;
+  host.append(el);
+}
+
+// Try a dropped or chosen file.
+async function tryFile(f) {
+  const host = $('tried'); host.innerHTML = '';
+  try { card(host, await JGArt.load(f), { title: f.name.replace(/\.[^.]+$/, ''), when: 'Trying out', file: f.name }); }
+  catch (e) { problem(host, e.message, { title: f.name, when: 'Trying out' }); }
+}
+const drop = $('drop');
+$('file').onchange = e => { if (e.target.files[0]) tryFile(e.target.files[0]); };
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) tryFile(f); });
+
+// The schedule and every listed picture.
+const L = JGArt.list(), thisMon = JGArt.monday(isoOf(new Date()));
+$('sched').innerHTML = [...Array(12)].map((_, i) => {
+  const d = new Date(thisMon + 'T12:00'); d.setDate(d.getDate() + 7 * i); const mon = isoOf(d), e = L[mon];
+  return `<div><span>${i === 0 ? 'This week' : nice(mon)}</span><span>${esc(e ? e.name : builtFor(mon))}</span><span class="tag ${e ? 'hers' : 'built'}">${e ? 'hand-drawn' : 'built-in'}</span></div>`;
+}).join('');
+(async () => {
+  const host = $('listed'), weeks = Object.keys(L).sort();
+  if (!weeks.length) return;
+  const h = document.createElement('h2'); h.textContent = 'Listed in art.js'; host.append(h);
+  for (const mon of weeks) {
+    const e = L[mon], meta = { title: e.name, when: `Week of ${nice(mon)}${mon < thisMon ? ' (past)' : ''}`, file: e.file, mon, pieces: e.pieces };
+    try { card(host, await JGArt.load(e.file, { bg: e.bg }), meta); } catch (err) { problem(host, err.message, meta); }
+  }
+})();
+</script>
+</body>
+</html>
