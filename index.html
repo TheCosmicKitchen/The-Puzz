@@ -175,10 +175,16 @@ const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return nul
 [['typeset-daily','s-ts'],['crosslight-daily','s-cl'],['strike-daily','s-st'],['sampler-daily','s-sm'],['tally-daily','s-ta'],['ladder-daily','s-la']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
   if(s&&s.iso===iso&&el){if(s.st.done){el.textContent='Done';el.classList.add('done')}else if(s.st.started||(s.st.guesses&&s.st.guesses.length)||(s.st.rungs&&s.st.rungs.length))el.textContent='In progress'}});
 
-// Streak card. Anything already finished today counts too (in case it was solved before streaks existed).
+// Streak card. Fill in finishes the streak missed first (puzzles solved before streaks existed, or on a
+// day this page wasn't opened): each game's save remembers the day it was played, and Joannagrams keeps
+// three weeks of days. Each save counts as finished by the same test as its pill above.
 if(window.Kitchen){
-  const code={'s-hex':'hex','s-sb':'sb','s-jg':'jg','s-ws':'ws','s-hk':'hk','s-cl':'cl','s-st':'st','s-sm':'sm','s-ta':'ta','s-la':'la','s-ts':'ts'};
-  document.querySelectorAll('.pill.done').forEach(el=>{if(code[el.id])Kitchen.mark(code[el.id])});
+  [['hexstitch-daily-v2','hex'],['shadowbox-daily-v3','sb'],['joannagrams-daily','jg'],['whistlestop-daily-v4','ws']].forEach(([k,g])=>{const s=get(k);
+    if(s&&s.st&&s.iso&&(s.st.solved||s.st.metaDone))Kitchen.mark(g,s.iso)});
+  [['typeset-daily','ts'],['crosslight-daily','cl'],['strike-daily','st'],['sampler-daily','sm'],['tally-daily','ta'],['ladder-daily','la']].forEach(([k,g])=>{const s=get(k);
+    if(s&&s.st&&s.iso&&s.st.done)Kitchen.mark(g,s.iso)});
+  Object.entries(get('joannagrams-days')||{}).forEach(([d,s])=>{if(s&&s.metaDone)Kitchen.mark('jg',d)});
+  {const t=get('hanko-today');if(t&&t.rounds&&t.day&&t.i>=t.rounds.length)Kitchen.mark('hk',new Date(2026,9,24+t.day))}
   const S=Kitchen.streak('puzz'),W=Kitchen.week('puzz'),cols=['--f0','--f1','--f2','--f3'];
   const hex=(d,i)=>{const p='17,2 32,10.5 32,27.5 17,36 2,27.5 2,10.5';
     if(d.done)return`<svg viewBox="0 0 34 38" aria-hidden="true"><polygon points="${p}" fill="var(${cols[i%4]})"/><path d="M11,19 l4,4 l8,-8" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
