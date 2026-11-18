@@ -188,8 +188,31 @@ function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1
 const sig=s=>{const c=new Array(26).fill(0);for(const ch of s)c[ch.charCodeAt(0)-97]++;return c};
 const fits=(w,rs)=>{const c=sig(w);return c.every((x,i)=>x<=rs[i])};
 const VALID=new Set([...WORDS.answers,...WORDS.valid]);
+// More starting words, picked from the common-word list by this same generator: each makes between 14 and 30
+// words like the originals, has a hidden-word goal, and has no anagram twin among the others.
+const EXTRA_ROOTS=["abolish","account","accuses","acquire","addicts","advises","affects","alleges","allowed","amateur","amounts","ancient","animals","annoyed","answers","appears","appends","arrives","ascends","assigns","assumed","assumes","assures","attacks","attempt","awaited","backing","baffled","battery","bedroom","beliefs","belongs","beneath","benefit","betting","biasing","biggest","blaming","blocked","boggles","bottles","bridges","brother","browses","bullets","buttons","cabinet","cabling","cameras","cancels","careers","carrier","carrots","catalog","caution","censors","centers","century","chances","changed","changes","clauses","clearer","climbed","clipped","collate","combine","comment","compact","company","compels","compile","compute","concept","concert","condemn","confirm","confuse","consult","contain","contend","context","corners","corrupt","couples","courses","cruises","crystal","current","custard","customs","damages","debated","decades","decides","decline","decodes","deeming","defeats","defends","defines","delayed","depends","deserts","designs","desires","devices","devotes","diagram","dialing","differs","distort","doctors","dollars","dooming","dotting","doubles","drivers","dumping","dynamic","echoing","editing","educate","efforts","emotion","employs","emptied","emulate","enabled","enables","encodes","endings","engages","ensures","evident","exactly","excites","expands","experts","expired","exploit","extends","extents","failure","farmers","federal","feeding","fellows","females","fenders","fiddles","figures","fingers","flagged","flowers","folders","folding","forcing","forests","forgets","formats","forming","founded","freedom","funeral","garbage","goodbye","goodies","governs","grounds","handled","happens","happier","heading","healthy","heavens","heavier","helping","holding","holiday","however","imagine","impairs","implied","induces","informs","inhabit","injures","insofar","inspire","insults","intense","invents","invited","invites","invoked","invokes","involve","islands","jointly","keeping","keyword","kingdom","knocked","lacking","landing","laughed","leaflet","learned","lending","lengths","lengthy","lenient","lessons","letters","letting","locking","lorries","lurking","machine","manages","markers","marking","mediums","meeting","mending","mention","moments","monkeys","motions","muscles","mutters","nations","naughty","needles","nervous","nesting","notably","notions","novelty","novices","numbers","objects","obliged","obliges","observe","obtains","offends","oneself","opening","optimal","origins","outputs","overall","packing","padding","parking","patient","persons","picture","pinched","pitfall","plagues","plainly","pleases","plotted","plotter","pockets","portray","pouring","powered","prayers","preview","primary","privacy","profile","project","prompts","prophet","protect","publish","pulling","punches","pursued","pursues","quarter","quoting","rabbits","radical","readers","reasons","reckons","records","rectify","reduces","refines","refuses","regards","rejects","relaxed","removes","renames","renders","repairs","replied","resigns","resolve","resorts","results","retires","returns","reviews","rituals","rolling","routing","saddens","samples","savings","screams","seconds","secrets","selects","selling","setting","settles","showers","sickens","signals","singles","society","sockets","solving","sorting","spreads","squares","strains","strikes","subject","subways","suppose","symptom","tacking","telling","tending","thieves","throats","tickets","touched","traffic","trivial","trolley","tunnels","typical","undoing","updated","upright","upwards","variety","vectors","virtual","virtues","voltage","volumes","walking","warming","warning","warping","wealthy","weapons","weasels","wedding","welfare","wetting","windows","winners","workers","worship","wrapped","wrapper","writers","younger"];
 // fixed shuffle of roots so each day gets a different one
 const ORDER=(()=>{const r=mulberry(hseed('joannagrams-v1')),a=WORDS.roots.map((_,i)=>i);for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a})();
+// Every starting word: the originals first (so old Endless links keep their numbers), then the extra ones.
+const POOL=[...WORDS.roots,...EXTRA_ROOTS];
+const skeinKey=w=>[...w].sort().join('');   // anagram twins (cleared / declare) make the same puzzle
+// Dailies before 18 Nov 2026 keep the original order. From then on: one shuffle of the whole pool with each
+// anagram twin counted once, and the skeins already played before then moved to the end of the cycle.
+const SKEIN_CUT=25;   // day 25 is Wed 18 Nov 2026
+const ORDER2=(()=>{const used=new Set([...Array(SKEIN_CUT-1)].map((_,n)=>skeinKey(WORDS.roots[ORDER[n%ORDER.length]]))),seen=new Set(),fresh=[],old=[];
+  const r=mulberry(hseed('joannagrams-v2')),a=POOL.map((_,i)=>i);for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  a.forEach(i=>{const k=skeinKey(POOL[i]);if(seen.has(k))return;seen.add(k);(used.has(k)?old:fresh).push(i)});return[...fresh,...old]})();
+const dailyRoot=num=>num<SKEIN_CUT?WORDS.roots[ORDER[(num-1+ORDER.length*10)%ORDER.length]]:POOL[ORDER2[(num-SKEIN_CUT)%ORDER2.length]];
+// Endless: a skein you haven't had yet (twins count as the same skein), and not one of the last two weeks'
+// dailies. Once you've had them all, it starts over.
+const SEEN_KEY='joannagrams-endless-seen';
+function pickEndless(){
+  const today=dayInfo().num,recent=new Set([...Array(14)].map((_,k)=>skeinKey(dailyRoot(today-k))));
+  let seen=new Set(store.get(SEEN_KEY)||[]);
+  const pool=()=>{const out=[],ks=new Set();POOL.forEach((w,i)=>{const k=skeinKey(w);if(ks.has(k)||seen.has(k)||recent.has(k))return;ks.add(k);out.push(i)});return out};
+  let p=pool();if(!p.length){seen=new Set();store.set(SEEN_KEY,[]);p=pool()}
+  return p[Math.floor(Math.random()*p.length)]}
+function markSeen(root){const s=new Set(store.get(SEEN_KEY)||[]);s.add(skeinKey(root));store.set(SEEN_KEY,[...s])}
 
 // ---- the week's picture: seven 16x16 pixel tiles, Monday to Sunday ----
 // Each tile holds a whole little subject of its own; the sky and ground run on across the week,
@@ -248,7 +271,7 @@ const DAYS_KEY='joannagrams-days';
 const allDays=()=>store.get(DAYS_KEY)||{};
 const isoOf=t=>`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
 const dateOf=iso=>{const [y,m,d]=iso.split('-').map(Number);return new Date(y,m-1,d)};
-const rootFor=iso=>WORDS.roots[ORDER[(dayInfo(iso).num-1+ORDER.length*10)%ORDER.length]];
+const rootFor=iso=>dailyRoot(dayInfo(iso).num);
 const sizeCache={};const sizeFor=iso=>sizeCache[iso]||(sizeCache[iso]=setup(rootFor(iso)).answers.length);
 function weekOf(iso){const t=dateOf(iso),mon=new Date(t);mon.setDate(t.getDate()-((t.getDay()+6)%7));
   const n=Math.floor(Math.round((mon-new Date(2026,9,26))/864e5)/7);
@@ -308,11 +331,11 @@ function pickMeta(G){
 function load(m,idxOverride,dayIso){
   mode=m;$('tDaily').setAttribute('aria-pressed',m==='daily');$('tEndless').setAttribute('aria-pressed',m==='endless');$('endlessCtl').hidden=m!=='endless';
   let saved=null;
-  if(m==='daily'){const d=dayInfo(dayIso);G=setup(WORDS.roots[ORDER[(d.num-1+ORDER.length*10)%ORDER.length]]);G.label=`#${d.num} · ${d.label}`;G.iso=d.iso;
+  if(m==='daily'){const d=dayInfo(dayIso);G=setup(dailyRoot(d.num));G.label=`#${d.num} · ${d.label}`;G.iso=d.iso;
     const today=dayInfo().iso;$('sub').textContent=d.iso===today?'Daily skein '+G.label:'Catching up · skein '+G.label+' ';
     if(d.iso!==today){const b=document.createElement('button');b.className='btn small';b.textContent='Back to today';b.onclick=()=>load('daily');$('sub').append(b)}
     const legacy=store.get('joannagrams-daily');saved=allDays()[d.iso]?{st:allDays()[d.iso]}:legacy&&legacy.iso===d.iso?legacy:null}
-  else{const i=idxOverride!=null?idxOverride:Math.floor(Math.random()*WORDS.roots.length);G=setup(WORDS.roots[i]);G.code=(i+1000).toString(36);
+  else{const i=idxOverride!=null?idxOverride:pickEndless();G=setup(POOL[i]);markSeen(POOL[i]);G.code=(i+1000).toString(36);
     G.label='Endless · skein '+G.code;$('seedTxt').textContent=G.code;$('sub').textContent='Endless mode · wind a new skein any time';
     try{history.replaceState(null,'','#j'+G.code)}catch(e){}}
   st=saved?saved.st:{found:[],bonus:[],hints:{},pulled:0,done:false,blanket:[],metaDone:false};
@@ -473,7 +496,7 @@ $('tDaily').onclick=()=>load('daily');
 $('week').addEventListener('click',e=>{const b=e.target.closest('[data-day]');if(!b||b.disabled||b.dataset.day===G.iso)return;load('daily',null,b.dataset.day);window.scrollTo({top:0,behavior:'smooth'})});$('tEndless').onclick=()=>load('endless');$('newBtn').onclick=()=>load('endless');
 
 (function boot(){const h=(location.hash||'').slice(1);const m=/^j([a-z0-9]{2,3})$/.exec(h);
-  if(m){const i=parseInt(m[1],36)-1000;if(i>=0&&i<WORDS.roots.length){load('endless',i);return}}
+  if(m){const i=parseInt(m[1],36)-1000;if(i>=0&&i<POOL.length){load('endless',i);return}}
   load('daily');if(!store.get('joannagrams-seen')){$('rules').open=true;store.set('joannagrams-seen',1)}})();
 </script>
 
