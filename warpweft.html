@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>*{box-sizing:border-box}:root{color-scheme:light;padding-block:env(safe-area-inset-top,0px) env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}a.eyebrow{display:block;text-decoration:none}</style>
+<title>Warp &amp; Weft</title>
+<meta name="description" content="Weave five words across and five words down on a little loom. A new cloth every day.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: a bold textile poster. Heavy title band, the loom (an SVG: beams, warp threads, the cloth, tassels),
+   a status line, an on-screen keyboard, then the finished cloth and how to play. */
+:root{
+  --bg:#F3EDE2; --paper:#FBF7EF; --ink:#151832; --muted:#5E5A6E; --rule:#DED5C4;
+  --warp:#1E2A78; --warp-hi:#3446B0; --beam:#B0773E; --beam-dk:#7C4F24; --cloth:#141A45;
+  --w0:#E4572E; --w1:#F3A712; --w2:#1F9E8F; --w3:#C2347A; --w4:#3758E8;
+  --ok:#1F9E6A; --bad:#D6332B; --key:#FFFFFF; --key-ink:#151832;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif; --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1130; --paper:#171B44; --ink:#F4EEE2; --muted:#A9A6C4; --rule:#2A2F66;
+  --warp:#2B3A9A; --warp-hi:#4A5CC9; --beam:#9A6534; --beam-dk:#5E3B19; --cloth:#080A22;
+  --ok:#4FD3A0; --bad:#FF6B5E; --key:#232861; --key-ink:#F4EEE2; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1130; --paper:#171B44; --ink:#F4EEE2; --muted:#A9A6C4; --rule:#2A2F66;
+  --warp:#2B3A9A; --warp-hi:#4A5CC9; --beam:#9A6534; --beam-dk:#5E3B19; --cloth:#080A22;
+  --ok:#4FD3A0; --bad:#FF6B5E; --key:#232861; --key-ink:#F4EEE2; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+.wrap{max-width:520px;margin:0 auto;padding-block:16px 40px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+.eyebrow{font:700 12px var(--display);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.eyebrow:hover{color:var(--ink)}
+/* title band: stripes of the five weft colours under a heavy grotesque */
+.mast{position:relative;border-radius:18px;overflow:hidden;background:var(--ink);color:var(--bg);padding:16px 16px 14px}
+.mast::before{content:"";position:absolute;inset:auto 0 0 0;height:10px;background:linear-gradient(90deg,var(--w0) 0 20%,var(--w1) 20% 40%,var(--w2) 40% 60%,var(--w3) 60% 80%,var(--w4) 80% 100%)}
+.mast h1{font:800 clamp(38px,11vw,54px)/.9 var(--display);letter-spacing:-.03em;margin:0}
+.mast h1 i{font-style:normal;color:var(--w1)}
+.mast .sub{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;padding-bottom:8px;font:500 14px var(--display);opacity:.85}
+.tabs{display:flex;background:color-mix(in srgb,var(--bg) 16%,transparent);border-radius:999px;padding:3px}
+.tabs button{font:700 13px var(--display);border:0;background:none;color:var(--bg);padding:5px 12px;border-radius:999px;cursor:pointer;opacity:.75}
+.tabs button[aria-pressed="true"]{background:var(--bg);color:var(--ink);opacity:1}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.weave-name{font:700 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}
+.btn{font:700 14px var(--display);border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:6px 13px;border-radius:12px;cursor:pointer}
+.btn:disabled{opacity:.35;cursor:default}
+.btn.primary{background:var(--ink);color:var(--bg)}
+:focus-visible{outline:3px solid var(--w4);outline-offset:2px}
+/* the loom */
+.loom{display:block;width:100%;height:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.loom .hit{cursor:pointer}
+.loom text{font-family:var(--display);font-weight:800;text-anchor:middle;dominant-baseline:central;pointer-events:none;text-transform:uppercase}
+@media (prefers-reduced-motion:no-preference){
+  .loom .pop{animation:pop .18s ease-out;transform-box:fill-box;transform-origin:center}@keyframes pop{from{transform:scale(.6)}to{transform:none}}
+  .loom .tight{animation:tight .45s ease-out}@keyframes tight{0%{filter:brightness(1.5)}100%{filter:none}}
+}
+.status{min-height:24px;text-align:center;font:700 15px var(--display);color:var(--muted)}
+.status.ok{color:var(--ok)}.status.bad{color:var(--bad)}
+/* keyboard */
+.keys{display:flex;flex-direction:column;gap:6px;user-select:none;-webkit-user-select:none}
+.krow{display:flex;gap:5px;justify-content:center}
+.key{flex:1 1 0;max-width:44px;height:48px;border:0;border-radius:9px;background:var(--key);color:var(--key-ink);font:800 18px var(--display);text-transform:uppercase;box-shadow:0 2px 0 var(--rule);cursor:pointer;padding:0}
+.key.wide{max-width:68px;flex:1.5 1 0;font-size:13px;letter-spacing:.04em}
+.key:active{transform:translateY(1px);box-shadow:none}
+.tools{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+/* finished */
+.done{background:var(--paper);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;border:3px solid var(--ink)}
+.done h2{font:800 30px/1 var(--display);margin:0;letter-spacing:-.02em}
+.done .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.done pre{font-family:var(--body);margin:0;white-space:pre-wrap;background:var(--bg);padding:10px 12px;border-radius:10px;font-size:15px;line-height:1.4;user-select:all}
+.words{display:flex;flex-wrap:wrap;gap:6px}.words span{font:800 13px var(--display);letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:7px;color:#fff}
+details{background:var(--paper);border-radius:16px;padding:12px 16px}
+summary{font:800 16px var(--display);cursor:pointer}
+details p{margin:8px 0}
+.foot{text-align:center;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="eyebrow" href="./">← The Puzz</a>
+  <header class="mast">
+    <h1>Warp <i>&amp;</i> Weft</h1>
+    <div class="sub"><span id="sub"></span>
+      <div class="tabs" role="group" aria-label="Mode"><button id="tDaily" aria-pressed="true">Daily</button><button id="tEndless" aria-pressed="false">Endless</button></div></div>
+  </header>
+  <div class="bar"><span class="weave-name" id="weave"></span><span id="endlessCtl" hidden><button class="btn" id="newBtn">New loom</button> loom <b id="seedTxt"></b></span><span id="clock">0:00</span></div>
+  <svg class="loom" id="loom" role="grid" aria-label="The loom"></svg>
+  <div class="status" id="status" aria-live="polite"></div>
+  <div class="keys" id="keys"></div>
+  <div class="tools"><button class="btn" id="tugBtn" title="Reveal one letter">Tug a thread</button><button class="btn" id="clearBtn" title="Take out every letter you've woven">Unpick all</button></div>
+  <section class="done" id="done" hidden></section>
+  <details id="rules">
+    <summary>How to play</summary>
+    <p>Your loom has five threads across (the <b>weft</b>) and five down (the <b>warp</b>). By the end, every row and every column spells a five-letter word.</p>
+    <p>Where a warp thread crosses on top, its letter is already showing. Where the weft goes over, the square is blank: that's yours to fill. Tap a square and type. Tap it again to switch between across and down.</p>
+    <p>A row whose word is real pulls tight and gets a knot on the right. A column with a real word gets a gold tassel at the bottom. Any words that fit count, not just ours.</p>
+    <p>The weave changes through the week, and so does how much you're given: <b>plain weave</b> on Monday and Tuesday, <b>basket weave</b> midweek, <b>herringbone</b> on Friday and <b>twill</b> at the weekend.</p>
+    <p>Stuck? <b>Tug a thread</b> to reveal a letter. Your result shows how many you tugged.</p>
+  </details>
+  <p class="foot">Words: SCOWL by Kevin Atkinson (<a href="typeset-words-LICENSE.txt">licence</a>)</p>
+</div>
+<script src="typeset-words.js"></script>
+<script src="streak.js"></script>
+<script>
+// ---- data: 5x5 word squares (rows and columns all common words), 25 letters each, rows top to bottom ----
+const SQUARES=["grillradioenemaagaintests","grindrumoriratepagessleds","scarftotalalonefontsfresh","scarfpolaralonerougeended","ashenscoresaleselecttests","draftruleralonepenceedges","stiffhonorawarefencetrees","traderobedamongcauseenter","starshabitalonemouseenter","startthreeroofsassetpeers","shortloweralivevenueedges","costsapartreferarenatardy","watchawarelaserkitedsteps","datedotherglaremaniaasked","blueslarvaangelscenetests","chesthenceeateneventpyres","splataroselooksonsetneeds","offercraveeatenamendnests","glareromanavoiddenseedged","sendstrailurinemovedpress","staffmuralanglereusetrees","snobshelloordereventsends","arenaperilplacelaserexert","scumstonalalikenoteddress","halonalivebonesinerttests","tasteablerkoalaevilssense","fastsaboutcobraeventterse","strawphotoarmorteamssense","chaseravedalongnoiseended","stackheronangleroutepress","blimprarerabatenotesdress","statehaledalongmouseended","sagerclonerouteangelpeers","guardunderstonetiresslews","giddyadoremediaeagersleds","grasslemmeaspensellsstyle","pathsawaitrallytrollsense","puffsallotstoretraceeater","staffeeriedrillassetneeds","scraptheiraislefliesfinds","smilehonoradagepanicelect","stormthreerebutarisepeter","pawnsagreenaivedinedangry","tardyoperauppercleanhelms","coltsaparttepeecreamhalts","hurtsusualmaniaagentnests","apartnicernaiveundueloses","navelarenasortsassetleers","flushalphalapelsmellearls","blamelaterabodesonictreat","alphacoresiconsdancesleet","scalploseralivenodestrees","lustsalphasteeleraserakes","saucyissuetiaraedgerseeds","alarmvagueoralsiviesdandy","scrapcloserouseangermeets","swatslogicomegapanelentry","fagotoliveriverevenssense","shutscanoeelitenotedenemy","glandrazorabusesorespress","altosteachlancearguesnort","scramphaseoathstriesstony","brandriverivorynaiveelder","cavesalivespreethanksalts","rilesarenapavesitemsdelay","relayarosevodkaedgerdeeds","gripsradiiidledniecedoses","guideunmanstarttigerseedy","smashhellootterpreensorts","cropsradioelderelectpyres","swabstoweleraseaskedmeets","staffcruelradioawingplots","spliturinegivenadeptrests","spasmclonerarerenterweary","admitcranetokenovertrests","strewcruderangeactedmessy","smartwateraromamimicpaste","strawpeachlatheicierthose","gustsalphastoodprosesales","winesadagereignpavedsleds","aloftmariaangelscalesends","slamswomanacutepastasleek","grassaudittradeeaglesleep","leafsorbitsaunaessayreels","scoutcrushratioevenswedge","sportleperarenabirdsslash","busedaltarstatetriesearns","crabshelloeagerscantsheds","smashhelloatlaswrotelowed","sprigthereromanunitemetes","scalythreerootsissuepeeps","castshumanadobetitlesteer","campsoceanaudiostintteats","thawseaselabideridgesteep","barksurinelevelkneelyards","apronwhitefontsunsetleers","mastsalphalearnerredstews","spasmtriperidesideaspesky","saltsabortvideoedgerseedy","editsradiiareasstarsessay","rakederodeagaincultstease","stufflunaralibititlespeed","madamabidelordsedgesseedy","catchoperaupperpleatseeks","portsapartrevuecreephands","trainhordeidolsresetdoers","clackradiiabortforcetread","blackladenerodeagreetends","daddyawaremanianicerstern","guardunduestoletiredsends","paredawaresadestrickedits","grandrawerovaryservesneer","fancyadorevotesobeserests","bestsratioaromastripsheds","cameoruingidealsinceposts","cystslatheacornshredstews","bringloveradoreservetoyed","sheafmovieerodeaskedreeds","outerasiderangeeggeddeeds","staffhelloapterreactperky","acressaunaislesdeemsessay","spawnalgaecarvekneedseeds","guardalgaestatepriedsands","crashlanceedgerfiendsoles","crashhornyidiomlearndoses","shelftakeralivetenetedges","spatscubicaromaneverseeds","scrapolivelosesinertdents","martsaboutsaunaotterneeds","slushwasteetheraheadterms","haltsuterimodelangelneedy","pansyabatenovelidealcells","cartsalertcacaotrainimply","scentmariaacresstockhires","scarfmariaamendleaseloses","burstelopestyletrainsalts","chestradararguewrecklyres","cacaohoarderredstealsassy","surfspsalmaudiotrickspoke","eavessmirksporeallowyears","scarsnasalurinebadgesteep","scoffwhaleeatenashedrests","spasmtriterisenidledpeers","petalarisepolkaaddedseeds","abackmelonarguestalesheds","burstatonerelaxerectrisks","shafthaleratonepenceedged","foistlunchigloothawsstyle","bloodlarvaangerscaretents","usurpthreetogaserectrests","basedappletrouthordesneer","slotshumanenemaeagertrade","amplyvalueomensimagedates","scopethreeruderuteriterse","smileheronadoptminersassy","finalarisecacheetherdeeds","achesshadehingeendedsassy","sheetcalveoldenovensterse","scalpcanoeounceusualtells","stagehalerablerlooselowed","waftsaglowgropeeeriereact","basiseludeagilerateddeeds","prowllorryuddergeesesorts","crashhellooctalsuaveerred","crashlitheafterpliedsects","bustsantictiaraotterneeds","sprayplumeraresinanegelds","driftraceratonewincenosed","spellcurioaromaredidfrets","drafteerieacornlamesspade","drabsrebutabodemergealter","spraychideroomsuntiebests","scumscanoeendownoiseended","datesabovetoxicedictdents","sneertildereignactedweeds","speartilderavesineptposts","scraparisevodkaeagerskews","strippronelamesadapttents","stopsaudioundernieceacres","waftsidiottonnecreepherds","marshiratesoberembedrails","starstacitabidelodgeloser","scootcarveangerloansdense","crusthitcheveryserumtribe","stungtotalenemaparedslide","charsradiialoftnobleknees","warpsidealnoblycruelentry","clashaudiosnarleggedseeds","coralllamaudderbeingsnide","fastsoctalroomycruelentry","draperelaxagilemakeralert","scalpployslorryanticteach","stageminereaterariseraced","harshawokerabidekingdense","lumpsusualnursegratesplat","prismeagleatlaslionssooty","widthagreeslopepoledsoles","tuftsapronspireteaseerror","slamshazelexudeeerietreat","smashcacheuntiefiendfades","acreschinatidalelectdirty","clasphappyerrorevokepanes","manicagonydivesalertmelts","scarfpolioironycauseelder","clasprallyinterscopepests","rotoramazedemonagentrares","sternpixieoliveidledleers","recurelopecurseaddedpests","spursarrowvogueobesereset","scrubcauseannulbanalslyly","slabstidalovaryrepelentry","acingcameotrawleggeddoers","coastamblerelaxagenttarts","scramtraderuraladeptpests","aheadcellohabitevokesewed","scramprunelarvaavailtells","slatspilotunityrebelsnide","straypieceoasisurinetangs","spatscobraaloudladlepreys","mimesadulttildetotememirs","scourtonneabidebroilsands","rivaladobesidlepokerstars","gaspsabortmariauttertease","faultuntieenemaluresslide","recapomegamallspilotslows","scarfcarolensuenoosetenet","enactvillaiciercheattents","spansallotguiseaskewsheds","spiedaisletalonineptnoses","smirkmasonensuelousetreed","spinscanoeallowleasedryer","faredolivecivicabacklilts","mullsinletstavetimeryearn","atticcranerobedelopeslots"];
+const $=id=>document.getElementById(id);
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function hseed(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19}h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return (h^h>>>16)>>>0}
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const shuffle=(r,a)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+// any five-letter word in the site's word list counts (the same SCOWL lists Typeset uses)
+function decode(s){const out=[];let prev='';for(const m of s.match(/[A-K][a-z]*/g)){const w=prev.slice(0,m.charCodeAt(0)-65)+m.slice(1);out.push(w);prev=w}return out}
+const WORDS=new Set([...decode(TS_WORDS.common),...decode(TS_WORDS.extra)].filter(w=>w.length===5));
+SQUARES.forEach(s=>{for(let i=0;i<5;i++){WORDS.add(s.slice(i*5,i*5+5));WORDS.add([0,1,2,3,4].map(r=>s[r*5+i]).join(''))}});
+
+// ---- weaves: which crossings show the warp (those letters are given) ----
+const WEAVES={
+  plain:{name:'Plain weave',up:(r,c)=>(r+c)%2===0},
+  basket:{name:'Basket weave',up:(r,c)=>(Math.floor(r/2)+Math.floor(c/2))%2===0},
+  herringbone:{name:'Herringbone',up:(r,c)=>((c<=2?c-r:4-c-r)+15)%3===0},
+  twill:{name:'Twill',up:(r,c)=>(c-r+15)%3===0}};
+const BY_DAY=['twill','plain','plain','basket','basket','herringbone','twill'];   // Sun..Sat
+
+function dayInfo(){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
+  const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+  return{num:Math.round((t-s)/864e5)+1,iso,wd:t.getDay(),label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
+const ORDER=shuffle(mulberry(hseed('warpweft-v1')),SQUARES.map((_,i)=>i));
+// A loom: the solution (rows of letters) and which crossings are given. Half the looms are turned on their side.
+function makeLoom(seed,weaveKey,idx){const r=mulberry(hseed(seed));const s=SQUARES[idx];
+  const turn=r()<.5,sol=[...Array(25)].map((_,i)=>{const R=Math.floor(i/5),C=i%5;return turn?s[C*5+R]:s[i]});
+  const W=WEAVES[weaveKey];return{sol,weave:weaveKey,given:sol.map((_,i)=>W.up(Math.floor(i/5),i%5))}}
+
+let L=null,st=null,mode='daily',sel=-1,dir=0,msg='',msgCls='',pop=-1,fresh=new Set(),timer=null;
+function load(m,code){
+  mode=m;$('tDaily').setAttribute('aria-pressed',m==='daily');$('tEndless').setAttribute('aria-pressed',m==='endless');$('endlessCtl').hidden=m!=='endless';
+  let saved=null;
+  if(m==='daily'){const d=dayInfo();L=makeLoom('warpweft-'+d.iso,BY_DAY[d.wd],ORDER[(d.num-1)%ORDER.length]);L.iso=d.iso;L.num=d.num;
+    $('sub').textContent=`Daily loom #${d.num} · ${d.label}`;saved=store.get('warpweft-daily');if(saved&&saved.iso!==d.iso)saved=null;
+    try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+  else{code=code||Math.random().toString(36).slice(2,7);const r=mulberry(hseed('ww-endless-'+code));
+    L=makeLoom('ww-endless-'+code,Object.keys(WEAVES)[Math.floor(r()*4)],Math.floor(r()*SQUARES.length));L.code=code;
+    $('sub').textContent='Endless · a new cloth any time';$('seedTxt').textContent=code;try{history.replaceState(null,'','#'+code)}catch(e){}}
+  $('weave').textContent=WEAVES[L.weave].name+` · ${L.given.filter(Boolean).length} letters given`;
+  st=saved?saved.st:{grid:Array(25).fill(''),tugged:[],tugs:0,elapsed:0,started:false,done:false};
+  sel=L.given.findIndex(g=>!g);dir=0;msg='';fresh=new Set();$('done').hidden=true;stopClock();tick();render();if(st.done)finish(false)}
+function persist(){if(mode==='daily')store.set('warpweft-daily',{iso:L.iso,st})}
+const letterAt=i=>L.given[i]?L.sol[i]:st.grid[i];
+const rowWord=r=>[0,1,2,3,4].map(c=>letterAt(r*5+c)).join('');
+const colWord=c=>[0,1,2,3,4].map(r=>letterAt(r*5+c)).join('');
+const state=w=>w.length<5||w.includes('')?'open':WORDS.has(w)?'ok':'bad';
+
+// ---- drawing ----
+const S=62,BAND=48,OX=34,OY=58,CW=5*S;   // cell size, yarn width, cloth origin
+const WC=['--w0','--w1','--w2','--w3','--w4'],DARK_TEXT=[false,true,false,false,false];
+function render(){
+  const rows=[0,1,2,3,4].map(r=>state(rowWord(r))),cols=[0,1,2,3,4].map(c=>state(colWord(c)));
+  const H=OY+CW+70,W=OX*2+CW;let s=`<defs>
+    <pattern id="twH" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(-62)"><rect width="10" height="10" fill="none"/><line x1="0" y1="0" x2="0" y2="10" stroke="rgba(255,255,255,.18)" stroke-width="3"/></pattern>
+    <pattern id="twV" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(28)"><line x1="0" y1="0" x2="0" y2="10" stroke="rgba(255,255,255,.14)" stroke-width="3"/></pattern>
+    <linearGradient id="shadeH" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".28"/></linearGradient>
+    <linearGradient id="shadeV" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".2"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient>
+    <linearGradient id="grain" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="var(--beam-dk)"/><stop offset=".5" stop-color="var(--beam)"/><stop offset="1" stop-color="var(--beam-dk)"/></linearGradient></defs>`;
+  // cloth backing and loom beams
+  s+=`<rect x="${OX-10}" y="${OY-10}" width="${CW+20}" height="${CW+20}" rx="10" fill="var(--cloth)"/>`;
+  s+=`<rect x="4" y="6" width="${W-8}" height="22" rx="8" fill="url(#grain)"/><rect x="4" y="6" width="${W-8}" height="22" rx="8" fill="none" stroke="var(--beam-dk)" stroke-width="2"/>`;
+  // warp threads run up to the beam and down to the tassels (behind the cloth)
+  const cx=c=>OX+c*S+S/2,cy=r=>OY+r*S+S/2;
+  for(let c=0;c<5;c++)s+=`<rect x="${cx(c)-5}" y="24" width="10" height="${OY-24}" fill="var(--warp)"/><rect x="${cx(c)-5}" y="${OY+CW}" width="10" height="20" fill="var(--warp)"/>`;
+  // 1) every weft band, 2) every warp band, 3) weft again wherever the weft goes over
+  const weft=(r,x0,x1)=>{const y=cy(r)-BAND/2,col=`var(${WC[r]})`;return `<rect x="${x0}" y="${y}" width="${x1-x0}" height="${BAND}" rx="${BAND/2.6}" fill="${col}"/><rect x="${x0}" y="${y}" width="${x1-x0}" height="${BAND}" rx="${BAND/2.6}" fill="url(#twH)"/><rect x="${x0}" y="${y}" width="${x1-x0}" height="${BAND}" rx="${BAND/2.6}" fill="url(#shadeH)"/>`};
+  const warp=(c,y0,y1)=>{const x=cx(c)-BAND/2;return `<rect x="${x}" y="${y0}" width="${BAND}" height="${y1-y0}" rx="${BAND/2.6}" fill="var(--warp)"/><rect x="${x}" y="${y0}" width="${BAND}" height="${y1-y0}" rx="${BAND/2.6}" fill="url(#twV)"/><rect x="${x}" y="${y0}" width="${BAND}" height="${y1-y0}" rx="${BAND/2.6}" fill="url(#shadeV)"/>`};
+  for(let r=0;r<5;r++)s+=`<g class="${fresh.has('r'+r)?'tight':''}">${weft(r,OX-14,OX+CW+14)}</g>`;
+  for(let c=0;c<5;c++)s+=`<g class="${fresh.has('c'+c)?'tight':''}">${warp(c,OY-6,OY+CW+6)}</g>`;
+  for(let i=0;i<25;i++)if(!L.given[i]){const r=Math.floor(i/5),c=i%5;s+=weft(r,OX+c*S+1,OX+c*S+S-1)}
+  // selection: the whole line faintly, the square strongly
+  if(sel>=0&&!st.done){const r=Math.floor(sel/5),c=sel%5;
+    s+=dir===0?`<rect x="${OX-12}" y="${cy(r)-BAND/2-4}" width="${CW+24}" height="${BAND+8}" rx="${BAND/2}" fill="none" stroke="var(--paper)" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round" opacity=".9"/>`
+      :`<rect x="${cx(c)-BAND/2-4}" y="${OY-12}" width="${BAND+8}" height="${CW+24}" rx="${BAND/2}" fill="none" stroke="var(--paper)" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round" opacity=".9"/>`;
+    s+=`<rect x="${OX+c*S+4}" y="${cy(r)-BAND/2-2}" width="${S-8}" height="${BAND+4}" rx="14" fill="none" stroke="var(--paper)" stroke-width="4"/>`;
+    // the shuttle sits at the start of the line being woven
+    s+=dir===0?`<g transform="translate(${OX-30},${cy(r)})"><path d="M-2,0 Q8,-11 24,0 Q8,11 -2,0Z" fill="var(--beam)" stroke="var(--beam-dk)" stroke-width="2"/><ellipse cx="11" cy="0" rx="5" ry="2.6" fill="var(--beam-dk)"/></g>`
+      :`<g transform="translate(${cx(c)},${OY-34}) rotate(90)"><path d="M-2,0 Q8,-11 24,0 Q8,11 -2,0Z" fill="var(--beam)" stroke="var(--beam-dk)" stroke-width="2"/><ellipse cx="11" cy="0" rx="5" ry="2.6" fill="var(--beam-dk)"/></g>`}
+  // letters
+  for(let i=0;i<25;i++){const r=Math.floor(i/5),c=i%5,ch=letterAt(i);if(!ch)continue;
+    const g=L.given[i],fill=g?'#F6EEDC':DARK_TEXT[r]?'#1B1430':'#FFFFFF',tug=st.tugged.includes(i);
+    s+=`<text class="${pop===i?'pop':''}" x="${cx(c)}" y="${cy(r)+1}" font-size="30" fill="${fill}">${ch}</text>`;
+    if(tug)s+=`<circle cx="${cx(c)+18}" cy="${cy(r)-15}" r="3.5" fill="${fill}" opacity=".8"/>`}
+  // row knots on the right, column tassels at the bottom
+  for(let r=0;r<5;r++){const k=rows[r],x=OX+CW+22,y=cy(r);
+    s+=k==='ok'?`<circle cx="${x}" cy="${y}" r="9" fill="var(${WC[r]})" stroke="var(--paper)" stroke-width="2.5"/><path d="M${x-4},${y} l3,3 l5,-6" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`
+      :k==='bad'?`<circle cx="${x}" cy="${y}" r="9" fill="var(--bad)"/><path d="M${x-3.5},${y-3.5} l7,7 M${x+3.5},${y-3.5} l-7,7" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>`
+      :`<circle cx="${x}" cy="${y}" r="5" fill="none" stroke="var(--muted)" stroke-width="2" opacity=".6"/>`}
+  for(let c=0;c<5;c++){const k=cols[c],x=cx(c),y=OY+CW+20,col=k==='ok'?'#E9B23B':k==='bad'?'var(--bad)':'var(--warp)';
+    s+=`<g><rect x="${x-9}" y="${y}" width="18" height="7" rx="3" fill="${col}"/>${[...Array(5)].map((_,j)=>`<path d="M${x-7+j*3.5},${y+6} q${(j-2)*1.2},18 ${(j-2)*2.6},${30-Math.abs(j-2)*3}" stroke="${col}" stroke-width="3" fill="none" stroke-linecap="round"/>`).join('')}</g>`}
+  // tap targets
+  for(let i=0;i<25;i++){const r=Math.floor(i/5),c=i%5;s+=`<rect class="hit" data-i="${i}" x="${OX+c*S}" y="${OY+r*S}" width="${S}" height="${S}" fill="transparent" role="gridcell" aria-label="Row ${r+1}, column ${c+1}: ${letterAt(i)||'blank'}${L.given[i]?' (given)':''}"/>`}
+  const svg=$('loom');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.innerHTML=s;pop=-1;fresh=new Set();
+  const st_=$('status');st_.textContent=msg;st_.className='status '+msgCls;
+  $('tugBtn').disabled=st.done;$('clearBtn').disabled=st.done||!st.grid.some(Boolean);
+  document.querySelectorAll('.key').forEach(k=>k.disabled=st.done);
+}
+
+// ---- moves ----
+const blanks=()=>[...Array(25).keys()].filter(i=>!L.given[i]);
+function step(i,d,back){const r=Math.floor(i/5),c=i%5;let k=d===0?c:r;
+  for(;;){k+=back?-1:1;if(k<0||k>4)return -1;const j=d===0?r*5+k:k*5+c;if(!L.given[j])return j}}
+function type(ch){if(st.done||sel<0)return;if(L.given[sel])return;startClock();
+  const before=[[0,1,2,3,4].map(r=>state(rowWord(r))),[0,1,2,3,4].map(c=>state(colWord(c)))];
+  st.grid[sel]=ch;st.tugged=st.tugged.filter(i=>i!==sel);pop=sel;
+  noteLines(before);const n=step(sel,dir,false);if(n>=0)sel=n;persist();check()}
+function back(){if(st.done||sel<0)return;
+  if(!L.given[sel]&&st.grid[sel]){st.grid[sel]='';msg='';persist();render();return}
+  const p=step(sel,dir,true);if(p>=0){sel=p;if(st.grid[p])st.grid[p]='';persist()}render()}
+function noteLines(before){const r=Math.floor(sel/5),c=sel%5;
+  if(state(rowWord(r))==='ok'&&before[0][r]!=='ok')fresh.add('r'+r);if(state(colWord(c))==='ok'&&before[1][c]!=='ok')fresh.add('c'+c)}
+function check(){
+  const rows=[0,1,2,3,4].map(r=>state(rowWord(r))),cols=[0,1,2,3,4].map(c=>state(colWord(c)));
+  const ok=[...rows,...cols].filter(x=>x==='ok').length,bad=[...rows,...cols].filter(x=>x==='bad').length;
+  if(ok===10){finish(true);return}
+  msg=bad?`${bad} line${bad>1?'s':''} ${bad>1?"aren't":"isn't"} a word yet`:ok?`${ok} of 10 threads pulled tight`:'';msgCls=bad?'bad':ok?'ok':'';
+  render()}
+function tug(){if(st.done)return;
+  const wrong=blanks().filter(i=>st.grid[i]&&st.grid[i]!==L.sol[i]&&!lineOk(i)),empty=blanks().filter(i=>!st.grid[i]);
+  const pool=empty.length?empty:wrong;if(!pool.length){msg='Every square is filled. Check the red knots and tassels.';msgCls='bad';render();return}
+  // prefer a square on the line you're working on
+  const r=Math.floor(sel/5),c=sel%5,onLine=pool.filter(i=>dir===0?Math.floor(i/5)===r:i%5===c);
+  const i=(onLine.length?onLine:pool)[0];startClock();
+  const before=[[0,1,2,3,4].map(r=>state(rowWord(r))),[0,1,2,3,4].map(c=>state(colWord(c)))];
+  st.grid[i]=L.sol[i];st.tugs++;if(!st.tugged.includes(i))st.tugged.push(i);pop=i;const keep=sel;sel=i;noteLines(before);sel=keep;persist();check()}
+const lineOk=i=>state(rowWord(Math.floor(i/5)))==='ok'&&state(colWord(i%5))==='ok';
+function clearAll(){if(st.done||!st.grid.some(Boolean))return;if(!confirm('Unpick every letter you have woven?'))return;st.grid=Array(25).fill('');st.tugged=[];msg='';persist();render()}
+
+// ---- clock ----
+const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+function startClock(){if(st.done||timer)return;st.started=true;const t0=Date.now()-st.elapsed*1000;timer=setInterval(()=>{st.elapsed=Math.floor((Date.now()-t0)/1000);tick();if(st.elapsed%5===0)persist()},500)}
+function stopClock(){clearInterval(timer);timer=null}
+function tick(){$('clock').textContent=fmt(st?st.elapsed:0)}
+
+// ---- finished ----
+function shareText(){const head=mode==='daily'?`#${L.num}`:`endless ${L.code}`;
+  const sq=['🟥','🟨','🟩','🟪','🟦'],grid=[0,1,2,3,4].map(r=>[0,1,2,3,4].map(c=>L.given[r*5+c]?'⬛':sq[r]).join('')).join('\n');
+  return `The Puzz · Warp & Weft ${head}\n${WEAVES[L.weave].name} · ⏱ ${fmt(st.elapsed)} · ${st.tugs?st.tugs+' tug'+(st.tugs>1?'s':''):'no tugs'}\n${grid}\nthecosmickitchen.github.io/The-Puzz/warpweft.html`}
+function finish(now){
+  st.done=true;stopClock();persist();msg='';sel=-1;
+  if(mode==='daily'&&window.Kitchen)Kitchen.mark('ww');
+  render();
+  const words=[...[0,1,2,3,4].map(r=>[rowWord(r),`var(${WC[r]})`]),...[0,1,2,3,4].map(c=>[colWord(c),'var(--warp)'])];
+  const D=$('done');D.hidden=false;
+  D.innerHTML=`<h2>Off the loom!</h2><div class="words">${words.map(([w,c])=>`<span style="background:${c}">${w}</span>`).join('')}</div>
+    <pre id="shareTxt">${shareText()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New loom</button>':'<span style="color:var(--muted);font-size:13px">A new cloth tomorrow.</span>'}</div>`;
+  $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)};
+    try{navigator.clipboard.writeText(shareText()).then(ok,()=>{})}catch(err){}};
+  if($('nextBtn'))$('nextBtn').onclick=()=>load('endless');
+  if(now)D.scrollIntoView({behavior:'smooth',block:'nearest'})}
+
+// ---- input ----
+const KB=['qwertyuiop','asdfghjkl','⏎zxcvbnm⌫'];
+$('keys').innerHTML=KB.map(row=>`<div class="krow">${[...row].map(k=>k==='⌫'?'<button class="key wide" data-k="back" aria-label="Delete">⌫</button>':k==='⏎'?'<button class="key wide" data-k="dir" aria-label="Switch across and down">↔↕</button>':`<button class="key" data-k="${k}">${k}</button>`).join('')}</div>`).join('');
+$('keys').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;const k=b.dataset.k;if(k==='back')back();else if(k==='dir'){dir=1-dir;render()}else type(k)});
+$('loom').addEventListener('click',e=>{const h=e.target.closest('[data-i]');if(!h||st.done)return;const i=+h.dataset.i;
+  if(L.given[i]){dir=1-dir;render();return}
+  if(i===sel)dir=1-dir;else sel=i;render()});
+document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(/^[a-z]$/i.test(e.key)){type(e.key.toLowerCase());e.preventDefault()}
+  else if(e.key==='Backspace'){back();e.preventDefault()}
+  else if(e.key===' '){dir=1-dir;render();e.preventDefault()}
+  else if(e.key.startsWith('Arrow')&&sel>=0&&!st.done){const d=e.key==='ArrowLeft'||e.key==='ArrowRight'?0:1,bk=e.key==='ArrowLeft'||e.key==='ArrowUp';dir=d;const n=step(sel,d,bk);if(n>=0)sel=n;render();e.preventDefault()}});
+$('tugBtn').onclick=tug;$('clearBtn').onclick=clearAll;
+$('tDaily').onclick=()=>load('daily');$('tEndless').onclick=()=>load('endless');$('newBtn').onclick=()=>load('endless');
+(function boot(){store.set('warpweft-seen',1);const h=(location.hash||'').slice(1);
+  if(/^[a-z0-9]{5}$/.test(h))load('endless',h);
+  else{load('daily');if(!store.get('warpweft-rules')){$('rules').open=true;store.set('warpweft-rules',1)}}})();
+</script>
+</body>
+</html>

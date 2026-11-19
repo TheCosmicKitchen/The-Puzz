@@ -6,7 +6,7 @@
 <title>The Puzz</title>
 <meta name="description" content="Free daily puzzles: a new set every day, plus endless mode.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <style>
 /* Layout: masthead with today's date, then a stack of puzzle cards with daily status. */
 :root{
@@ -33,6 +33,15 @@ a.card:focus-visible{outline:2.5px solid var(--f1);outline-offset:2px}
 .card p{margin:2px 0 0;color:var(--muted);font-size:14px;min-width:0}
 .pill{font:600 12px var(--display);letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:var(--felt);color:var(--muted);white-space:nowrap}
 .pill.done{background:var(--ok);color:var(--surface)}
+/* New-game banner: Warp & Weft's own bold look, shown until the game has been opened once (or closed with ×). */
+.newgame{position:relative;display:grid;grid-template-columns:64px 1fr;gap:14px;align-items:center;background:#151832;color:#F3EDE2;border-radius:18px;padding:14px 44px 22px 14px;text-decoration:none;overflow:hidden}
+.newgame::after{content:"";position:absolute;inset:auto 0 0 0;height:8px;background:linear-gradient(90deg,#E4572E 0 20%,#F3A712 20% 40%,#1F9E8F 40% 60%,#C2347A 60% 80%,#3758E8 80% 100%)}
+.newgame[hidden]{display:none}.newgame svg{width:64px;height:64px}
+.newgame .k{font:600 11px var(--display);letter-spacing:.16em;text-transform:uppercase;color:#F3A712}
+.newgame b{display:block;font:800 26px/1 "Bricolage Grotesque",var(--display);letter-spacing:-.02em;margin:2px 0 4px}
+.newgame span{font-size:14px;opacity:.85}
+.newgame:hover b{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+.newgame button{position:absolute;top:8px;right:8px;width:30px;height:30px;border:0;border-radius:50%;background:rgba(243,237,226,.14);color:#F3EDE2;font:600 18px/1 var(--display);cursor:pointer}
 .soon{display:grid;grid-template-columns:72px 1fr auto;gap:16px;align-items:center;border:2px dashed var(--line);border-radius:18px;padding:14px 16px;color:var(--muted)}
 .soon h2{font:600 20px var(--display);margin:0;color:var(--ink);opacity:.7}
 .soon p{margin:2px 0 0;font-size:14px}
@@ -62,6 +71,14 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
     <div class="date" id="date"></div>
   </div>
   <p class="tag">A fresh set of puzzles every day, free. Endless mode when one isn't enough.</p>
+  <a class="newgame" id="newgame" href="warpweft.html" hidden>
+    <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="12" fill="#0B0E2A"/>
+      <g fill="#2B3A9A"><rect x="9" y="4" width="10" height="56" rx="4"/><rect x="27" y="4" width="10" height="56" rx="4"/><rect x="45" y="4" width="10" height="56" rx="4"/></g>
+      <rect x="4" y="9" width="56" height="10" rx="4" fill="#E4572E"/><rect x="4" y="27" width="56" height="10" rx="4" fill="#F3A712"/><rect x="4" y="45" width="56" height="10" rx="4" fill="#1F9E8F"/>
+      <g fill="#2B3A9A"><rect x="9" y="7" width="10" height="14" rx="4"/><rect x="45" y="7" width="10" height="14" rx="4"/><rect x="27" y="25" width="10" height="14" rx="4"/><rect x="9" y="43" width="10" height="14" rx="4"/><rect x="45" y="43" width="10" height="14" rx="4"/></g></svg>
+    <div><div class="k">New game</div><b>Warp &amp; Weft</b><span>Weave five words across and five down on a little loom. A new cloth every day.</span></div>
+    <button type="button" id="newgameX" aria-label="Hide this">×</button>
+  </a>
   <section class="streak" id="streak" aria-label="Your streak" hidden></section>
   <div class="cards">
     <a class="card" href="hexstitch.html">
@@ -109,6 +126,14 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
   </div>
   <div class="sect"><h3>Prototypes</h3><p>New ideas we're trying out. They all work, daily and endless, but they may change.</p></div>
   <div class="cards">
+    <a class="card" href="warpweft.html">
+      <svg viewBox="0 0 72 72" aria-hidden="true"><rect x="4" y="4" width="64" height="64" rx="10" fill="#151832"/>
+        <g fill="#2B3A9A"><rect x="14" y="8" width="10" height="56" rx="4"/><rect x="31" y="8" width="10" height="56" rx="4"/><rect x="48" y="8" width="10" height="56" rx="4"/></g>
+        <rect x="8" y="14" width="56" height="10" rx="4" fill="#E4572E"/><rect x="8" y="31" width="56" height="10" rx="4" fill="#F3A712"/><rect x="8" y="48" width="56" height="10" rx="4" fill="#1F9E8F"/>
+        <g fill="#2B3A9A"><rect x="14" y="12" width="10" height="14" rx="4"/><rect x="48" y="12" width="10" height="14" rx="4"/><rect x="31" y="29" width="10" height="14" rx="4"/><rect x="14" y="46" width="10" height="14" rx="4"/><rect x="48" y="46" width="10" height="14" rx="4"/></g></svg>
+      <div><h2>Warp &amp; Weft</h2><p>Weave five words across and five down. The weave changes through the week, and so does how much you're given.</p></div>
+      <span class="pill" id="s-ww">New</span>
+    </a>
     <a class="card" href="typeset.html">
       <svg viewBox="0 0 72 72" aria-hidden="true">
         <rect x="4" y="4" width="64" height="64" rx="8" fill="var(--felt)"/>
@@ -172,16 +197,19 @@ const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return nul
   if(n<40&&el&&el.textContent==='Today'){el.textContent=n?`Journey ${n}/40`:'Start the journey'}}
 {const t=get('hanko-today'),el=document.getElementById('s-hk'),d0=new Date(2026,9,25),n=new Date(),dn=Math.round((new Date(n.getFullYear(),n.getMonth(),n.getDate())-d0)/864e5)+1;
   if(t&&t.day===dn&&el){if(t.i>=t.rounds.length){el.textContent='Stamped';el.classList.add('done')}else if(t.i>0)el.textContent='In progress'}}
-[['typeset-daily','s-ts'],['crosslight-daily','s-cl'],['strike-daily','s-st'],['sampler-daily','s-sm'],['tally-daily','s-ta'],['ladder-daily','s-la']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
+[['warpweft-daily','s-ww'],['typeset-daily','s-ts'],['crosslight-daily','s-cl'],['strike-daily','s-st'],['sampler-daily','s-sm'],['tally-daily','s-ta'],['ladder-daily','s-la']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
   if(s&&s.iso===iso&&el){if(s.st.done){el.textContent='Done';el.classList.add('done')}else if(s.st.started||(s.st.guesses&&s.st.guesses.length)||(s.st.rungs&&s.st.rungs.length))el.textContent='In progress'}});
 
+// New-game banner: until Warp & Weft has been opened once, or the × is pressed.
+{const b=document.getElementById('newgame');if(!get('warpweft-seen')&&!get('warpweft-banner-off'))b.hidden=false;
+  document.getElementById('newgameX').onclick=e=>{e.preventDefault();e.stopPropagation();try{localStorage.setItem('warpweft-banner-off','1')}catch(err){}b.hidden=true}}
 // Streak card. Fill in finishes the streak missed first (puzzles solved before streaks existed, or on a
 // day this page wasn't opened): each game's save remembers the day it was played, and Joannagrams keeps
 // three weeks of days. Each save counts as finished by the same test as its pill above.
 if(window.Kitchen){
   [['hexstitch-daily-v2','hex'],['shadowbox-daily-v3','sb'],['joannagrams-daily','jg'],['whistlestop-daily-v4','ws']].forEach(([k,g])=>{const s=get(k);
     if(s&&s.st&&s.iso&&(s.st.solved||s.st.metaDone))Kitchen.mark(g,s.iso)});
-  [['typeset-daily','ts'],['crosslight-daily','cl'],['strike-daily','st'],['sampler-daily','sm'],['tally-daily','ta'],['ladder-daily','la']].forEach(([k,g])=>{const s=get(k);
+  [['warpweft-daily','ww'],['typeset-daily','ts'],['crosslight-daily','cl'],['strike-daily','st'],['sampler-daily','sm'],['tally-daily','ta'],['ladder-daily','la']].forEach(([k,g])=>{const s=get(k);
     if(s&&s.st&&s.iso&&s.st.done)Kitchen.mark(g,s.iso)});
   Object.entries(get('joannagrams-days')||{}).forEach(([d,s])=>{if(s&&s.metaDone)Kitchen.mark('jg',d)});
   {const t=get('hanko-today');if(t&&t.rounds&&t.day&&t.i>=t.rounds.length)Kitchen.mark('hk',new Date(2026,9,24+t.day))}
