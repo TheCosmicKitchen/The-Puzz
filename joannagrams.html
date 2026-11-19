@@ -50,6 +50,9 @@ h1 span{color:var(--y0)}
   @keyframes bonpop{0%{transform:scale(.4);box-shadow:0 0 0 0 var(--y2)}55%{transform:scale(1.25)}100%{transform:none;box-shadow:0 0 0 14px transparent}}}
 .stats .muted{color:var(--muted);font-size:13px}
 .slots{background:var(--surface);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.wildnote{margin:0;display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:2px dashed var(--y3);border-radius:14px;padding:10px 12px;font-size:13.5px;color:var(--muted)}
+.wildnote>b{flex:none;font:600 11px var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--surface);background:var(--y3);border-radius:999px;padding:3px 9px;margin-top:1px}
+.wildnote span b{color:var(--ink)}
 .grp{display:flex;gap:10px;align-items:flex-start}
 .grp .len{flex:none;width:28px;font:600 13px var(--display);color:var(--muted);padding-top:3px}
 .words{display:flex;flex-wrap:wrap;gap:6px 12px;min-width:0}
@@ -134,7 +137,7 @@ details p{margin:8px 0 0;max-width:62ch}
       <button id="tEndless" aria-pressed="false">Endless</button>
     </div>
   </header>
-  <div class="endless" id="endlessCtl" hidden><button class="btn" id="newBtn">New skein</button><span>skein <b id="seedTxt"></b></span></div>
+  <div class="endless" id="endlessCtl" hidden><button class="btn" id="newBtn">New skein</button><button class="btn" id="wildBtn" title="Letters drawn just now, never the same twice">Wild skein</button><span>skein <b id="seedTxt"></b></span></div>
 
   <section class="blanket" id="blanket"></section>
   <section class="win" id="win" hidden></section>
@@ -149,6 +152,7 @@ details p{margin:8px 0 0;max-width:62ch}
   </section>
 
   <section class="week" id="week" aria-label="This week's picture" hidden></section>
+  <p class="wildnote" id="wildnote" hidden><b>Wild skein</b><span>These letters were drawn just now, so they don't spell one long word: there's <b>no ★ pattern word</b> today. Every other word, the hidden goal and the granny square work as usual.</span></p>
   <section class="slots" id="slots" aria-label="Words to find"></section>
 
   <div class="chain" id="chain" aria-live="polite"></div>
@@ -169,6 +173,7 @@ details p{margin:8px 0 0;max-width:62ch}
     <p>That finishes the day. If you want more, every hidden word also crochets a cluster onto the granny square, including the <b>pattern word</b> that uses every ball. Real words that aren't on the pattern card count as bonus stitches.</p>
     <p><b>This week's picture.</b> Each day you finish the whole square uncovers a piece of a pixel-art picture, in a surprise order: a new little scene every time, and the full picture once all seven squares are done. Missed a day? Tap it in the strip to go back and play it.</p>
     <p><b>Clear</b> empties your current chain. <b>Enter</b> checks the word. <b>Hint</b> reveals a letter of a hidden word, and your result shows how many hints you used. <b>Shuffle</b> mixes up the balls. Type on a keyboard if you prefer.</p>
+    <p><b>Endless</b> deals skeins you haven't had yet. Once you've had every one, or any time you press <b>Wild skein</b>, it winds a <b>wild skein</b>: letters drawn just then, never the same twice. A wild skein has no ★ pattern word; everything else works as usual.</p>
   </details>
   <div class="foot">Made for <b>Joanna</b>, who can crochet anything.</div>
 </div>
@@ -221,8 +226,28 @@ function pickEndless(){
   const today=dayInfo().num,recent=new Set([...Array(14)].map((_,k)=>skeinKey(dailyRoot(today-k))));
   let seen=new Set(store.get(SEEN_KEY)||[]);
   const pool=()=>{const out=[],ks=new Set();POOL.forEach((w,i)=>{const k=skeinKey(w);if(ks.has(k)||seen.has(k)||recent.has(k))return;ks.add(k);out.push(i)});return out};
-  let p=pool();if(!p.length){seen=new Set();store.set(SEEN_KEY,[]);p=pool()}
-  return p[Math.floor(Math.random()*p.length)]}
+  const p=pool();
+  // every curated skein played: from now on, wild ones
+  return p.length?p[Math.floor(Math.random()*p.length)]:Math.random().toString(36).slice(2,7)}
+const curatedLeft=()=>{const seen=new Set(store.get(SEEN_KEY)||[]),ks=new Set();POOL.forEach(w=>{const k=skeinKey(w);if(!seen.has(k))ks.add(k)});return ks.size};
+// ---- wild skeins: Endless that never runs out ----
+// Seven or eight letters drawn from the code (weighted like English), kept only if they make a puzzle as good as
+// the curated ones: the same number of everyday words to find, a hidden-word goal, and every ball used.
+// A wild skein never has a pattern word: letters that happen to spell one are drawn again, so it's always the same kind of puzzle.
+const LETTER_BAG='eeeeeeeeeeeeaaaaaaaaaiiiiiiiiioooooooonnnnnnrrrrrrttttttllllssssuuuuddddgggbbccmmppffhhvvwwyykjxqz';
+function wildSkein(code){
+  const all=WORDS.answers.concat(WORDS8.answers);
+  for(let t=0;t<400;t++){const r=mulberry(hseed('wild-'+code+'-'+t)),n=r()<.5?7:8;
+    const pick=[...Array(n)].map(()=>LETTER_BAG[Math.floor(r()*LETTER_BAG.length)]);
+    const v=pick.filter(c=>'aeiou'.includes(c)).length;if(v<2||v>(n===8?4:3))continue;
+    const c={};pick.forEach(x=>c[x]=(c[x]||0)+1);if(Object.values(c).some(x=>x>2)||(c.q&&!c.u))continue;
+    const rs=sig(pick.join('')),words=all.filter(w=>fits(w,rs)),N=words.length;
+    if(n===7?(N<14||N>30):(N<18||N>40))continue;
+    if(words.some(w=>w.length===n))continue;
+    if(!pick.every(x=>words.some(w=>w.includes(x))))continue;
+    const g=setup(pick.join(''));if(!g.meta)continue;
+    return g}
+  return null}
 function markSeen(root){const s=new Set(store.get(SEEN_KEY)||[]);s.add(skeinKey(root));store.set(SEEN_KEY,[...s])}
 
 // ---- the week's picture: seven 16x16 pixel tiles, Monday to Sunday ----
@@ -346,9 +371,13 @@ function load(m,idxOverride,dayIso){
     const today=dayInfo().iso;$('sub').textContent=d.iso===today?'Daily skein '+G.label:'Catching up · skein '+G.label+' ';
     if(d.iso!==today){const b=document.createElement('button');b.className='btn small';b.textContent='Back to today';b.onclick=()=>load('daily');$('sub').append(b)}
     const legacy=store.get('joannagrams-daily');saved=allDays()[d.iso]?{st:allDays()[d.iso]}:legacy&&legacy.iso===d.iso?legacy:null}
-  else{const i=idxOverride!=null?idxOverride:pickEndless();G=setup(POOL[i]);markSeen(POOL[i]);G.code=(i+1000).toString(36);
-    G.label='Endless · skein '+G.code;$('seedTxt').textContent=G.code;$('sub').textContent='Endless mode · wind a new skein any time';
-    try{history.replaceState(null,'','#j'+G.code)}catch(e){}}
+  else{const i=idxOverride!=null?idxOverride:pickEndless();
+    const wild=typeof i==='string'?wildSkein(i):null;
+    if(wild){G=wild;G.code='w'+i;G.wild=true;G.label='Endless · wild skein '+i;$('sub').textContent='Endless mode · a wild skein, made just now'}
+    else{const k=typeof i==='number'?i:0;G=setup(POOL[k]);markSeen(POOL[k]);G.code=(k+1000).toString(36);G.label='Endless · skein '+G.code;
+      const left=curatedLeft();$('sub').textContent=left?`Endless mode · ${left} skein${left===1?'':'s'} you haven't had yet, then wild ones`:'Endless mode · wind a new skein any time'}
+    $('seedTxt').textContent=G.code;
+    try{history.replaceState(null,'','#'+(G.wild?'':'j')+G.code)}catch(e){}}
   st=saved?saved.st:{found:[],bonus:[],hints:{},pulled:0,done:false,blanket:[],metaDone:false};
   if(!st.blanket)st.blanket=[];
   if(!G.meta&&!st.metaDone&&st.found.some(w=>w.length===G.root.length))st.metaDone=true;
@@ -415,7 +444,7 @@ function render(){
   $('count').setAttribute('aria-label',`${n} of ${T} words${nb?`, plus ${nb} bonus`:''}`);G.justBonus=false;
   $('statLine').textContent=st.done?'Square finished':st.metaDone?`${T-n} more for the full square`:'Every word adds to the square';
   const pat=G.answers.filter(w=>w.length===G.root.length);
-  $('statSub').textContent=pat.some(w=>st.found.includes(w))?'Pattern word found':'Pattern word still hidden';
+  $('statSub').textContent=!pat.length?'Wild skein · no pattern word':pat.some(w=>st.found.includes(w))?'Pattern word found':'Pattern word still hidden';
   const groups={};G.answers.forEach(w=>(groups[w.length]=groups[w.length]||[]).push(w));
   let h='';
   Object.keys(groups).map(Number).sort((a,b)=>a-b).forEach(L=>{
@@ -423,7 +452,7 @@ function render(){
     groups[L].forEach(w=>{const f=st.found.includes(w),hn=st.hints[w]||0,mk=G.meta?G.meta.marks.find(m=>m.w===w):null;
       h+=`<span class="w ${f?'found':''} ${L===G.root.length?'pat':''} ${f&&w===G.justFound?'new':''}" aria-label="${f?w:L+' letter word'}">${w.split('').map((ch,i)=>{const m=mk&&mk.pos===i?' mk':'';return f?`<i class="${m}">${ch}</i>`:i<hn?`<i class="h${m}">${ch}</i>`:`<i class="${m}"></i>`}).join('')}</span>`});
     h+='</div></div>'});
-  $('slots').innerHTML=h;G.justFound=null;
+  $('slots').innerHTML=h;G.justFound=null;$('wildnote').hidden=!G.wild;
   blanket();
   week();
   $('chain').innerHTML=chain.map(i=>`<span class="lk">${letters[i]}</span>`).join('')||'<span style="color:var(--muted);font-size:15px;font-family:var(--body);letter-spacing:0;text-transform:none">Chain letters from the ring</span>';
@@ -506,7 +535,9 @@ document.addEventListener('keydown',e=>{if(e.metaKey||e.ctrlKey||e.altKey)return
 $('tDaily').onclick=()=>load('daily');
 $('week').addEventListener('click',e=>{const b=e.target.closest('[data-day]');if(!b||b.disabled||b.dataset.day===G.iso)return;load('daily',null,b.dataset.day);window.scrollTo({top:0,behavior:'smooth'})});$('tEndless').onclick=()=>load('endless');$('newBtn').onclick=()=>load('endless');
 
-(function boot(){const h=(location.hash||'').slice(1);const m=/^j([a-z0-9]{2,3})$/.exec(h);
+$('wildBtn').onclick=()=>load('endless',Math.random().toString(36).slice(2,7));
+(function boot(){const h=(location.hash||'').slice(1);const m=/^j([a-z0-9]{2,3})$/.exec(h),w=/^w([a-z0-9]{5})$/.exec(h);
+  if(w){load('endless',w[1]);return}
   if(m){const i=parseInt(m[1],36)-1000;if(i>=0&&i<POOL.length){load('endless',i);return}}
   load('daily');if(!store.get('joannagrams-seen')){$('rules').open=true;store.set('joannagrams-seen',1)}})();
 </script>
