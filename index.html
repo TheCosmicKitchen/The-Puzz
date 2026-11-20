@@ -109,6 +109,19 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
   </div>
   <div class="sect"><h3>Prototypes</h3><p>New ideas we're trying out. They all work, daily and endless, but they may change.</p></div>
   <div class="cards">
+    <a class="card" href="scrawl.html">
+      <svg viewBox="0 0 72 72" aria-hidden="true">
+        <rect x="4" y="44" width="64" height="20" rx="6" fill="#7A4C26"/><rect x="4" y="44" width="64" height="5" rx="2.5" fill="#94612F"/>
+        <g font-family="Fraunces,Georgia,serif" font-weight="800" font-size="15" text-anchor="middle">
+          <rect x="8" y="28" width="17" height="17" rx="3.5" fill="#F4E4C0" stroke="#B88B45" stroke-width="1.2"/><text x="16.5" y="41.5" fill="#2B2117">Z</text>
+          <rect x="27.5" y="25" width="17" height="17" rx="3.5" fill="#FF8A2B" stroke="#9C2A12" stroke-width="1.2" transform="rotate(-6 36 33.5)"/><text x="36" y="38.5" fill="#3A0E05" transform="rotate(-6 36 33.5)">A</text>
+          <rect x="47" y="28" width="17" height="17" rx="3.5" fill="#C9D1D9" stroke="#5D6874" stroke-width="1.2"/><text x="55.5" y="41.5" fill="#1E2630">P</text>
+        </g>
+        <path d="M36,6 C42,14 30,16 36,22 C30,20 28,12 36,6Z" fill="#E0A526"/><path d="M36,11 C39,15 33,16 36,20 C33,18 33,14 36,11Z" fill="#FFD25A"/>
+      </svg>
+      <div><h2>Dungeon Scrawl</h2><p>Nudge, flip and spell letter tiles to beat three foes a day. Flaming, steel and gilded tiles turn up along the way.</p></div>
+      <span class="pill" id="s-ds">New</span>
+    </a>
     <a class="card" href="typeset.html">
       <svg viewBox="0 0 72 72" aria-hidden="true">
         <rect x="4" y="4" width="64" height="64" rx="8" fill="var(--felt)"/>
@@ -175,6 +188,9 @@ const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return nul
 [['typeset-daily','s-ts'],['crosslight-daily','s-cl'],['strike-daily','s-st'],['sampler-daily','s-sm'],['tally-daily','s-ta'],['ladder-daily','s-la']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
   if(s&&s.iso===iso&&el){if(s.st.done){el.textContent='Done';el.classList.add('done')}else if(s.st.started||(s.st.guesses&&s.st.guesses.length)||(s.st.rungs&&s.st.rungs.length))el.textContent='In progress'}});
 
+// Dungeon Scrawl keeps its whole run under one key; its seed carries the date.
+{const s=get('scrawl-daily'),el=document.getElementById('s-ds');
+  if(s&&s.seed==='scrawl-'+iso&&el){if(s.over==='won'){el.textContent='Cleared';el.classList.add('done')}else if(s.over==='lost')el.textContent='Fell';else if(s.turns>1||s.fi>0)el.textContent='In progress'}}
 // Streak card. Fill in finishes the streak missed first (puzzles solved before streaks existed, or on a
 // day this page wasn't opened): each game's save remembers the day it was played, and Joannagrams keeps
 // three weeks of days. Each save counts as finished by the same test as its pill above.
