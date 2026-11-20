@@ -28,6 +28,7 @@
 body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--body)}
 .wrap{max-width:520px;margin:0 auto;padding-block:14px 32px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:12px}
 .eyebrow{font:700 12px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.toprow{display:flex;justify-content:space-between;gap:10px}.toprow a{text-decoration:none}.toprow a:hover{color:var(--ink)}
 header{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
 h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:var(--gold)}
 .sub{color:var(--muted);font-size:13px}
@@ -63,6 +64,8 @@ h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:v
 .slots{display:flex;gap:4px;flex-wrap:wrap}
 .slot{width:44px;height:44px;border-radius:10px;border:2px dashed var(--rule);background:transparent;padding:0;cursor:pointer;position:relative;display:grid;place-items:center}
 .slot.full{border:0}
+.wordrow .slots{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;flex:1}.wordrow .slot{width:100%;height:auto;aspect-ratio:1}.wordrow .slot .tile{--ts:min(44px,11vw)}
+.strikerow{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .wordrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .wordrow .slots{flex:1}
 .wordinfo{font-size:12.5px;color:var(--muted);min-height:1.3em}
@@ -143,6 +146,12 @@ h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:v
   @keyframes offerin{from{transform:translateY(16px) scale(.96);opacity:0}to{transform:none;opacity:1}}}
 .edges{display:flex;flex-wrap:wrap;gap:5px}
 .edge{font:700 11.5px var(--body);padding:3px 9px;border-radius:99px;background:color-mix(in srgb,var(--gold) 25%,transparent);color:var(--ink);display:inline-flex;align-items:center;gap:5px}
+.edges{flex-direction:column;align-items:flex-start;gap:3px}
+.edge.on{background:var(--gold);color:#2B2117;box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 50%,transparent)}
+@media (prefers-reduced-motion:no-preference){.edge.on{animation:edgepulse 1s ease-in-out infinite}@keyframes edgepulse{50%{transform:scale(1.04)}}}
+.edgedesc{font-size:12px;color:var(--muted)}
+.edgeon{color:var(--gold)}
+.float.edgefx{color:var(--gold);font-size:24px;-webkit-text-stroke:1px rgba(60,40,0,.35)}
 .meter{display:inline-block;width:40px;height:6px;border-radius:9px;background:color-mix(in srgb,var(--ink) 15%,transparent);overflow:hidden}.meter i{display:block;height:100%;background:var(--gold)}
 .tile.blank{background:repeating-linear-gradient(45deg,#F6EEDC 0 5px,#EADFC6 5px 10px)}
 .tile.blank::after{content:"?";position:absolute;inset:0;display:grid;place-items:center;color:#B8A78A;font:800 calc(var(--ts,50px)*.5)/1 var(--display)}
@@ -160,7 +169,7 @@ details p{margin:8px 0;font-size:14px}
 </head>
 <body>
 <div class="wrap">
-  <a class="eyebrow" href="./">← The Puzz</a>
+  <nav class="toprow"><a class="eyebrow" href="./">← The Puzz</a><a class="eyebrow" href="scrawl-lab/" title="Bot analytics for the tricks">Lab ↗</a></nav>
   <header>
     <div class="brand"><svg class="logo" viewBox="0 0 72 72" aria-hidden="true">
         <rect x="4" y="44" width="64" height="20" rx="6" fill="#7A4C26"/><rect x="4" y="44" width="64" height="5" rx="2.5" fill="#94612F"/>
@@ -183,11 +192,11 @@ details p{margin:8px 0;font-size:14px}
   <section class="result" id="result" hidden></section>
   <details id="rules">
     <summary>How to play</summary>
-    <p>Beat today's three foes. Everyone gets the same foes and the same tiles.</p>
-    <p>Each turn you draw six letter tiles. Tap a tile, then a card's slot, or drag the tile onto the card. While you hold a tile, every card shows what it would do with it. <b>Nudge</b> moves a letter one step on (B→C, Z→A). <b>Flip</b> mirrors it across the alphabet (A↔Z, B↔Y, M↔N). Changed tiles come back to your hand, so you can keep working on them.</p>
-    <p><b>Spellblade</b> takes a real word of three letters or more and deals its points, plus a bonus for long words. Use it as often as your tiles allow. <b>Quill</b> throws one consonant. <b>Vowel Ward</b> turns a vowel into a shield for the foe's next move. Other cards work once a turn (Nudge twice), or once a foe where they say so. Unused tiles are lost when you end your turn.</p>
-    <p><b>Tools.</b> Before the first foe, and after each one you beat, pick one of three tools to add to your kit: letter tricks like Rotate, Swap and Ink Blot, enchanters like Kindle, bag tricks like Pocket and Eraser, and Spellblade edges that reward haiku-length words, palindromes, rhymes and long sentences. Everyone is offered the same tools each day. Want to try them all? <a href="#lab" onclick="setTimeout(()=>location.reload())">Open the tool lab</a>.</p>
-    <p><b>Enchanted tiles</b> turn up now and then, and keep their enchantment when you Nudge or Flip them: 🔥 <b>Flaming</b> adds 4 damage when it attacks, 🛡 <b>Steel</b> fits Vowel Ward even as a consonant and adds 6 block, ✨ <b>Gilded</b> is worth double, and 🌿 <b>Leaf</b> heals you 3 when it's used.</p>
+    <p>Beat today's three foes. Everyone gets the same foes, the same tiles and the same tricks on offer.</p>
+    <p>Each turn you draw six letter tiles. Tap a tile, then a card, or drag the tile onto the card. While you hold a tile, every card shows what it would do with it. Changed tiles come back to your hand, so you can keep working on them. Unused tiles are lost when you end your turn.</p>
+    <p><b>Spellblade</b> is your main attack: a real word of 3 to 6 letters deals its points, plus a bonus for long words. Use it as often as your tiles allow. Each day it has an <b>edge</b>, a bonus for words that fit today's rule: rhymes, palindromes, five-letter words, double letters and so on.</p>
+    <p>Your kit holds four cards: <b>Quill</b>, which flicks a single consonant for its points, and three letter tricks. You start with <b>Nudge</b> (B→C) and <b>Flip</b> (A↔Z) and pick a third before the first foe. After each win, a new trick is on offer: take it in place of one of yours, or keep your kit. Want to try every trick? <a href="#lab" onclick="setTimeout(()=>location.reload())">Open the tool lab</a>.</p>
+    <p><b>Enchanted tiles</b> turn up now and then and keep their enchantment through every trick: 🔥 <b>Flaming</b> adds 4 damage, 🛡 <b>Steel</b> gives you 6 block when you use it, ✨ <b>Gilded</b> is worth double, and 🌿 <b>Leaf</b> heals you 3.</p>
     <p>Watch what the foe will do next: attacks, and tricks like <b>Jumble</b> (one of your next tiles changes), <b>Nibble</b> (one fewer tile) and <b>Muffle</b> (vowels worth nothing).</p>
   </details>
 </div>
@@ -211,43 +220,41 @@ const flip=c=>String.fromCharCode(25-(c.charCodeAt(0)-97)+97);
 // Enchanted tiles. They keep their enchantment through Nudge and Flip.
 const FX={
   fire:{name:'Flaming',icon:'🔥',say:'+4 damage when it attacks'},
-  steel:{name:'Steel',icon:'🛡',say:'Vowel Ward takes it, +6 block'},
+  steel:{name:'Steel',icon:'🛡',say:'+6 block when you use it'},
   gold:{name:'Gilded',icon:'✨',say:'double points'},
   leaf:{name:'Leaf',icon:'🌿',say:'heals 3 when used'}};
-const HAND=6,HP=30,WORD_BONUS=[0,0,0,0,2,4,7,10,14];
+const HAND=6,HP=30,MAXWORD=6,WORD_BONUS=[0,0,0,0,2,4,7];
 
-// ---- tools: every card you can hold. Core kit plus whatever you draft between foes. ----
-// kind 'morph' changes a tile and gives it back; 'quill'/'ward' spend a tile; 'make' turns one tile into others;
-// 'swap' takes two tiles; 'pocket' keeps a tile for next turn; 'erase' cancels the foe's next trick; 'edge' is a
-// passive upgrade to the Spellblade. uses = per turn, perFight = per foe.
+// ---- tools: a kit of four. Quill (small, always there) plus three letter tricks. ----
+// kind 'morph' changes a tile and gives it back, 'make' turns one tile into others, 'swap' takes two tiles,
+// 'quill' throws a tile. uses = per turn, perFight = per foe.
 const ROT={b:'d',d:'p',p:'q',q:'b',n:'u',u:'n',m:'w',w:'m'},VSH={a:'e',e:'i',i:'o',o:'u',u:'a'};
 const BLANK='?';
 const TOOLS={
+  quill:{name:'Quill',kind:'quill',uses:1,desc:'Flick one consonant at the foe for its points.',ok:t=>(!VOW.has(t.ch)&&t.ch!==BLANK)||'Consonants only'},
   nudge:{name:'Nudge',kind:'morph',uses:2,desc:'One step on: B→C, Z→A.',ok:t=>t.ch!==BLANK||'Not on a blank',to:t=>({ch:nudge(t.ch)})},
   flip:{name:'Flip',kind:'morph',uses:1,desc:'Mirror it: A↔Z, B↔Y, M↔N.',ok:t=>t.ch!==BLANK||'Not on a blank',to:t=>({ch:flip(t.ch)})},
-  quill:{name:'Quill',kind:'quill',uses:1,desc:'A consonant: its points +1 as damage.',ok:t=>(!VOW.has(t.ch)&&t.ch!==BLANK)||'Consonants only'},
-  ward:{name:'Vowel Ward',kind:'ward',uses:1,desc:'A vowel (or steel): 2 + its points in block.',ok:t=>VOW.has(t.ch)||t.fx==='steel'||'Vowels or steel only'},
   rotate:{name:'Rotate',kind:'morph',uses:1,desc:'Turn it by its shape: b→d→p→q, n↔u, m↔w.',ok:t=>!!ROT[t.ch]||'Only b d p q n u m w',to:t=>({ch:ROT[t.ch]})},
-  vshift:{name:'Vowel Shift',kind:'morph',uses:1,desc:'A→E→I→O→U→A.',ok:t=>!!VSH[t.ch]||'Vowels only',to:t=>({ch:VSH[t.ch]})},
+  vshift:{name:'Vowel Shift',kind:'morph',uses:2,desc:'A→E→I→O→U→A.',ok:t=>!!VSH[t.ch]||'Vowels only',to:t=>({ch:VSH[t.ch]})},
   swap:{name:'Swap',kind:'swap',uses:1,desc:'Two tiles trade letters. Enchantments stay put.',ok:t=>true},
   twin:{name:'Twin',kind:'make',uses:1,desc:'Copy a tile (without its enchantment).',ok:t=>true,make:t=>[{ch:t.ch,fx:t.fx},{ch:t.ch}]},
   split:{name:'Split',kind:'make',uses:1,desc:'A tile worth 4+ breaks into an E and an A.',ok:t=>(t.ch!==BLANK&&VAL[t.ch]>=4)||'Only tiles worth 4+',make:t=>[{ch:'e'},{ch:'a'}]},
-  inkblot:{name:'Ink Blot',kind:'morph',perFight:1,desc:'Make a blank: any letter in a word, worth 0.',ok:t=>t.ch!==BLANK||'Already blank',to:t=>({ch:BLANK})},
-  kindle:{name:'Kindle',kind:'morph',uses:1,desc:'Set a tile alight 🔥.',ok:t=>t.fx!=='fire'||'Already burning',to:t=>({fx:'fire'})},
-  temper:{name:'Temper',kind:'morph',uses:1,desc:'Make a tile steel 🛡.',ok:t=>t.fx!=='steel'||'Already steel',to:t=>({fx:'steel'})},
-  gild:{name:'Gild',kind:'morph',perFight:1,desc:'Gild a tile ✨ (double points).',ok:t=>t.fx!=='gold'||'Already gilded',to:t=>({fx:'gold'})},
-  redraw:{name:'Redraw',kind:'make',uses:2,desc:'Throw a tile back, draw a new one.',ok:t=>true,make:null},
-  pocket:{name:'Pocket',kind:'pocket',uses:1,desc:'Keep a tile for next turn.',ok:t=>true},
-  eraser:{name:'Eraser',kind:'erase',perFight:1,desc:"Spend a tile: the foe's next trick doesn't happen (its attack still does).",ok:t=>!!trickOf(nextMove())||'No trick to erase'},
-  haiku:{name:'Haiku Edge',kind:'edge',desc:'Five-letter words deal double.'},
-  mirror:{name:'Mirror Edge',kind:'edge',desc:"A palindrome (noon, level) stuns: the foe skips its next move."},
-  rhyme:{name:'Rhyme Edge',kind:'edge',desc:'A word ending like your last word (same last two letters) deals double.'},
-  longsent:{name:'Long Sentence',kind:'edge',desc:'Every 12 letters you spell charge it: your next word deals triple.'}};
-const CORE=['nudge','flip','quill','ward'];
-const DRAFTABLE=Object.keys(TOOLS).filter(k=>!CORE.includes(k));
-const trickOf=m=>m.jumble?'Jumble':m.nibble?'Nibble':m.muffle?'Muffle':m.redpen?'Red pen':m.armor?'Armour':null;
+  inkblot:{name:'Ink Blot',kind:'morph',perFight:1,desc:'Make a blank: any letter in a word, worth 0.',ok:t=>t.ch!==BLANK||'Already blank',to:t=>({ch:BLANK})}};
+const KIT_MAX=4,START=['quill','nudge','flip'];
+const TRICKS=Object.keys(TOOLS).filter(k=>k!=='quill');
 const usesLeft=k=>TOOLS[k].perFight?(S.fightUses[k]??0):(S.uses[k]??0);
 const usesLabel=k=>{const T=TOOLS[k],n=usesLeft(k);if(!n)return 'used';if(T.perFight)return 'once a foe';return n>1?'×'+n:'ready'};
+
+// ---- the Spellblade's edge: one bonus a day, the same for everyone ----
+// test(w) says whether a word earns it; the bonus is a multiplier, a flat add, or a stun.
+const EDGES={
+  rhyme:{name:'Rhyme',desc:'A word ending like your last word (same last two letters) deals double.',test:w=>S.lastWord&&w!==S.lastWord&&w.slice(-2)===S.lastWord.slice(-2),mult:2},
+  haiku:{name:'Haiku',desc:'Five-letter words deal double.',test:w=>w.length===5,mult:2},
+  mirror:{name:'Mirror',desc:'A palindrome (noon, level) stuns: the foe skips its next move.',test:w=>w.length>=3&&w===[...w].reverse().join(''),stun:true},
+  allit:{name:'Alliteration',desc:'A word starting like your last word deals double.',test:w=>S.lastWord&&w!==S.lastWord&&w[0]===S.lastWord[0],mult:2},
+  twins:{name:'Twin Letters',desc:'A word with a double letter (ll, ee, ss) deals +5.',test:w=>/(.)\1/.test(w),add:5},
+  letter:{name:'Letter of the Day',desc:'Use today\'s letter in a word: +6.',test:w=>w.includes(S.dayLetter),add:6},
+  longsent:{name:'Long Sentence',desc:'Every 12 letters you spell charge it: your next word deals triple.',test:w=>S.charged,mult:3}};
 
 // ---- foes: each move is shown one turn ahead ----
 const FOES={
@@ -257,8 +264,9 @@ const FOES={
   jacket:{name:'Dust Jacket',about:'Wraps itself in armour.',hp:23,col:'#9A8A6A',eye:'#fff',glyph:'J',moves:[{armor:8,atk:5},{atk:12},{armor:6,atk:7}]},
   splice:{name:'Comma Splice',about:'Hits twice, joined together badly.',hp:22,col:'#C24F7A',eye:'#fff',glyph:',',moves:[{atk:6,twice:1},{atk:9},{atk:6,twice:1}]},
   editor:{name:'The Editor',about:'Crosses out what you write. Last foe of the day.',hp:32,col:'#B33A3A',eye:'#fff',glyph:'✎',moves:[{atk:12},{redpen:2,atk:6},{atk:14},{armor:8,atk:6}]}};
-const FOE_HP_SCALE=1.3;   // tuned with a bot that spells greedily but never uses drafted tools: it wins about half
-const moveText=m=>{const p=[];if(m.atk)p.push(`⚔ ${m.atk}${m.twice?' ×2':''}`);if(m.armor)p.push(`🛡 ${m.armor}`);if(m.jumble)p.push('Jumble');if(m.nibble)p.push('Nibble');if(m.muffle)p.push('Muffle');if(m.redpen)p.push(`Red pen ×${m.redpen}`);return p.join(' · ')};
+let FOE_HP_SCALE=1.22,FOE_ATK_SCALE=1;   // tuned so a greedy bot with only Quill, Nudge and Flip (unused) wins about half its runs
+const atkOf=m=>Math.round((m.atk||0)*FOE_ATK_SCALE);
+const moveText=m=>{const p=[];if(m.atk)p.push(`⚔ ${atkOf(m)}${m.twice?' ×2':''}`);if(m.armor)p.push(`🛡 ${m.armor}`);if(m.jumble)p.push('Jumble');if(m.nibble)p.push('Nibble');if(m.muffle)p.push('Muffle');if(m.redpen)p.push(`Red pen ×${m.redpen}`);return p.join(' · ')};
 function foeSVG(f){return `<svg viewBox="0 0 84 84" aria-hidden="true"><ellipse cx="42" cy="78" rx="26" ry="4" fill="rgba(0,0,0,.15)"/>
   <path d="M14,70 C8,40 20,10 42,10 C64,10 76,40 70,70 Q56,64 42,72 Q28,64 14,70Z" fill="${f.col}"/>
   <circle cx="32" cy="34" r="7" fill="${f.eye}"/><circle cx="52" cy="34" r="7" fill="${f.eye}"/><circle cx="33" cy="35" r="3.2" fill="#1d1a2b"/><circle cx="53" cy="35" r="3.2" fill="#1d1a2b"/>
@@ -269,15 +277,21 @@ function dayInfo(on){const d=on?new Date(on+'T12:00'):new Date(),t=new Date(d.ge
   const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
   return{num:Math.round((t-s)/864e5)+1,iso,label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
 function newRun(seed,lab){const r=mulberry(hseed(seed));const two=shuffle(r,['gremlin','worm','hush','jacket','splice']).slice(0,2);
-  return{seed,lab:!!lab,foes:[...two,'editor'].map((k,i)=>{const hp=Math.round((FOES[k].hp+i*2)*FOE_HP_SCALE);return{k,hp,max:hp,block:0,mi:Math.floor(r()*FOES[k].moves.length)}}),
+  const er=mulberry(hseed(seed+'-edge')),ek=Object.keys(EDGES);
+  return{v:2,seed,lab:!!lab,foes:[...two,'editor'].map((k,i)=>{const hp=Math.round((FOES[k].hp+i*2)*FOE_HP_SCALE);return{k,hp,max:hp,block:0,mi:Math.floor(r()*FOES[k].moves.length)}}),
     fi:0,turn:0,turns:0,hp:HP,block:0,hand:[],spell:[],uses:{},fightUses:{},pending:{},muffle:false,best:null,over:null,log:'',
-    kit:lab?CORE.concat(DRAFTABLE.filter(k=>TOOLS[k].kind!=='edge')):CORE.slice(),edges:lab?DRAFTABLE.filter(k=>TOOLS[k].kind==='edge'):[],
-    draft:lab?null:0,picks:[],pocket:[],made:0,charge:0,charged:false,lastWord:null,stun:false,erase:false}}
-// the three tools on offer at draft d (0: before the first foe, 1 and 2: after each win), from the day's seed
-function offers(d){const order=shuffle(mulberry(hseed(S.seed+'-draft-'+d)),DRAFTABLE);return order.filter(k=>!S.kit.includes(k)&&!S.edges.includes(k)).slice(0,3)}
-function pick(k){if(S.draft==null)return;if(TOOLS[k].kind==='edge')S.edges.push(k);else S.kit.push(k);S.picks.push(k);S.draft=null;
-  if(TOOLS[k].perFight)S.fightUses[k]=TOOLS[k].perFight;else S.uses[k]=TOOLS[k].uses;
-  say(`<b>${TOOLS[k].name}</b> joins your kit.`);dealNext=true;persist();render()}
+    kit:lab?['quill',...TRICKS]:START.slice(),edge:ek[Math.floor(er()*ek.length)],dayLetter:'bcdfghklmnprstw'[Math.floor(er()*15)],
+    draft:lab?null:0,picks:[],made:0,charge:0,charged:false,lastWord:null,stun:false,swapIn:null}}
+// the three tricks on offer at draft d (0: before the first foe, 1 and 2: after each win), from the day's seed
+function offers(d){return shuffle(mulberry(hseed(S.seed+'-draft-'+d)),TRICKS).filter(k=>!S.kit.includes(k)).slice(0,3)}
+function grant(k){if(TOOLS[k].perFight)S.fightUses[k]=TOOLS[k].perFight;else S.uses[k]=TOOLS[k].uses}
+// with room in the kit a pick goes straight in; a full kit means choosing a trick to give up for it
+function pick(k){if(S.draft==null)return;
+  if(S.kit.length<KIT_MAX){S.kit.push(k);S.picks.push(k);S.draft=null;grant(k);say(`<b>${TOOLS[k].name}</b> joins your kit.`);dealNext=true;persist();render();return}
+  S.swapIn=k;render()}
+function replace(old){const k=S.swapIn;if(!k||old==='quill')return;S.kit[S.kit.indexOf(old)]=k;S.picks.push(k);S.swapIn=null;S.draft=null;grant(k);
+  say(`<b>${TOOLS[k].name}</b> takes the place of <b>${TOOLS[old].name}</b>.`);dealNext=true;persist();render()}
+function keepKit(){S.draft=null;S.swapIn=null;say('You keep your kit.');dealNext=true;persist();render()}
 // Each hand is drawn from the seed, the foe and the turn, so everyone gets the same tiles whatever they played.
 // Two or three vowels a hand, the rest consonants, each weighted like the letter bag.
 const BAG_V=[...BAG].filter(c=>VOW.has(c)),BAG_C=[...BAG].filter(c=>!VOW.has(c));
@@ -289,25 +303,28 @@ function drawTiles(n){const r=mulberry(hseed(S.seed+'-hand-'+S.fi+'-'+S.turn)),n
 function startTurn(){
   S.turn++;S.turns++;S.uses={};S.kit.forEach(k=>{if(TOOLS[k].uses)S.uses[k]=TOOLS[k].uses});S.spell=[];S.block=0;S.swapPick=null;
   const p=S.pending;S.muffle=!!p.muffle;
-  S.hand=drawTiles(HAND-(p.nibble||0)).concat(S.pocket.map((t,i)=>({...t,id:'pk'+S.turns+'-'+i,crossed:false})));S.pocket=[];
+  S.hand=drawTiles(HAND-(p.nibble||0));
   const r=mulberry(hseed(S.seed+'-trick-'+S.fi+'-'+S.turn));
   if(p.jumble){const t=S.hand[Math.floor(r()*S.hand.length)];t.ch='qxzjkvwy'[Math.floor(r()*8)];t.fresh=true}
   if(p.redpen){shuffle(r,S.hand.map((_,i)=>i)).slice(0,p.redpen).forEach(i=>S.hand[i].crossed=true)}
   S.pending={};sel=null}
-function startFight(){S.fightUses={};S.kit.forEach(k=>{if(TOOLS[k].perFight)S.fightUses[k]=TOOLS[k].perFight});S.turn=0;S.pending={};S.charge=0;S.charged=false;S.lastWord=null;S.stun=false;S.erase=false;startTurn()}
+function startFight(){S.fightUses={};S.kit.forEach(k=>{if(TOOLS[k].perFight)S.fightUses[k]=TOOLS[k].perFight});S.turn=0;S.pending={};S.charge=0;S.charged=false;S.lastWord=null;S.stun=false;startTurn()}
 const foe=()=>S.foes[S.fi],F=()=>FOES[foe().k],nextMove=()=>F().moves[foe().mi%F().moves.length];
 const pts=t=>t.ch===BLANK?0:(S.muffle&&VOW.has(t.ch)?0:VAL[t.ch])*(t.fx==='gold'?2:1);
 const fireOf=ts=>ts.filter(t=>t.fx==='fire').length*4;
-// a leaf tile heals when it's used, whatever it's used for
-function useUp(ts){let heal=0;ts.forEach(t=>{if(t.fx==='leaf')heal+=3;removeTile(t)});if(heal){const was=S.hp;S.hp=Math.min(HP,S.hp+heal);if(S.hp>was)fxq.push({t:'heal',n:S.hp-was,delay:520});return S.hp-was}return 0}
+const steelOf=ts=>ts.filter(t=>t.fx==='steel').length*6;
+// leaf tiles heal and steel tiles armour you when they're used, whatever they're used for
+function useUp(ts,from){let heal=0;const blk=steelOf(ts);ts.forEach(t=>{if(t.fx==='leaf')heal+=3;removeTile(t)});
+  if(blk){S.block+=blk;fxq.push({t:'ward',n:blk,from:[]})}
+  if(heal){const was=S.hp;S.hp=Math.min(HP,S.hp+heal);if(S.hp>was)fxq.push({t:'heal',n:S.hp-was,delay:520});return{heal:S.hp-was,blk}}return{heal:0,blk}}
 
 let S=null,mode='daily',D=null,sel=null,flash='';
 function load(m,arg){
   mode=m;D=m==='daily'||m==='day'?dayInfo(m==='day'?arg:null):null;
   const seed=m==='daily'||m==='day'?'scrawl-'+D.iso:'endless-'+(arg||Math.random().toString(36).slice(2,7));
   const saved=m==='daily'?store.get('scrawl-daily'):null;
-  S=saved&&saved.seed===seed&&saved.kit?saved:newRun(seed,m==='lab');if(!S.turn)startFight();
-  $('sub').textContent=m==='lab'?'Tool lab · every tool, endless':m==='endless'?'Endless crawl · '+seed.slice(8):m==='day'?`Shared crawl #${D.num} · ${D.label} · not your streak`:`Daily crawl #${D.num} · ${D.label}`;
+  S=saved&&saved.seed===seed&&saved.v===2?saved:newRun(seed,m==='lab');if(!S.turn)startFight();
+  $('sub').textContent=m==='lab'?'Tool lab · every trick, endless':m==='endless'?'Endless crawl · '+seed.slice(8):m==='day'?`Shared crawl #${D.num} · ${D.label} · not your streak`:`Daily crawl #${D.num} · ${D.label}`;
   try{history.replaceState(null,'',m==='daily'?location.pathname:m==='day'?'#d'+D.iso:m==='lab'?'#lab':'#'+seed.slice(8))}catch(e){}
   dealNext=true;render();if(S.over)showResult()}
 function persist(){if(mode==='daily')store.set('scrawl-daily',S)}
@@ -338,6 +355,7 @@ function playFx(list){for(const e of list){
     if(e.n)floatText('foe','−'+e.n,'dmg'+(e.n>=15?' big':''),at);if(e.blocked)floatText('foe','🛡 '+e.blocked,'blk',at+140);if(e.fire&&MOTION)floatText('foe','🔥','dmg',at+60)}
   else if(e.t==='ward'){const at=fly(e.from||[],'you');floatText('you','+'+e.n+' 🛡','blk',at);if(MOTION)$('youBlock').animate([{transform:'scale(2)'},{transform:'none'}],{duration:420,delay:at,easing:'ease-out'})}
   else if(e.t==='heal')floatText('you','+'+e.n+' ❤','heal',e.delay||0);
+  else if(e.t==='edge')floatText('foe',e.name+'!','edgefx',300);
   else if(e.t==='spark'){const card=document.querySelector(`[data-card="${e.card}"]`);if(card&&MOTION)card.animate([{boxShadow:'0 0 0 0 rgba(224,165,38,.95)'},{boxShadow:'0 0 0 16px rgba(224,165,38,0)'}],{duration:520,easing:'ease-out'})}
   else if(e.t==='foeTurn'){const sv=$('foe').querySelector('svg');
     if(MOTION&&sv&&e.atk)sv.animate([{transform:'none'},{transform:'translateY(20px) scale(1.14)',offset:.35},{transform:'none'}],{duration:440,easing:'ease-in-out'});
@@ -360,34 +378,26 @@ const newId=()=>'m'+S.turns+'-'+(S.made=(S.made||0)+1);
 function preview(k,t){const T=TOOLS[k];if(!t||t.crossed||!usesLeft(k))return null;
   const okv=T.ok?T.ok(t):true;if(okv!==true)return{ok:false,html:okv};const L=c=>c===BLANK?'blank':c.toUpperCase();
   switch(T.kind){
-    case 'morph':{const r={...t,...T.to(t),fresh:false};return{ok:true,ghost:tileHTML(r,'ghost'),html:r.ch!==t.ch?`<span class="arr">${L(t.ch)} → ${L(r.ch)}</span>`:`${FX[r.fx].icon} ${FX[r.fx].name}`}}
-    case 'quill':return{ok:true,html:`${pts(t)+1+fireOf([t])} damage${t.fx==='fire'?' 🔥':''}`};
-    case 'ward':return{ok:true,html:`+${2+pts(t)+(t.fx==='steel'?6:0)} block`};
-    case 'make':return{ok:true,html:k==='twin'?`${L(t.ch)} → ${L(t.ch)} ${L(t.ch)}`:k==='split'?`${L(t.ch)} → E A`:'Draw a new tile'};
-    case 'swap':{const a=S.swapPick&&byId(S.swapPick);if(!a)return{ok:true,html:'Pick the first tile'};if(a.id===t.id)return{ok:false,html:'Pick a different tile'};return{ok:true,html:`<span class="arr">${L(a.ch)} ⇄ ${L(t.ch)}</span>`}}
-    case 'pocket':return{ok:true,html:'Keep it for next turn'};
-    case 'erase':return{ok:true,html:`Cancels ${trickOf(nextMove())}`}}
+    case 'morph':{const r={...t,...T.to(t),fresh:false};return{ok:true,ghost:tileHTML(r,'ghost'),html:`<span class="arr">${L(t.ch)} → ${L(r.ch)}</span>`}}
+    case 'quill':return{ok:true,html:`${pts(t)+fireOf([t])} damage${t.fx==='fire'?' 🔥':''}`};
+    case 'make':return{ok:true,html:k==='twin'?`${L(t.ch)} → ${L(t.ch)} ${L(t.ch)}`:`${L(t.ch)} → E A`};
+    case 'swap':{const a=S.swapPick&&byId(S.swapPick);if(!a)return{ok:true,html:'Pick the first tile'};if(a.id===t.id)return{ok:false,html:'Pick a different tile'};return{ok:true,html:`<span class="arr">${L(a.ch)} ⇄ ${L(t.ch)}</span>`}}}
   return null}
 function useOn(card){
   if(S.over||S.draft!=null||!sel)return;const t=byId(sel);if(!t||t.crossed){say('That tile is crossed out.');return}
-  if(card==='spell'){if(S.spell.length>=8)return;S.spell.push(t.id);sel=null;render();return}
+  if(card==='spell'){if(S.spell.length>=MAXWORD){say(`The Spellblade holds ${MAXWORD} letters.`);return}S.spell.push(t.id);sel=null;render();return}
   const T=TOOLS[card];if(!T)return;if(!usesLeft(card)){say(`${T.name} is used up${T.perFight?' for this foe':' this turn'}.`);return}
   const okv=T.ok?T.ok(t):true;if(okv!==true){say(`${T.name}: ${okv}.`);return}
   const L=c=>c===BLANK?'a blank':c.toUpperCase(),c=t.ch;
   switch(T.kind){
-    case 'morph':{fxq.push({t:'spark',card});Object.assign(t,T.to(t));t.fresh=true;say(t.ch!==c?`${T.name}: <b>${L(c)}</b> to <b>${L(t.ch)}</b>.`:`${T.name}: <b>${L(c)}</b> is now ${FX[t.fx].name.toLowerCase()}.`);break}
-    case 'quill':{hitFoe(pts(t)+1+fireOf([t]),`Quill: <b>${L(c)}</b>${t.fx==='fire'?' 🔥':''}`,[srcOf(t)].filter(Boolean),t.fx==='fire');const h=useUp([t]);if(h)S.log+=` 🌿 +${h} HP.`;break}
-    case 'ward':{const b=2+pts(t)+(t.fx==='steel'?6:0);S.block+=b;fxq.push({t:'ward',n:b,from:[srcOf(t)].filter(Boolean)});say(`Ward up: <b>${b}</b> block${t.fx==='steel'?' 🛡':''}.`);const h=useUp([t]);if(h)S.log+=` 🌿 +${h} HP.`;break}
-    case 'make':{fxq.push({t:'spark',card});const at=S.hand.indexOf(t);let made;
-      if(card==='redraw'){const r=mulberry(hseed(S.seed+'-redraw-'+S.fi+'-'+S.turn+'-'+(S.made||0)));made=[{ch:BAG[Math.floor(r()*BAG.length)]}];S.hand.splice(at,1)}
-      else{made=T.make(t);S.hand.splice(at,1)}
-      const tiles=made.map(m=>({id:newId(),ch:m.ch,fx:m.fx,fresh:true}));S.hand.splice(at,0,...tiles);
-      say(card==='redraw'?`Threw back <b>${L(c)}</b>, drew <b>${L(tiles[0].ch)}</b>.`:card==='twin'?`Twinned <b>${L(c)}</b>.`:`Split <b>${L(c)}</b> into <b>E</b> and <b>A</b>.`);break}
+    case 'morph':{fxq.push({t:'spark',card});Object.assign(t,T.to(t));t.fresh=true;say(`${T.name}: <b>${L(c)}</b> to <b>${L(t.ch)}</b>.`);break}
+    case 'quill':{hitFoe(pts(t)+fireOf([t]),`Quill: <b>${L(c)}</b>${t.fx==='fire'?' 🔥':''}`,[srcOf(t)].filter(Boolean),t.fx==='fire');const u=useUp([t]);if(u.heal)S.log+=` 🌿 +${u.heal} HP.`;if(u.blk)S.log+=` 🛡 +${u.blk}.`;break}
+    case 'make':{fxq.push({t:'spark',card});const at=S.hand.indexOf(t);S.hand.splice(at,1);
+      const tiles=T.make(t).map(m=>({id:newId(),ch:m.ch,fx:m.fx,fresh:true}));S.hand.splice(at,0,...tiles);
+      say(card==='twin'?`Twinned <b>${L(c)}</b>.`:`Split <b>${L(c)}</b> into <b>E</b> and <b>A</b>.`);break}
     case 'swap':{if(!S.swapPick){S.swapPick=t.id;sel=null;say(`Swap: now pick a tile to trade with <b>${L(c)}</b>.`);render();return}
       const a=byId(S.swapPick);if(!a||a.id===t.id){S.swapPick=null;render();return}[a.ch,t.ch]=[t.ch,a.ch];a.fresh=t.fresh=true;S.swapPick=null;fxq.push({t:'spark',card});
-      say(`Swapped: <b>${L(t.ch)}</b> ⇄ <b>${L(a.ch)}</b>.`);break}
-    case 'pocket':{S.pocket.push({ch:t.ch,fx:t.fx});removeTile(t);fxq.push({t:'spark',card});say(`<b>${L(c)}</b> is in your pocket for next turn.`);break}
-    case 'erase':{S.erase=true;useUp([t]);fxq.push({t:'spark',card});say(`Erased: the foe's <b>${trickOf(nextMove())}</b> won't happen.`);break}}
+      say(`Swapped: <b>${L(t.ch)}</b> ⇄ <b>${L(a.ch)}</b>.`);break}}
   if(T.perFight)S.fightUses[card]--;else S.uses[card]--;sel=null;afterAction()}
 function removeTile(t){S.hand=S.hand.filter(x=>x!==t);S.spell=S.spell.filter(id=>id!==t.id)}
 // the word in the blade; blanks can be any letter, so find a real word that fits
@@ -396,23 +406,19 @@ function spellWord(){const w=spellRaw();if(w.length<3)return null;if(!w.includes
   const holes=[...w].map((c,i)=>c===BLANK?i:-1).filter(i=>i>=0);if(holes.length>2)return null;const A='abcdefghijklmnopqrstuvwxyz';
   const tryFill=(arr,k)=>{if(k===holes.length){const s=arr.join('');return WORDS.has(s)?s:null}for(const ch of A){arr[holes[k]]=ch;const r=tryFill(arr,k+1);if(r)return r}return null};
   return tryFill([...w],0)}
-const isPal=w=>w.length>=3&&w===[...w].reverse().join('');
-// damage and what the edges add to it
-function wordHit(w){const ts=S.spell.map(byId);let dmg=ts.reduce((s,t)=>s+pts(t),0)+(WORD_BONUS[ts.length]??14)+fireOf(ts),mult=1;const notes=[];
-  if(S.edges.includes('haiku')&&w.length===5){mult*=2;notes.push('haiku ×2')}
-  if(S.edges.includes('rhyme')&&S.lastWord&&w!==S.lastWord&&w.slice(-2)===S.lastWord.slice(-2)){mult*=2;notes.push('rhyme ×2')}
-  if(S.edges.includes('longsent')&&S.charged){mult*=3;notes.push('long sentence ×3')}
-  const stun=S.edges.includes('mirror')&&isPal(w);if(stun)notes.push('stuns');
-  return{dmg:dmg*mult,notes,stun,fire:fireOf(ts)}}
+// damage, and whether today's edge kicks in
+function wordHit(w){const ts=S.spell.map(byId),E=EDGES[S.edge];let dmg=ts.reduce((s,t)=>s+pts(t),0)+(WORD_BONUS[ts.length]??0)+fireOf(ts);
+  const on=!!E.test(w);if(on){if(E.mult)dmg*=E.mult;if(E.add)dmg+=E.add}
+  return{dmg,on,stun:on&&!!E.stun,fire:fireOf(ts),blk:steelOf(ts)}}
 function strike(){
-  const w=spellWord();if(!w||S.draft!=null||S.over)return;const h=wordHit(w);
+  const w=spellWord();if(!w||S.draft!=null||S.over)return;const h=wordHit(w),E=EDGES[S.edge];
   if(!S.best||h.dmg>S.best.dmg)S.best={w,dmg:h.dmg};
   const from=[...document.querySelectorAll('[data-spell] .tile')].map(el=>({r:el.getBoundingClientRect(),html:el.outerHTML}));
-  const ts=S.spell.map(byId);const heal=useUp(ts);S.spell=[];
-  if(S.edges.includes('longsent')){if(S.charged)S.charged=false;S.charge+=w.length;if(S.charge>=12){S.charge-=12;S.charged=true}}
-  if(h.stun)S.stun=true;S.lastWord=w;
-  hitFoe(h.dmg,`Spellblade: <b>${w.toUpperCase()}</b>${h.fire?' 🔥':''}${h.notes.length?' ('+h.notes.join(', ')+')':''}`,from,!!h.fire);
-  if(heal)S.log+=` 🌿 +${heal} HP.`;afterAction()}
+  const ts=S.spell.map(byId);const u=useUp(ts);S.spell=[];
+  if(S.edge==='longsent'){if(S.charged)S.charged=false;S.charge+=w.length;if(S.charge>=12){S.charge-=12;S.charged=true}}
+  if(h.stun)S.stun=true;S.lastWord=w;if(h.on)fxq.push({t:'edge',name:E.name});
+  hitFoe(h.dmg,`Spellblade: <b>${w.toUpperCase()}</b>${h.fire?' 🔥':''}${h.on?` (${E.name}!${h.stun?' stunned':''})`:''}`,from,!!h.fire);
+  if(u.heal)S.log+=` 🌿 +${u.heal} HP.`;if(u.blk)S.log+=` 🛡 +${u.blk} block.`;afterAction()}
 function hitFoe(n,what,from,fire){const f=foe(),soak=Math.min(f.block,n);f.block-=soak;f.hp=Math.max(0,f.hp-(n-soak));fxq.push({t:'hit',n:n-soak,blocked:soak,from:from||[],fire});
   say(`${what} hits for <b>${n-soak}</b>${soak?` (${soak} blocked)`:''}.`);flash='foe'}
 function afterAction(){
@@ -420,20 +426,19 @@ function afterAction(){
     const snap=foeSnap(),last=S.fi===S.foes.length-1;if(snap)fxq.push({t:'poof',...snap,delay:520,next:!last});
     if(last){S.over='won';persist();render();showResult();return}
     const name=F().name;dealNext=true;S.fi++;S.hp=Math.min(HP,S.hp+6);startFight();
-    if(!S.lab)S.draft=S.fi;
-    say(`<b>${name}</b> is beaten. You catch your breath (+6).${S.lab?'':' Pick a tool for the next fight.'}`)}
+    if(!S.lab&&offers(S.fi).length)S.draft=S.fi;
+    say(`<b>${name}</b> is beaten. You catch your breath (+6).${S.draft!=null?' A new trick is on offer.':''}`)}
   persist();render()}
 function endTurn(){
   if(S.over||S.draft!=null)return;const m0=nextMove(),f=foe();f.block=0;
-  // stunned: the foe loses its move. Erased: it keeps its attack but loses its trick.
-  const m=S.stun?{}:S.erase?{atk:m0.atk,twice:m0.twice}:m0;
+  // stunned: the foe loses its move
+  const m=S.stun?{}:m0;
   if(m.armor)f.block+=m.armor;
-  let dmg=0,blocked=0;if(m.atk)for(let k=0;k<(m.twice?2:1);k++){const soak=Math.min(S.block,m.atk);S.block-=soak;blocked+=soak;dmg+=m.atk-soak}
-  fxq.push({t:'foeTurn',atk:!!m.atk,dmg,blocked,armor:m.armor});dealNext=true;
+  let dmg=0,blocked=0;const a=atkOf(m);if(a)for(let k=0;k<(m.twice?2:1);k++){const soak=Math.min(S.block,a);S.block-=soak;blocked+=soak;dmg+=a-soak}
+  fxq.push({t:'foeTurn',atk:!!a,dmg,blocked,armor:m.armor});dealNext=true;
   S.hp=Math.max(0,S.hp-dmg);S.pending={jumble:m.jumble,nibble:m.nibble,muffle:m.muffle,redpen:m.redpen};f.mi++;
-  const bits=[];if(S.stun)bits.push('is stunned and does nothing');if(m.atk)bits.push(`hits you for <b>${dmg}</b>`);if(m.armor)bits.push(`armours up (${m.armor})`);if(m.jumble)bits.push('jumbles a tile');if(m.nibble)bits.push('nibbles a tile');if(m.muffle)bits.push('muffles your vowels');if(m.redpen)bits.push(`crosses out ${m.redpen} tiles`);
-  if(S.erase&&!S.stun&&trickOf(m0))bits.push(`but its ${trickOf(m0)} was erased`);
-  S.stun=false;S.erase=false;
+  const bits=[];if(S.stun)bits.push('is stunned and does nothing');if(a)bits.push(`hits you for <b>${dmg}</b>${blocked?` (${blocked} blocked)`:''}`);if(m.armor)bits.push(`armours up (${m.armor})`);if(m.jumble)bits.push('jumbles a tile');if(m.nibble)bits.push('nibbles a tile');if(m.muffle)bits.push('muffles your vowels');if(m.redpen)bits.push(`crosses out ${m.redpen} tiles`);
+  S.stun=false;
   if(S.hp<=0){S.over='lost';persist();render();showResult();return}
   startTurn();say(`<b>${F().name}</b> ${bits.join(', ')||'waits'}.`);persist();render()}
 
@@ -441,34 +446,37 @@ function endTurn(){
 function render(){
   const f=foe(),fd=F(),m=nextMove();
   $('trail').innerHTML=S.foes.map((_,i)=>`<i class="${i<S.fi||S.over==='won'?'done':i===S.fi?'now':''}" title="${FOES[S.foes[i].k].name}"></i>`).join('');
-  const shown=S.stun?'Stunned: skips its move':S.erase&&trickOf(m)?moveText({atk:m.atk,twice:m.twice})+` · <s>${trickOf(m)}</s>`:moveText(m);
   $('foe').innerHTML=`${foeSVG(fd)}<div><h2>${fd.name}</h2><div class="about">${fd.about}</div>
     <div class="bar"><i style="width:${f.hp/f.max*100}%"></i><b>${f.hp} / ${f.max}</b></div>
-    ${f.block?`<span class="blk">🛡 ${f.block}</span>`:''}<div class="intent"><span class="k">Next</span>${shown}</div></div>`;
+    ${f.block?`<span class="blk">🛡 ${f.block}</span>`:''}<div class="intent"><span class="k">Next</span>${S.stun?'Stunned: skips its move':moveText(m)}</div></div>`;
   flash='';
   $('youBar').querySelector('i').style.width=(S.hp/HP*100)+'%';$('youBar').querySelector('b').textContent=`${S.hp} / ${HP}`;
   $('youBlock').textContent=S.block?`🛡 ${S.block}`:'';
-  const st=[];if(S.muffle)st.push('Muffled: vowels worth 0');if(S.hand.some(t=>t.crossed))st.push('Red pen: crossed tiles can\'t be used');if(S.pocket.length)st.push(`Pocket: ${S.pocket.map(t=>t.ch.toUpperCase()).join(' ')} next turn`);
+  const st=[];if(S.muffle)st.push('Muffled: vowels worth 0');if(S.hand.some(t=>t.crossed))st.push('Red pen: crossed tiles can\'t be used');
   $('status').innerHTML=st.map(x=>`<span>${x}</span>`).join('');
-  // draft: pick 1 of 3 tools before the fight starts
+  // draft: a third trick before the first foe; after a win, a new trick in place of an old one, or keep your kit
   const drafting=S.draft!=null&&!S.over;$('draft').hidden=!drafting;$('cards').hidden=drafting;
-  if(drafting){const o=offers(S.draft);$('draft').innerHTML=`<h3>${S.draft===0?'Pick a tool for today\'s crawl':'Pick a tool for the next fight'}</h3><p class="sub">Your kit: ${S.kit.concat(S.edges).map(k=>TOOLS[k].name).join(', ')}</p>
-    <div class="offers">${o.map(k=>`<button class="offer" data-pick="${k}"><b>${TOOLS[k].name}</b><span class="tag">${TOOLS[k].kind==='edge'?'Spellblade edge':TOOLS[k].perFight?'once a foe':TOOLS[k].uses>1?'×'+TOOLS[k].uses+' a turn':'once a turn'}</span><span>${TOOLS[k].desc}</span></button>`).join('')}</div>`}
+  if(drafting){const o=offers(S.draft),tag=k=>TOOLS[k].perFight?'once a foe':TOOLS[k].uses>1?'×'+TOOLS[k].uses+' a turn':'once a turn';
+    $('draft').innerHTML=S.swapIn?`<h3>Give up which trick for ${TOOLS[S.swapIn].name}?</h3><p class="sub">Quill always stays.</p>
+      <div class="offers">${S.kit.filter(k=>k!=='quill').map(k=>`<button class="offer" data-replace="${k}"><b>${TOOLS[k].name}</b><span>${TOOLS[k].desc}</span></button>`).join('')}</div>
+      <button class="btn" data-back="1">Back</button>`
+    :`<h3>${S.draft===0?'Pick a third trick for today':'A new trick is on offer'}</h3><p class="sub">Your kit: ${S.kit.map(k=>TOOLS[k].name).join(', ')}${S.kit.length>=KIT_MAX?' · take one and give one up, or keep what you have':''}</p>
+      <div class="offers">${o.map(k=>`<button class="offer" data-pick="${k}"><b>${TOOLS[k].name}</b><span class="tag">${tag(k)}</span><span>${TOOLS[k].desc}</span></button>`).join('')}</div>
+      ${S.kit.length>=KIT_MAX?'<button class="btn" data-keep="1">Keep my kit</button>':''}`}
   const T=(drag&&drag.started&&byId(drag.id))||(sel&&byId(sel));
-  const raw=spellRaw(),w=spellWord(),hit=w?wordHit(w):null;
+  const raw=spellRaw(),w=spellWord(),hit=w?wordHit(w):null,E=EDGES[S.edge];
   const card=(k,title,uses,desc,wide,can)=>`<div class="cardx ${wide?'wide':''} ${uses==='used'?'spent':''} ${can?'can':''}" data-card="${k}"><h3>${title}<small>${uses}</small></h3><p>${desc}</p>`;
-  const edges=S.edges.map(k=>`<span class="edge" title="${TOOLS[k].desc}">${TOOLS[k].name}${k==='longsent'?` <i class="meter"><i style="width:${S.charged?100:S.charge/12*100}%"></i></i>${S.charged?' ready':''}`:''}</span>`).join('');
-  let h=card('spell','Spellblade','any time','A real word, 3+ letters: its points, plus a bonus for length. Spell as many words as your tiles allow.',true,!!T)+
-    (edges?`<div class="edges">${edges}</div>`:'')+
-    `<div class="wordrow"><div class="slots">${[...Array(Math.max(5,S.spell.length+1))].slice(0,8).map((_,i)=>{const t=S.spell[i]&&byId(S.spell[i]);return `<button class="slot ${t?'full':''}" data-spell="${i}" aria-label="${t?'Letter '+(t.ch===BLANK?'blank':t.ch.toUpperCase())+', tap to take back':'Empty word slot'}">${t?tileHTML(t):''}</button>`}).join('')}</div>
-    <button class="btn primary" id="strikeBtn" ${w?'':'disabled'}>Strike</button></div>
-    <div class="wordinfo">${raw.length?(raw.length<3?'Three letters or more.':w?`<b>${w.toUpperCase()}</b>${raw.includes(BLANK)?' (blank filled)':''} · ${hit.dmg} damage${hit.fire?' (🔥 +'+hit.fire+')':''}${hit.notes.length?' · '+hit.notes.join(', '):''}`:`<span class="bad">${raw.replace(/\?/g,'_').toUpperCase()} isn't in the word list</span>`):'Tap tiles to spell into the blade.'}</div></div>`;
-  S.kit.forEach(k=>{const Tk=TOOLS[k],p=preview(k,T),pick=k==='swap'&&S.swapPick&&byId(S.swapPick);
-    h+=card(k,Tk.name,usesLabel(k),Tk.desc,false,p&&p.ok)+`<div class="onerow"><button class="slot" data-use="${k}" aria-label="${Tk.name} slot${p?': '+p.html.replace(/<[^>]+>/g,''):''}">${pick?tileHTML(pick):p&&p.ghost?p.ghost:''}</button>${p?`<span class="pv ${p.ok?'ok':'no'}">${p.html}</span>`:pick?'<span class="pv ok">Now pick its partner</span>':''}</div></div>`});
+  const edgeChip=`<div class="edges"><span class="edge ${hit&&hit.on?'on':''}" title="${E.desc}">Today's edge: <b>${E.name}</b>${S.edge==='letter'?` (<b>${S.dayLetter.toUpperCase()}</b>)`:''}${S.edge==='longsent'?` <i class="meter"><i style="width:${S.charged?100:S.charge/12*100}%"></i></i>${S.charged?' ready':''}`:''}${S.lastWord&&(S.edge==='rhyme'||S.edge==='allit')?` · last word ${S.lastWord.toUpperCase()}`:''}</span><span class="edgedesc">${E.desc.replace("today's letter",`<b>${S.dayLetter.toUpperCase()}</b>`)}</span></div>`;
+  let h=card('spell','Spellblade','any time',`A real word, 3 to ${MAXWORD} letters: its points, plus a bonus for length. Spell as many words as your tiles allow.`,true,!!T)+edgeChip+
+    `<div class="wordrow"><div class="slots">${[...Array(MAXWORD)].map((_,i)=>{const t=S.spell[i]&&byId(S.spell[i]);return `<button class="slot ${t?'full':''}" data-spell="${i}" aria-label="${t?'Letter '+(t.ch===BLANK?'blank':t.ch.toUpperCase())+', tap to take back':'Empty word slot'}">${t?tileHTML(t):''}</button>`}).join('')}</div>
+    </div>
+    <div class="strikerow"><div class="wordinfo">${raw.length?(raw.length<3?'Three letters or more.':w?`<b>${w.toUpperCase()}</b>${raw.includes(BLANK)?' (blank filled)':''} · ${hit.dmg} damage${hit.fire?' (🔥 +'+hit.fire+')':''}${hit.on?` · <b class="edgeon">${E.name}!</b>`:''}${hit.blk?` · 🛡 +${hit.blk}`:''}`:`<span class="bad">${raw.replace(/\?/g,'_').toUpperCase()} isn't in the word list</span>`):'Tap tiles to spell into the blade.'}</div><button class="btn primary" id="strikeBtn" ${w?'':'disabled'}>Strike</button></div></div>`;
+  S.kit.forEach(k=>{const Tk=TOOLS[k],p=preview(k,T),pk=k==='swap'&&S.swapPick&&byId(S.swapPick);
+    h+=card(k,Tk.name,usesLabel(k),Tk.desc,false,p&&p.ok)+`<div class="onerow"><button class="slot" data-use="${k}" aria-label="${Tk.name} slot${p?': '+p.html.replace(/<[^>]+>/g,''):''}">${pk?tileHTML(pk):p&&p.ghost?p.ghost:''}</button>${p?`<span class="pv ${p.ok?'ok':'no'}">${p.html}</span>`:pk?'<span class="pv ok">Now pick its partner</span>':''}</div></div>`});
   $('cards').innerHTML=h;if(drag&&drag.over){const c=document.querySelector(`[data-card="${drag.over}"]`);if(c)c.classList.add('drop')}
   if($('strikeBtn'))$('strikeBtn').onclick=strike;
   const inSpell=new Set(S.spell);
-  $('hand').innerHTML=drafting?'<span class="sub" style="align-self:center">Pick a tool to start the fight.</span>':S.hand.filter(t=>!inSpell.has(t.id)).map((t,i)=>`<button data-t="${t.id}" class="${sel===t.id&&!(drag&&drag.started)?'sel':''} ${S.swapPick===t.id?'sel':''} ${drag&&drag.started&&drag.id===t.id?'lifted':''} ${dealNext?'deal':''}" style="--d:${dealNext?(0.25+i*0.07).toFixed(2)+'s':'0s'}" aria-label="${t.fx?FX[t.fx].name+' ':''}${t.ch===BLANK?'blank':t.ch.toUpperCase()}, ${pts(t)} points${t.crossed?', crossed out':''}" ${S.over?'disabled':''}>${tileHTML(t)}</button>`).join('')||'<span class="sub" style="align-self:center">No tiles left. End your turn.</span>';
+  $('hand').innerHTML=drafting?'<span class="sub" style="align-self:center">Choose, then the fight begins.</span>':S.hand.filter(t=>!inSpell.has(t.id)).map((t,i)=>`<button data-t="${t.id}" class="${sel===t.id&&!(drag&&drag.started)?'sel':''} ${S.swapPick===t.id?'sel':''} ${drag&&drag.started&&drag.id===t.id?'lifted':''} ${dealNext?'deal':''}" style="--d:${dealNext?(0.25+i*0.07).toFixed(2)+'s':'0s'}" aria-label="${t.fx?FX[t.fx].name+' ':''}${t.ch===BLANK?'blank':t.ch.toUpperCase()}, ${pts(t)} points${t.crossed?', crossed out':''}" ${S.over?'disabled':''}>${tileHTML(t)}</button>`).join('')||'<span class="sub" style="align-self:center">No tiles left. End your turn.</span>';
   const fxs=[...new Set(S.hand.map(t=>t.fx).filter(Boolean))];
   $('fxkey').innerHTML=drafting?'':fxs.map(k=>`<span><b>${FX[k].icon} ${FX[k].name}</b> ${FX[k].say}</span>`).join('')+(S.hand.some(t=>t.ch===BLANK)?'<span><b>Blank</b> any letter in a word, worth 0</span>':'');
   S.hand.forEach(t=>t.fresh=false);
@@ -478,7 +486,7 @@ function render(){
 function shareText(){const head=mode==='daily'||mode==='day'?`Dungeon Scrawl #${D.num} · ${D.label}`:mode==='lab'?'Dungeon Scrawl tool lab':`Dungeon Scrawl endless ${S.seed.slice(8)}`;
   const link=`thecosmickitchen.github.io/The-Puzz/scrawl.html#${mode==='daily'||mode==='day'?'d'+D.iso:mode==='lab'?'lab':S.seed.slice(8)}`;
   const foes=S.foes.map((f,i)=>i<S.fi||S.over==='won'?'🟩':i===S.fi?'🟥':'⬛').join('');
-  return `The Puzz · ${head}\n${foes} ${S.over==='won'?`all 3 foes in ${S.turns} turns · ❤️ ${S.hp}/${HP}`:`fell to ${FOES[foe().k].name} on turn ${S.turns}`}\n${S.best?`Best word: ${S.best.w.toUpperCase()} (${S.best.dmg})`:'No words struck'}${S.picks.length?`\nKit: ${S.picks.map(k=>TOOLS[k].name).join(' · ')}`:''}\n${link}`}
+  return `The Puzz · ${head}\n${foes} ${S.over==='won'?`all 3 foes in ${S.turns} turns · ❤️ ${S.hp}/${HP}`:`fell to ${FOES[foe().k].name} on turn ${S.turns}`}\n${S.best?`Best word: ${S.best.w.toUpperCase()} (${S.best.dmg})`:'No words struck'} · Edge: ${EDGES[S.edge].name}\nKit: ${S.kit.filter(k=>k!=='quill').map(k=>TOOLS[k].name).join(' · ')}\n${link}`}
 function showResult(){const R=$('result');R.hidden=false;
   if(mode==='daily'&&S.over==='won'&&window.Kitchen)Kitchen.mark('tc');
   R.innerHTML=`<h2>${S.over==='won'?'The cellar is quiet':'You were edited out'}</h2><pre id="shareTxt">${shareText()}</pre>
@@ -488,14 +496,15 @@ function showResult(){const R=$('result');R.hidden=false;
   R.scrollIntoView({behavior:'smooth',block:'nearest'})}
 
 // ---- input ----
-$('draft').addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(b)pick(b.dataset.pick)});
+$('draft').addEventListener('click',e=>{const b=e.target.closest('[data-pick],[data-replace],[data-keep],[data-back]');if(!b)return;
+  if(b.dataset.pick)pick(b.dataset.pick);else if(b.dataset.replace)replace(b.dataset.replace);else if(b.dataset.keep)keepKit();else{S.swapIn=null;render()}});
 $('hand').addEventListener('click',e=>{if(suppress)return;const b=e.target.closest('[data-t]');if(!b)return;sel=sel===b.dataset.t?null:b.dataset.t;render()});
 $('cards').addEventListener('click',e=>{
   const sp=e.target.closest('[data-spell]');if(sp){const i=+sp.dataset.spell;if(S.spell[i]&&!sel){S.spell.splice(i,1);render();return}useOn('spell');return}
   const u=e.target.closest('[data-use]');if(u){useOn(u.dataset.use);return}
   const c=e.target.closest('[data-card]');if(c&&sel)useOn(c.dataset.card)});
 document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||!S||S.over||S.draft!=null)return;
-  if(/^[a-z]$/i.test(e.key)){const inSpell=new Set(S.spell),t=S.hand.find(t=>!inSpell.has(t.id)&&!t.crossed&&t.ch===e.key.toLowerCase())||S.hand.find(t=>!inSpell.has(t.id)&&!t.crossed&&t.ch===BLANK);if(t){S.spell.push(t.id);sel=null;render()}e.preventDefault()}
+  if(/^[a-z]$/i.test(e.key)){if(S.spell.length>=MAXWORD)return;const inSpell=new Set(S.spell),t=S.hand.find(t=>!inSpell.has(t.id)&&!t.crossed&&t.ch===e.key.toLowerCase())||S.hand.find(t=>!inSpell.has(t.id)&&!t.crossed&&t.ch===BLANK);if(t){S.spell.push(t.id);sel=null;render()}e.preventDefault()}
   else if(e.key==='Backspace'){S.spell.pop();render();e.preventDefault()}
   else if(e.key==='Enter'){strike();e.preventDefault()}});
 $('endBtn').onclick=endTurn;
