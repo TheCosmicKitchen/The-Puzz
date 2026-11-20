@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Scrawl Lab</title>
+<meta name="description" content="Bot analytics for Dungeon Scrawl: trick evolution, saved reports, and how to rerun them.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: the game's column, widened for tables; a tab strip under the title; each tab is one panel */
+:root{
+  --bg:#EFE6D3; --paper:#FBF6EA; --card:#FFFDF6; --ink:#24203A; --muted:#6B6378; --rule:#D9CDB4;
+  --tile:#E9C98A; --tile-edge:#B88B45; --tile-ink:#2B2117; --gold:#C98D10;
+  --hp:#C23B3B; --block:#3E6FB8; --ok:#2E8A55; --foe:#7B4FA8; --code:#F3ECDC;
+  --display:"Fraunces",Georgia,serif; --body:"Atkinson Hyperlegible",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#17142A; --paper:#211D38; --card:#2A2546; --ink:#F3EBDA; --muted:#A79FBD; --rule:#3A3460;
+  --tile:#E3C27E; --tile-edge:#A9803E; --tile-ink:#2B2117; --gold:#F0B84A;
+  --hp:#E85A5A; --block:#6C9BE3; --ok:#5CC98A; --foe:#B58AE6; --code:#1C1932; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17142A; --paper:#211D38; --card:#2A2546; --ink:#F3EBDA; --muted:#A79FBD; --rule:#3A3460;
+  --tile:#E3C27E; --tile-edge:#A9803E; --tile-ink:#2B2117; --gold:#F0B84A;
+  --hp:#E85A5A; --block:#6C9BE3; --ok:#5CC98A; --foe:#B58AE6; --code:#1C1932; color-scheme:dark}
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+a{color:var(--foe)}
+.wrap{max-width:1000px;margin:0 auto;padding-block:16px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+.toprow{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.eyebrow{font:700 12px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-decoration:none}
+a.eyebrow:hover{color:var(--ink)}
+h1{font:800 clamp(30px,6vw,42px)/1.05 var(--display);margin:2px 0 6px;letter-spacing:-.01em}
+h1 span{color:var(--gold)}
+h2{font:800 21px/1.2 var(--display);margin:0}
+.lede{color:var(--muted);margin:0;max-width:66ch}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--rule);overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tabs a{font:700 14px var(--body);padding:9px 14px;color:var(--muted);text-decoration:none;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
+.tabs a[aria-current="page"]{color:var(--ink);border-color:var(--gold)}
+.tabs a:focus-visible,button:focus-visible{outline:3px solid var(--foe);outline-offset:2px}
+.panel{background:var(--paper);border:1px solid var(--rule);border-radius:16px;padding:16px;min-width:0}
+.frame{width:100%;height:1800px;border:0;background:var(--bg);display:block}
+/* reports */
+.reports{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:760px){.reports{grid-template-columns:1fr}}
+.list{display:flex;flex-direction:column;gap:8px}
+.rcard{display:flex;flex-direction:column;gap:5px;text-align:left;background:var(--card);border:1.5px solid var(--rule);border-radius:12px;padding:10px 12px;color:var(--ink);font:13.5px/1.4 var(--body);cursor:pointer;width:100%}
+.rcard:hover{border-color:var(--muted)}
+.rcard[aria-current="true"]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.rcard .top{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chip{font:700 10.5px var(--body);letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:99px;background:var(--rule);color:var(--ink);white-space:nowrap}
+.chip.trial{background:color-mix(in srgb,var(--foe) 22%,transparent)}
+.chip.report{background:color-mix(in srgb,var(--block) 22%,transparent)}
+.chip.warn{background:color-mix(in srgb,var(--hp) 20%,transparent)}
+.rcard .when{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.reader{display:flex;flex-direction:column;gap:12px;min-width:0}
+.md{min-width:0}
+.md h1{font-size:26px}.md h2{margin-top:10px}.md h3{font:700 16px var(--display);margin:14px 0 4px}
+.md p,.md li{max-width:75ch}
+.md ul{padding-left:20px;margin:6px 0}
+.md code{font:13px var(--mono);background:var(--code);padding:1px 5px;border-radius:5px}
+.md pre{font:12px/1.45 var(--mono);background:var(--code);padding:12px;border-radius:10px;overflow-x:auto;margin:6px 0}
+.md pre code{background:none;padding:0}
+.tablebox{overflow-x:auto;margin:8px 0}
+.md table{border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;min-width:100%}
+.md th,.md td{padding:5px 9px;border-bottom:1px solid var(--rule);text-align:left;white-space:nowrap}
+.md td:last-child{white-space:normal;min-width:220px}
+.md th{font-weight:700;color:var(--muted);font-size:12px}
+.md em{color:var(--muted);font-style:normal}
+/* rerun box */
+.rerun{display:flex;flex-direction:column;gap:8px}
+.cmd{display:flex;gap:8px;align-items:stretch}
+.cmd pre{flex:1;margin:0;font:12.5px/1.45 var(--mono);background:var(--code);padding:9px 11px;border-radius:9px;white-space:pre-wrap;overflow-wrap:anywhere;min-width:0}
+.btn{font:700 13px var(--body);padding:7px 12px;border-radius:9px;border:1.5px solid var(--rule);background:var(--card);color:var(--ink);cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--ink)}
+.note{font-size:13px;color:var(--muted);margin:0}
+/* versions */
+.versions{display:flex;flex-direction:column;gap:10px}
+.ver{display:grid;grid-template-columns:120px 1fr;gap:4px 14px;padding:12px 0;border-top:1px solid var(--rule)}
+.ver:first-child{border-top:0}
+.ver b{font:800 18px var(--display)}
+.ver .d{font-size:12.5px;color:var(--muted)}
+@media (max-width:560px){.ver{grid-template-columns:1fr}}
+.empty{color:var(--muted)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="toprow"><a class="eyebrow" href="../scrawl.html">← Dungeon Scrawl</a><a class="eyebrow" href="../">The Puzz</a></nav>
+  <header>
+    <h1>Scrawl <span>Lab</span></h1>
+    <p class="lede">Bots play Dungeon Scrawl thousands of times so we can see which tricks matter, which ones people will want to reach for, and which ones backfire. Every report here says which version of the simulator made it and how to run it again.</p>
+  </header>
+  <nav class="tabs" aria-label="Lab sections">
+    <a href="#evolution" data-tab="evolution">Evolution</a>
+    <a href="#reports" data-tab="reports">Reports</a>
+    <a href="#versions" data-tab="versions">Versions &amp; rerun</a>
+  </nav>
+
+  <section id="tab-evolution" hidden>
+    <iframe class="frame" id="evoFrame" title="Trick evolution: every round's tricks, their win lift and what was bred from what" loading="lazy"></iframe>
+  </section>
+
+  <section id="tab-reports" hidden>
+    <div class="reports">
+      <div class="list" id="list"><p class="empty">Loading reports…</p></div>
+      <div class="reader" id="reader"></div>
+    </div>
+  </section>
+
+  <section id="tab-versions" hidden>
+    <div class="panel">
+      <h2>Run it yourself</h2>
+      <p class="note" style="margin:6px 0 12px">The simulator lives in <code>tools/</code> of this repo and needs only Python 3.10+. Results are deterministic: the same version and command give the same numbers. Check out the version a report names, make sure it still matches the page, then rerun its command.</p>
+      <div class="rerun" id="howRerun"></div>
+    </div>
+    <div class="panel">
+      <h2>Simulator versions</h2>
+      <div class="versions" id="versions" style="margin-top:6px"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let INDEX = null, current = null;
+
+// a small Markdown reader for the reports the sim writes: headings, lists, tables, code, bold, italics
+function md(src) {
+  const lines = src.replace(/\r\n/g, '\n').split('\n'), out = [];
+  const inline = t => esc(t).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/(^|[\s(])_([^_]+)_(?=[\s).,]|$)/g, '$1<em>$2</em>');
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (l.startsWith('```')) { const buf = []; while (++i < lines.length && !lines[i].startsWith('```')) buf.push(lines[i]); out.push(`<pre><code>${esc(buf.join('\n'))}</code></pre>`); continue }
+    const h = l.match(/^(#{1,3})\s+(.*)/); if (h) { out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`); continue }
+    if (l.startsWith('|')) { const rows = []; while (i < lines.length && lines[i].startsWith('|')) rows.push(lines[i++]); i--;
+      const cells = r => r.replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+      const body = rows.filter((r, k) => !(k === 1 && /^\|[\s|:-]+\|?$/.test(r)));
+      out.push(`<div class="tablebox"><table><thead><tr>${cells(body[0]).map(c => `<th>${inline(c)}</th>`).join('')}</tr></thead><tbody>${body.slice(1).map(r => `<tr>${cells(r).map(c => `<td>${inline(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`); continue }
+    if (/^- /.test(l)) { const items = []; while (i < lines.length && /^- /.test(lines[i])) items.push(lines[i++].slice(2)); i--; out.push(`<ul>${items.map(t => `<li>${inline(t)}</li>`).join('')}</ul>`); continue }
+    if (l.trim()) out.push(`<p>${inline(l)}</p>`);
+  }
+  return out.join('\n');
+}
+function cmdBox(text, id) {
+  return `<div class="cmd"><pre id="${id}">${esc(text)}</pre><button type="button" class="btn" data-copy="${id}">Copy</button></div>`;
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-copy]'); if (!b) return;
+  const text = $(b.dataset.copy).textContent;
+  try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1400) }
+  catch { const r = document.createRange(); r.selectNodeContents($(b.dataset.copy)); const s = getSelection(); s.removeAllRanges(); s.addRange(r) }
+});
+const rerunSteps = run => [
+  `git fetch --tags && git checkout ${run.tag}`,
+  `py tools/scrawl_sim.py selftest`,
+  run.command];
+
+// ---- tabs
+function show(tab) {
+  if (!['evolution', 'reports', 'versions'].includes(tab)) tab = 'evolution';
+  document.querySelectorAll('[data-tab]').forEach(a => { if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current') });
+  ['evolution', 'reports', 'versions'].forEach(t => $('tab-' + t).hidden = t !== tab);
+  if (tab === 'evolution' && !$('evoFrame').getAttribute('src')) $('evoFrame').src = 'evolution.html';
+}
+// the evolution page is on this site, so the frame can grow to fit it
+const fitFrame = () => { try { const d = $('evoFrame').contentDocument; if (d && d.body) $('evoFrame').style.height = d.documentElement.scrollHeight + 'px' } catch {} };
+$('evoFrame').addEventListener('load', () => { fitFrame(); try { new ResizeObserver(fitFrame).observe($('evoFrame').contentDocument.body) } catch {} });
+function route() {
+  const h = location.hash.slice(1);
+  if (h.startsWith('report-')) { show('reports'); openReport(h.slice(7)); return }
+  show(h || 'evolution');
+}
+addEventListener('hashchange', route);
+
+// ---- reports
+function renderList() {
+  const R = INDEX.reports;
+  if (!R.length) { $('list').innerHTML = '<p class="empty">No reports yet. Run <code>py tools/scrawl_sim.py trial --round N</code> or <code>report</code> and they appear here.</p>'; return }
+  $('list').innerHTML = R.map(r => `<button type="button" class="rcard" data-open="${esc(r.id)}" aria-current="${current === r.id}">
+      <span class="top"><span class="chip ${esc(r.kind)}">${r.kind === 'trial' ? 'Trial' : 'Health report'}</span><span class="chip">${esc(r.tag)}</span><span class="chip">sim ${esc(r.run.sim_version)}</span>${r.run.dirty ? '<span class="chip warn">local changes</span>' : ''}</span>
+      <span>${esc(r.headline)}</span><span class="when">${esc(r.run.date)}</span></button>`).join('');
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-open]'); if (b) location.hash = 'report-' + b.dataset.open });
+async function openReport(id) {
+  const r = INDEX && INDEX.reports.find(x => x.id === id); if (!r) { if (INDEX) location.hash = 'reports'; return }
+  current = id; renderList();
+  $('reader').innerHTML = '<div class="panel"><p class="empty">Loading…</p></div>';
+  let text = '';
+  try { text = await (await fetch(`reports/${encodeURIComponent(id)}/report.md`)).text() } catch { text = '_Could not load this report._' }
+  const ver = INDEX.changelog.find(c => c.version === r.run.sim_version), untagged = ver && !ver.tag;
+  const steps = untagged ? rerunSteps({...r.run, tag: 'scrawl-sim-v' + INDEX.sim_version}) : rerunSteps(r.run);
+  $('reader').innerHTML = `<div class="panel rerun"><h2>Rerun this report</h2>
+      <p class="note">Made by sim ${esc(r.run.sim_version)} at commit <code>${esc(r.run.commit || '?')}</code>${r.run.dirty ? ' with local changes not yet committed, so check out the tag rather than the commit' : ''}, against page rules <code>${esc(r.run.rules)}</code>, on ${esc(r.run.date)}.</p>
+      ${steps.map((s, i) => cmdBox(s, 'rr' + i)).join('')}
+      ${untagged ? `<p class="note"><b>Sim ${esc(r.run.sim_version)} was never tagged</b> (it predates the sim being committed). These commands rerun it on ${esc(INDEX.sim_version)}, which gives the same numbers to within about a point and the corrected verdicts.</p>` : ''}
+      <p class="note">If selftest reports different page rules, the game has changed since this report; the rerun still reproduces the old numbers with the old rules.</p></div>
+    <div class="panel md">${md(text)}</div>`;
+}
+
+// ---- versions
+function renderVersions() {
+  const count = v => INDEX.reports.filter(r => r.run.sim_version === v).length;
+  $('versions').innerHTML = INDEX.changelog.map(c => `<div class="ver"><div><b>${esc(c.version)}</b><div class="d">${esc(c.date)}</div></div>
+      <div><div>${esc(c.note)}</div><div class="d">${c.tag ? `git tag <code>${esc(c.tag)}</code>` : 'not tagged'} · ${count(c.version)} report${count(c.version) === 1 ? '' : 's'} here${c.version === INDEX.sim_version ? ' · current' : ''}</div></div></div>`).join('');
+  $('howRerun').innerHTML = [
+    ['Check out a version', `git fetch --tags && git checkout scrawl-sim-v${INDEX.sim_version}`],
+    ['Check the sim still matches the game', 'py tools/scrawl_sim.py selftest'],
+    ['Health check: three bots, sweeps, findings', 'py tools/scrawl_sim.py report -n 2000'],
+    ['Next evolution round (write tools/ideas/rN.py first)', 'py tools/scrawl_sim.py trial --round 4 -n 600 --eager-n 150 --hard-scale 2.5'],
+    ['Rebuild this Lab after a run', 'py tools/scrawl_sim.py publish'],
+  ].map(([label, c], i) => `<div class="note"><b>${esc(label)}</b></div>${cmdBox(c, 'hv' + i)}`).join('');
+}
+
+fetch('index.json').then(r => r.json()).then(j => { INDEX = j; renderList(); renderVersions(); route() })
+  .catch(() => { $('list').innerHTML = '<p class="empty">The Lab index is missing. Run <code>py tools/scrawl_sim.py publish</code>.</p>'; route() });
+route();
+</script>
+</body>
+</html>

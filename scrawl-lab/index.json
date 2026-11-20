@@ -1,0 +1,74 @@
+{
+ "sim_version": "1.2.0",
+ "built": "2026-11-20 12:24",
+ "changelog": [
+  {
+   "version": "1.2.0",
+   "date": "2026-11-20",
+   "note": "Exactly reproducible (ties between equal plays now break the same way in every process); every trial includes all live tricks as controls, so the keeper bar is the same in every round.",
+   "tag": "scrawl-sim-v1.2.0"
+  },
+  {
+   "version": "1.1.0",
+   "date": "2026-11-20",
+   "note": "Evolution rounds (trial, idea files with lineage, choose and pair trick kinds), selftest against the page, Lab snapshots.",
+   "tag": null
+  },
+  {
+   "version": "1.0.0",
+   "date": "2026-11-20",
+   "note": "Port of the four-card kit rules (Spellblade up to 6, daily edge, foe HP x1.22); notools, smart and eager bots; compare, sweep, report.",
+   "tag": null
+  }
+ ],
+ "reports": [
+  {
+   "id": "20261120-1221-round3",
+   "kind": "trial",
+   "tag": "round3",
+   "headline": "15 tricks at foe HP x2.5; baseline wins 46%. Best new: respell +38.8 pts, used on 81% of turns, never backfires. Verdict bar was wrong in this version (see 1.2.0).",
+   "run": {
+    "sim_version": "1.1.0",
+    "tag": "scrawl-sim-v1.1.0",
+    "rules": "d9a80b459f96",
+    "commit": "047d0fe",
+    "dirty": true,
+    "command": "py tools/scrawl_sim.py trial --round 3 -n 600 --eager-n 150 --hard-scale 2.5",
+    "date": "2026-11-20 12:21",
+    "python": "3.12.3"
+   }
+  },
+  {
+   "id": "20261120-1210-round2",
+   "kind": "trial",
+   "tag": "round2",
+   "headline": "14 tricks at foe HP x2.5; baseline wins 46%. Best new: twin_c +41.5 pts (keeper). Keepers: 10, traps: 1.",
+   "run": {
+    "sim_version": "1.1.0",
+    "tag": "scrawl-sim-v1.1.0",
+    "rules": "d9a80b459f96",
+    "commit": "047d0fe",
+    "dirty": true,
+    "command": "py tools/scrawl_sim.py trial --round 2 -n 600 --eager-n 150 --hard-scale 2.5",
+    "date": "2026-11-20 12:10",
+    "python": "3.12.3"
+   }
+  },
+  {
+   "id": "20261120-1158-round1",
+   "kind": "trial",
+   "tag": "round1",
+   "headline": "15 tricks at foe HP x2.5; baseline wins 46%. Best new: sprout +32.3 pts (keeper). Keepers: 11, traps: 6.",
+   "run": {
+    "sim_version": "1.1.0",
+    "tag": "scrawl-sim-v1.1.0",
+    "rules": "d9a80b459f96",
+    "commit": "047d0fe",
+    "dirty": true,
+    "command": "py tools/scrawl_sim.py trial --round 1 -n 600 --eager-n 150 --hard-scale 2.5",
+    "date": "2026-11-20 11:58",
+    "python": "3.12.3"
+   }
+  }
+ ]
+}
