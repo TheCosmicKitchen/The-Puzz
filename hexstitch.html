@@ -139,6 +139,7 @@ details li svg{flex:none;width:38px;height:38px}
     <div class="row">
       <button class="btn" id="undoBtn" title="Undo your last move" disabled>↶ Undo</button>
       <button class="btn" id="resetBtn">Clear board</button>
+      <button class="btn" id="revealBtn" title="Show the finished quilt">Reveal</button>
       <span class="timer" id="timer">0:00</span>
     </div>
   </div>
@@ -306,17 +307,20 @@ function pipsSVG(pat,cnt){
 
 let P=null, st=null, mode='daily', sel='s0', focusGoal=-1, timerInt=null, lastPlaced=-1, nopeCell=-1, msg='';
 
-function dayInfo(){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
+function dayInfo(on){const d=on?new Date(on+'T12:00'):new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
   const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`,wk=t.getDay();
   return {num:Math.round((t-s)/864e5)+1,iso,n:(wk===0||wk===6)?4:3,label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
 
 function load(newMode,seedOverride){
+  // 'day' is a daily from a shared link (#d2026-11-20): that day's quilt, played as a one-off (no save, no streak)
   mode=newMode; $('tDaily').setAttribute('aria-pressed',mode==='daily');$('tEndless').setAttribute('aria-pressed',mode==='endless');
-  $('endlessCtl').hidden=mode!=='endless'; $('dailyInfo').hidden=mode!=='daily';
+  $('endlessCtl').hidden=mode!=='endless'; $('dailyInfo').hidden=mode==='endless';
   let saved=null;
-  if(mode==='daily'){const d=dayInfo();P=generate('hexstitch2-'+d.iso,d.n);P.label=`#${d.num} · ${d.label}`;P.iso=d.iso;
-    $('sub').textContent=`Daily ${P.label}`; $('dailyInfo').textContent=d.n===4?'Weekend size · 4 patterns':'Weekday size · 3 patterns';
-    saved=store.get('hexstitch-daily-v2'); if(saved&&saved.iso!==d.iso) saved=null;}
+  if(mode==='daily'||mode==='day'){const d=dayInfo(mode==='day'?seedOverride:null);P=generate('hexstitch2-'+d.iso,d.n);P.label=`#${d.num} · ${d.label}`;P.iso=d.iso;
+    $('sub').textContent=mode==='day'?`Shared daily ${P.label} · just for fun, not your streak`:`Daily ${P.label}`; $('dailyInfo').textContent=d.n===4?'Weekend size · 4 patterns':'Weekday size · 3 patterns';
+    if(mode==='daily'){saved=store.get('hexstitch-daily-v2'); if(saved&&saved.iso!==d.iso) saved=null;
+      try{if(location.hash)history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+    else try{history.replaceState(null,'','#d'+d.iso)}catch(e){}}
   else{const n=+$('size').value, seed=seedOverride||Math.random().toString(36).slice(2,7);
     P=generate('endless2-'+seed+'-'+n,n); P.code=seed+n; P.label='Endless · '+P.code;
     $('seedTxt').textContent=P.code; $('sub').textContent='Endless mode · a fresh quilt every time';
@@ -377,7 +381,7 @@ function render(){
   const keys=Object.keys(P.trayD).map(Number).sort((a,b)=>a-b);
   if(keys.length){b+=`<div class="lbl">Stitched pairs</div><div class="pairs">`+keys.map(k=>`<button class="fab dom" aria-pressed="${sel==='d'+k}" data-k="d${k}" ${(rem.d[k]||0)<=0?'disabled':''} aria-label="Pair ${FAB[k>>2&3].n} then ${FAB[k&3].n}, ${rem.d[k]} left"><svg viewBox="-36 -24 72 48">${PATDEFS}${dominoSVG(k,15)}</svg><span class="n">${rem.d[k]}</span></button>`).join('')+'</div>'}
   $('basket').innerHTML=b;
-  $('undoBtn').disabled=st.solved||!(st.hist&&st.hist.length);
+  $('undoBtn').disabled=st.solved||!(st.hist&&st.hist.length);$('revealBtn').disabled=st.solved;
   const empty=st.board.filter(v=>v<0).length;
   $('hint').textContent=st.solved?'':msg||(empty===0?'Every hex is filled, but something doesn’t fit yet. Red marks show what to fix.':`${empty} hexes to fill · tap a filled hex to take its piece back`);
   msg='';
@@ -414,6 +418,8 @@ function place(i){
   checkWin();render();persist();
 }
 function flash(i,why){nopeCell=i;msg=why||'';render();setTimeout(()=>{nopeCell=-1;render()},380)}
+function reveal(){if(st.solved)return;if(!confirm('Reveal the finished quilt? That ends this puzzle'+(mode==='daily'?', and today won\'t count toward your streak.':'.')))return;
+  snap();st.board=P.sol.slice();st.revealed=true;st.solved=true;stopTimer();persist();showWin()}
 function checkWin(){
   if(st.board.some(v=>v<0))return;
   if(P.goals.some((_,gi)=>goalStatus(gi)!=='ok'))return;
@@ -426,12 +432,15 @@ function shareText(){
   const marks=st.log.map((e,k)=>lastAt.get(e.split(':')[0])===k?'🟩':'🟨');
   const strip=marks.length>24?marks.slice(0,24).join('')+` +${marks.length-24}`:marks.join('');
   const extra=marks.filter(m=>m==='🟨').length;
-  const head=mode==='daily'?`Hexstitch ${P.label}`:`Hexstitch Endless · ${P.code}`;
-  return `The Puzz · ${head}\n🧵 ${P.goals.length} patterns · ${P.pairs.length} pairs · ⏱ ${fmt(st.elapsed)}\n${extra?extra+' re-stitch'+(extra>1?'es':''):'Clean run'} ${strip}`;
+  const head=mode==='endless'?`Hexstitch Endless · ${P.code}`:`Hexstitch ${P.label}`;
+  // the link opens this exact quilt: the day for a daily, the seed for endless
+  const link=`thecosmickitchen.github.io/The-Puzz/hexstitch.html#${mode==='endless'?P.code:'d'+P.iso}`;
+  if(st.revealed)return `The Puzz · ${head}\n🧵 ${P.goals.length} patterns · ${P.pairs.length} pairs · solution revealed\n${link}`;
+  return `The Puzz · ${head}\n🧵 ${P.goals.length} patterns · ${P.pairs.length} pairs · ⏱ ${fmt(st.elapsed)}\n${extra?extra+' re-stitch'+(extra>1?'es':''):'Clean run'} ${strip}\n${link}`;
 }
-function showWin(){if(mode==="daily"&&window.Kitchen)Kitchen.mark("hex");
+function showWin(){if(mode==="daily"&&!st.revealed&&window.Kitchen)Kitchen.mark("hex");
   const w=$('win');w.hidden=false;
-  w.innerHTML=`<h2>Quilt complete</h2><pre id="shareTxt">${shareText()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">Next puzzle</button>':'<span class="sub">A new daily quilt arrives at midnight.</span>'}</div>`;
+  w.innerHTML=`<h2>${st.revealed?'Here\'s the finished quilt':'Quilt complete'}</h2><pre id="shareTxt">${shareText()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">Next puzzle</button>':'<span class="sub">A new daily quilt arrives at midnight.</span>'}</div>`;
   $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const sl=getSelection();sl.removeAllRanges();sl.addRange(r);b.textContent='Selected · copy it'};
     try{navigator.clipboard.writeText(shareText()).then(ok,fb)}catch(err){fb()}};
   if($('nextBtn'))$('nextBtn').onclick=()=>load('endless');
@@ -449,6 +458,7 @@ $('tDaily').onclick=()=>{stopTimer();load('daily');if(st.started&&!st.solved)sta
 $('tEndless').onclick=()=>{stopTimer();load('endless')};
 $('newBtn').onclick=()=>{stopTimer();load('endless')};
 $('size').onchange=()=>{stopTimer();load('endless')};
+$('revealBtn').onclick=reveal;
 $('resetBtn').onclick=()=>{if(st.solved||st.board.every((v,i)=>v===P.fixed[i]))return;snap();st.board=P.fixed.slice();render();persist()};
 $('undoBtn').onclick=undo;
 
@@ -464,7 +474,8 @@ $('r6').setAttribute('viewBox',TALL?'-20 -30 40 60':'-30 -20 60 40')}
 rulesArt();
 tallMQ.addEventListener('change',e=>{TALL=e.matches;rulesArt();if(P)render()});
 
-(function boot(){const h=(location.hash||'').slice(1);
+(function boot(){const h=(location.hash||'').slice(1),day=/^d(\d{4}-\d{2}-\d{2})$/.exec(h);
+  if(day&&day[1]<dayInfo().iso){load('day',day[1]);return}
   if(/^[a-z0-9]{5}[345]$/.test(h)){$('size').value=h[5];load('endless',h.slice(0,5));}
   else{load('daily');if(!store.get('hexstitch-seen')){$('rules').open=true;store.set('hexstitch-seen',1)}if(st.started&&!st.solved)startTimer()}})();
 

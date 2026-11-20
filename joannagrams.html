@@ -108,6 +108,7 @@ h1 span{color:var(--y0)}
 .yarn2{fill:none;stroke:var(--shine);stroke-width:2;stroke-dasharray:3 5;stroke-linecap:round}
 .hook{fill:none;stroke:var(--line);stroke-width:3;stroke-linecap:round}
 .ctrls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.revealrow{display:flex;justify-content:center}
 .bonus{font-size:13px;color:var(--muted);text-align:center}
 .win{background:var(--surface);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;border:2px solid var(--y0)}
 .win h2{font:600 22px var(--display);margin:0}
@@ -165,6 +166,7 @@ details p{margin:8px 0 0;max-width:62ch}
     <button class="btn" id="rewind" title="Shuffle the letters">Shuffle</button>
   </div>
   <div class="bonus" id="bonus"></div>
+  <div class="revealrow"><button class="btn small" id="revealBtn" title="Show every word and the hidden word">Reveal answers</button></div>
 
   <details id="rules">
     <summary>How to play</summary>
@@ -321,7 +323,7 @@ const ART_SCENES={};
 // what finishing this day's square uncovers in this week's picture (null if it's not this week)
 function revealOrder(w){const r=mulberry(hseed('joannagrams-picture-'+isoOf(w.mon))),a=[0,1,2,3,4,5,6];
   for(let i=6;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-const doneIn=(w,skip)=>{const all=allDays();return w.days.filter(d=>d!==skip&&(d===G.iso&&mode==='daily'?st.done:all[d]&&all[d].done)).length};
+const doneIn=(w,skip)=>{const all=allDays();return w.days.filter(d=>d!==skip&&(d===G.iso&&mode==='daily'?st.done&&!st.revealed:all[d]&&all[d].done&&!all[d].revealed)).length};
 // what finishing this day's square uncovers: the next tile in this week's shuffled order (null if it's not this week)
 function pieceFor(iso){const w=weekOf(dayInfo().iso);if(!w.days.includes(iso))return null;const n=doneIn(w,iso);return n>6?null:w.scene.tiles[revealOrder(w)[n]].name}
 let justDone=null;
@@ -330,7 +332,7 @@ function week(){
   const today=dayInfo().iso,w=weekOf(today),all=allDays(),n=doneIn(w),ord=revealOrder(w),shown=new Set(ord.slice(0,n));
   const fresh=justDone?ord[n-1]:-1;let pic='',row='';
   if(w.scene.pic)pic=pictureSVG(w.scene,shown,fresh);else for(let k=0;k<7;k++)pic+=`<div class="pc ${shown.has(k)?'done':''} ${k===fresh?'new':''}">${shown.has(k)?(w.scene.squares?JGArt.squareSVG(w.scene.squares[k]):tileSVG(w.scene,k)):plainSquare}</div>`;
-  w.days.forEach(iso=>{const s=iso===G.iso?st:all[iso],done=!!(s&&s.done),fut=iso>today,cur=iso===G.iso;
+  w.days.forEach(iso=>{const s=iso===G.iso&&mode==='daily'?st:all[iso],done=!!(s&&s.done&&!s.revealed),fut=iso>today,cur=iso===G.iso;
     const day=dateOf(iso).toLocaleDateString(undefined,{weekday:'short'}),prog=done?'✓':fut?'':s&&s.found&&s.found.length?`${s.found.length}/${sizeFor(iso)}`:iso===today?'today':'play';
     row+=`<button class="wk ${done?'done':''} ${cur?'cur':''}" data-day="${iso}" ${fut?'disabled':''} aria-label="${dateOf(iso).toLocaleDateString(undefined,{weekday:'long'})}: ${done?'finished':fut?'not yet':'tap to play'}"><b>${day}</b><small>${prog}</small></button>`});
   const missed=w.days.some(d=>d<today&&!(d===G.iso?st.done:all[d]&&all[d].done));
@@ -367,7 +369,12 @@ function pickMeta(G){
 function load(m,idxOverride,dayIso){
   mode=m;$('tDaily').setAttribute('aria-pressed',m==='daily');$('tEndless').setAttribute('aria-pressed',m==='endless');$('endlessCtl').hidden=m!=='endless';
   let saved=null;
-  if(m==='daily'){const d=dayInfo(dayIso);G=setup(dailyRoot(d.num));G.label=`#${d.num} · ${d.label}`;G.iso=d.iso;
+  if(m==='day'){const d=dayInfo(dayIso);G=setup(dailyRoot(d.num));G.label=`#${d.num} · ${d.label}`;G.iso=d.iso;
+    $('sub').textContent='Shared skein '+G.label+' · just for fun, not your streak ';
+    const b=document.createElement('button');b.className='btn small';b.textContent='Today\'s skein';b.onclick=()=>load('daily');$('sub').append(b);
+    try{history.replaceState(null,'','#d'+d.iso)}catch(e){}}
+  else if(m==='daily'){const d=dayInfo(dayIso);G=setup(dailyRoot(d.num));G.label=`#${d.num} · ${d.label}`;G.iso=d.iso;
+    try{if(location.hash)history.replaceState(null,'',location.pathname+location.search)}catch(e){}
     const today=dayInfo().iso;$('sub').textContent=d.iso===today?'Daily skein '+G.label:'Catching up · skein '+G.label+' ';
     if(d.iso!==today){const b=document.createElement('button');b.className='btn small';b.textContent='Back to today';b.onclick=()=>load('daily');$('sub').append(b)}
     const legacy=store.get('joannagrams-daily');saved=allDays()[d.iso]?{st:allDays()[d.iso]}:legacy&&legacy.iso===d.iso?legacy:null}
@@ -457,7 +464,7 @@ function render(){
   week();
   $('chain').innerHTML=chain.map(i=>`<span class="lk">${letters[i]}</span>`).join('')||'<span style="color:var(--muted);font-size:15px;font-family:var(--body);letter-spacing:0;text-transform:none">Chain letters from the ring</span>';
   $('bonus').textContent=st.bonus.length?`Bonus stitches: ${st.bonus.join(', ')}`:'';
-  $('thread').disabled=st.done;$('stitch').disabled=st.done||chain.length<3;
+  $('thread').disabled=st.done;$('revealBtn').disabled=st.metaDone&&st.done;$('stitch').disabled=st.done||chain.length<3;
   ring();
 }
 const ballPos=i=>{const a=-Math.PI/2+i*2*Math.PI/letters.length;return{x:Math.cos(a)*102,y:Math.sin(a)*102}};
@@ -506,12 +513,20 @@ function shuffle(){const sel=chain.map(i=>letters[i]);chain=[];for(let i=letters
 const fmtShare=()=>{
   const groups={};G.answers.forEach(w=>(groups[w.length]=groups[w.length]||[]).push(w));
   const rows=Object.keys(groups).map(Number).sort((a,b)=>a-b).map(L=>`${L===G.root.length?'★':L} `+groups[L].map(w=>st.found.includes(w)?(st.hints[w]?'🟨':'🟪'):'⬜').join(''));
-  const head=mode==='daily'?`Joannagrams ${G.label}`:`Joannagrams ${G.label}`;
+  const head=`Joannagrams ${G.label}`;
+  // the link opens this exact skein: the day for a daily, the skein code for endless
+  const link=`thecosmickitchen.github.io/The-Puzz/joannagrams.html#${mode==='endless'?(G.wild?'':'j')+G.code:'d'+G.iso}`;
+  if(st.revealed)return `The Puzz · ${head} 🧶\nAnswers revealed\n${link}`;
   const after=st.solvedAt?`${st.solvedAt} word${st.solvedAt===1?'':'s'}`:'';
   const goal=G.meta?`🧶 Blanket joined${after?' after '+after:''}`:`★ Pattern word found${after?' after '+after:''}`;
-  return `The Puzz · ${head} 🧶\n${goal} · ${st.pulled?st.pulled+' hint'+(st.pulled>1?'s':''):'no hints'}\n${st.done?'Square finished':st.found.length+'/'+G.answers.length+' words'}${st.bonus.length?' · '+st.bonus.length+' bonus':''}\n${rows.join('\n')}`};
-function showWin(){if(mode==="daily"&&window.Kitchen)Kitchen.mark("jg");const w=$("win");w.hidden=false;
-  w.innerHTML=`<h2>${G.meta?'Blanket joined':'Pattern word found'}${st.done?', square finished':''}</h2>${st.done?'':`<p class="sub" style="margin:0">That's the day done. Want more? ${G.answers.length-st.found.length} word${G.answers.length-st.found.length===1?'':'s'} left for the full square.</p>`}<pre id="shareTxt">${fmtShare()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New skein</button>':'<span class="sub">A new skein arrives at midnight.</span>'}</div>`;
+  return `The Puzz · ${head} 🧶\n${goal} · ${st.pulled?st.pulled+' hint'+(st.pulled>1?'s':''):'no hints'}\n${st.done?'Square finished':st.found.length+'/'+G.answers.length+' words'}${st.bonus.length?' · '+st.bonus.length+' bonus':''}\n${rows.join('\n')}\n${link}`};
+function reveal(){if(st.metaDone&&st.done)return;
+  if(!confirm('Reveal every word and the hidden word? That ends this skein'+(mode==='daily'?', and today won\'t count toward your streak.':'.')))return;
+  st.found=G.answers.slice();
+  if(G.meta){const used=new Set();st.blanket=[...G.meta.word].map(ch=>{const c=G.meta.marks.findIndex((m,k)=>m.ch===ch&&!used.has(k));used.add(c);return c})}
+  st.revealed=true;st.metaDone=true;st.done=true;if(!st.solvedAt)st.solvedAt=st.found.length;chain=[];persist();render();showWin()}
+function showWin(){if(mode==="daily"&&!st.revealed&&window.Kitchen)Kitchen.mark("jg");const w=$("win");w.hidden=false;$('revealBtn').disabled=true;
+  w.innerHTML=`<h2>${st.revealed?'Answers revealed':(G.meta?'Blanket joined':'Pattern word found')+(st.done?', square finished':'')}</h2>${st.done?'':`<p class="sub" style="margin:0">That's the day done. Want more? ${G.answers.length-st.found.length} word${G.answers.length-st.found.length===1?'':'s'} left for the full square.</p>`}<pre id="shareTxt">${fmtShare()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New skein</button>':'<span class="sub">A new skein arrives at midnight.</span>'}</div>`;
   $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected · copy it'};
     try{navigator.clipboard.writeText(fmtShare()).then(ok,fb)}catch(err){fb()}};
   if($('nextBtn'))$('nextBtn').onclick=()=>load('endless')}
@@ -536,7 +551,9 @@ $('tDaily').onclick=()=>load('daily');
 $('week').addEventListener('click',e=>{const b=e.target.closest('[data-day]');if(!b||b.disabled||b.dataset.day===G.iso)return;load('daily',null,b.dataset.day);window.scrollTo({top:0,behavior:'smooth'})});$('tEndless').onclick=()=>load('endless');$('newBtn').onclick=()=>load('endless');
 
 $('wildBtn').onclick=()=>load('endless',Math.random().toString(36).slice(2,7));
-(function boot(){const h=(location.hash||'').slice(1);const m=/^j([a-z0-9]{2,3})$/.exec(h),w=/^w([a-z0-9]{5})$/.exec(h);
+$('revealBtn').onclick=reveal;
+(function boot(){const h=(location.hash||'').slice(1);const m=/^j([a-z0-9]{2,3})$/.exec(h),w=/^w([a-z0-9]{5})$/.exec(h),day=/^d(\d{4}-\d{2}-\d{2})$/.exec(h);
+  if(day&&day[1]<dayInfo().iso){load('day',null,day[1]);return}
   if(w){load('endless',w[1]);return}
   if(m){const i=parseInt(m[1],36)-1000;if(i>=0&&i<POOL.length){load('endless',i);return}}
   load('daily');if(!store.get('joannagrams-seen')){$('rules').open=true;store.set('joannagrams-seen',1)}})();

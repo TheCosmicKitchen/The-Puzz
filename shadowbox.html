@@ -121,6 +121,7 @@ details li svg{flex:none;width:44px;height:44px}
     <div class="row">
       <button class="btn" id="peekBtn">Peek <span id="peekN"></span></button>
       <button class="btn" id="resetBtn">Clear</button>
+      <button class="btn" id="revealBtn" title="Show the finished box">Reveal</button>
       <span class="timer" id="timer">0:00</span>
     </div>
   </div>
@@ -321,23 +322,26 @@ function glyph(s,r,cls){ // shape glyph centred at 0,0
 const piece=(p,sz=Z-12)=>`<rect x="${-sz/2}" y="${-sz/2}" width="${sz}" height="${sz}" rx="${sz*.18}" class="c${p>>2}"/>${glyph(p&3,sz*.24,'gly')}`;
 
 let P,st,mode='daily',sel=0,timerInt=null,last=-1,nope=-1;
-function dayInfo(){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
+function dayInfo(on){const d=on?new Date(on+'T12:00'):new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
   const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`,wk=t.getDay();
   return{num:Math.round((t-s)/864e5)+1,iso,N:(wk===0||wk===6)?5:4,label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
 
 function load(m,seedOverride){
+  // 'day' is a daily from a shared link (#d2026-11-20): that day's box, played as a one-off (no save, no streak)
   mode=m;$('tDaily').setAttribute('aria-pressed',m==='daily');$('tEndless').setAttribute('aria-pressed',m==='endless');
-  $('endlessCtl').hidden=m!=='endless';$('dailyInfo').hidden=m!=='daily';let saved=null;
-  if(m==='daily'){const d=dayInfo();P=generate('shadowbox3-'+d.iso,d.N);P.label=`#${d.num} · ${d.label}`;P.iso=d.iso;
-    $('sub').textContent='Daily '+P.label;$('dailyInfo').textContent=d.N===5?'Weekend box · 5 × 5':'Weekday box · 4 × 4';
-    saved=store.get('shadowbox-daily-v3');if(saved&&saved.iso!==d.iso)saved=null}
+  $('endlessCtl').hidden=m!=='endless';$('dailyInfo').hidden=m==='endless';let saved=null;
+  if(m==='daily'||m==='day'){const d=dayInfo(m==='day'?seedOverride:null);P=generate('shadowbox3-'+d.iso,d.N);P.label=`#${d.num} · ${d.label}`;P.iso=d.iso;
+    $('sub').textContent=m==='day'?`Shared daily ${P.label} · just for fun, not your streak`:'Daily '+P.label;$('dailyInfo').textContent=d.N===5?'Weekend box · 5 × 5':'Weekday box · 4 × 4';
+    if(m==='daily'){saved=store.get('shadowbox-daily-v3');if(saved&&saved.iso!==d.iso)saved=null;
+      try{if(location.hash)history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+    else try{history.replaceState(null,'','#d'+d.iso)}catch(e){}}
   else{const N=+$('size').value,seed=seedOverride||Math.random().toString(36).slice(2,7);P=generate('sb3-endless-'+seed+'-'+N,N);
     P.code=seed+N;P.label='Endless · '+P.code;$('seedTxt').textContent=P.code;$('sub').textContent='Endless mode · a new box every time';
     try{history.replaceState(null,'','#'+P.code)}catch(e){}}
   P.n=P.N*P.N;P.pinned=new Array(P.n).fill(false);P.clues.forEach(c=>{if(c.t==='f')P.pinned[c.i]=true});
   st=saved?saved.st:{board:P.pinned.map((b,i)=>b?P.sol[i]:-1),peeks:[],log:[],elapsed:0,started:false,solved:false};
   st.peeks.forEach(i=>P.pinned[i]=true);
-  $('win').hidden=true;sel=firstAvail(0);render();tick();if(st.solved)showWin();
+  $('win').hidden=true;$('revealBtn').disabled=st.solved;sel=firstAvail(0);render();tick();if(st.solved)showWin();
 }
 function persist(){if(mode==='daily')store.set('shadowbox-daily-v3',{iso:P.iso,st})}
 function remaining(){const r=P.tray.slice();st.board.forEach(p=>{if(p>=0)r[p]--});return r}
@@ -434,13 +438,19 @@ function peek(){
 function check(){if(st.board.some(v=>v<0))return;if(P.clues.some(c=>c.t!=='f'&&status(c)!=='ok'))return;
   const key=ps=>ps.map(p=>p.key).sort().join('|');if(key(patchesOf(st.board.map(p=>p>>2),P.N))!==key(P.patches))return;st.solved=true;stopTimer();showWin()}
 const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+// Reveal: ends the box, shows the answer, doesn't count toward the streak
+function reveal(){if(st.solved)return;if(!confirm('Reveal the finished box? That ends this puzzle'+(mode==='daily'?', and today won\'t count toward your streak.':'.')))return;
+  st.board=P.sol.slice();st.revealed=true;st.solved=true;stopTimer();persist();showWin()}
 function shareText(){
   const cnt={};st.log.forEach(i=>cnt[i]=(cnt[i]||0)+1);const pk=new Set(st.peeks),pin=new Set(P.clues.filter(c=>c.t==='f').map(c=>c.i));
   let g='';for(let r=0;r<P.N;r++){for(let c=0;c<P.N;c++){const i=r*P.N+c;g+=pk.has(i)?'🔍':pin.has(i)?'⬜':cnt[i]>1?'🟨':'🟦'}g+='\n'}
-  const head=mode==='daily'?`Shadowbox ${P.label}`:`Shadowbox Endless · ${P.code}`;
-  return `The Puzz · ${head}\n⏱ ${fmt(st.elapsed)} · ${st.peeks.length?'🔍 '+st.peeks.length+' peek'+(st.peeks.length>1?'s':''):'no peeks'}\n${g.trim()}`}
-function showWin(){if(mode==="daily"&&window.Kitchen)Kitchen.mark("sb");const w=$("win");w.hidden=false;
-  w.innerHTML=`<h2>Box solved</h2><pre id="shareTxt">${shareText()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">Next puzzle</button>':'<span class="sub">A new box arrives at midnight.</span>'}</div>`;
+  const head=mode==='endless'?`Shadowbox Endless · ${P.code}`:`Shadowbox ${P.label}`;
+  // the link opens this exact box: the day for a daily, the seed for endless
+  const link=`thecosmickitchen.github.io/The-Puzz/shadowbox.html#${mode==='endless'?P.code:'d'+P.iso}`;
+  if(st.revealed)return `The Puzz · ${head}\nSolution revealed\n${link}`;
+  return `The Puzz · ${head}\n⏱ ${fmt(st.elapsed)} · ${st.peeks.length?'🔍 '+st.peeks.length+' peek'+(st.peeks.length>1?'s':''):'no peeks'}\n${g.trim()}\n${link}`}
+function showWin(){if(mode==="daily"&&!st.revealed&&window.Kitchen)Kitchen.mark("sb");const w=$("win");w.hidden=false;$('revealBtn').disabled=true;
+  w.innerHTML=`<h2>${st.revealed?'Here\'s the finished box':'Box solved'}</h2><pre id="shareTxt">${shareText()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">Next puzzle</button>':'<span class="sub">A new box arrives at midnight.</span>'}</div>`;
   $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected · copy it'};
     try{navigator.clipboard.writeText(shareText()).then(ok,fb)}catch(err){fb()}};
   if($('nextBtn'))$('nextBtn').onclick=()=>load('endless');render()}
@@ -451,6 +461,7 @@ function tick(){$('timer').textContent=fmt(st.elapsed||0)}
 $('svg').addEventListener('click',e=>{const g=e.target.closest('[data-i]');if(g)placeAt(+g.dataset.i)});
 $('basket').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(b&&!b.disabled){sel=+b.dataset.p;render()}});
 $('peekBtn').onclick=peek;
+$('revealBtn').onclick=reveal;
 $('resetBtn').onclick=()=>{if(st.solved)return;st.board=st.board.map((v,i)=>P.pinned[i]?v:-1);render();persist()};
 $('tDaily').onclick=()=>{stopTimer();load('daily');if(st.started&&!st.solved)startTimer()};
 $('tEndless').onclick=()=>{stopTimer();load('endless')};
@@ -464,7 +475,8 @@ $('r4').innerHTML=`<g class="cnt" transform="translate(-17,0)"><rect x="0" y="-1
 $('r7').innerHTML=fragSVG({cells:[{r:0,c:0,s:1},{r:1,c:1,s:3,col:1}]},'').replace(/<span[^>]*>|<\/span>/g,'').replace(/<svg[^>]*>/,'<g transform="translate(-24,-24)">').replace('</svg>','</g>');
 $('r6').innerHTML=piece(9,40)+`<circle class="pin" cx="13" cy="-13" r="4"/>`;
 
-(function boot(){const h=(location.hash||'').slice(1);
+(function boot(){const h=(location.hash||'').slice(1),day=/^d(\d{4}-\d{2}-\d{2})$/.exec(h);
+  if(day&&day[1]<dayInfo().iso){load('day',day[1]);return}
   if(/^[a-z0-9]{5}[45]$/.test(h)){$('size').value=h[5];load('endless',h.slice(0,5))}
   else{load('daily');if(!store.get('shadowbox-daily-seen')){$('rules').open=true;store.set('shadowbox-daily-seen',1)}if(st.started&&!st.solved)startTimer()}})();
 </script>

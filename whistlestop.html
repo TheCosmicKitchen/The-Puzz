@@ -155,7 +155,7 @@ h1 span{color:var(--loco)}
       <button class="btn" id="newBtn">New route</button>
     </div>
     <span class="theme" id="themeTag"></span>
-    <div class="row"><button class="btn" id="clearBtn">Clear track</button><span class="timer" id="timer">0:00</span></div>
+    <div class="row"><button class="btn" id="clearBtn">Clear track</button><button class="btn" id="revealBtn" title="Show a route that works">Reveal</button><span class="timer" id="timer">0:00</span></div>
   </div>
   <div class="board" id="boardBox"><svg id="svg" aria-label="Railway board. Drag from the station roundel to lay track."></svg><div class="loading" id="loading" hidden>Laying track…</div>
     <div class="lockpanel" id="lockPanel" hidden><b>Endless lines are still under construction</b><span id="lockTxt"></span><button class="btn primary" id="lockGo">Back to the journey</button></div></div>
@@ -437,17 +437,18 @@ const ICON={base:()=>`<line class="spur" x1="-22" y1="0" x2="22" y2="0"/><g tran
   gap:()=>`<line class="gapmark" x1="-22" y1="0" x2="-7" y2="0"/><line class="gapmark" x1="7" y1="0" x2="22" y2="0"/><circle class="rubble" cx="-2" cy="2" r="2.2"/><circle class="rubble" cx="3" cy="-2" r="1.6"/>`,
   sig:()=>D.sig(2),stn:()=>D.stn(0),plat:()=>D.plat(4),tkt:()=>D.tkt(2),spare:()=>D.spare(),tun:()=>D.tun()};
 
-function dayInfo(){const d=new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
+function dayInfo(on){const d=on?new Date(on+'T12:00'):new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
   const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`,wk=t.getDay();
   const num=Math.round((t-s)/864e5)+1;return{num,iso,theme:DAY_THEMES[wk]==='sat'?(Math.floor(num/7)%2?'repairs':'tunnels'):DAY_THEMES[wk],N:(wk===0||wk===6)?5:4,label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
 
 function setMode(m){mode=m;['Journey','Daily','Endless'].forEach(x=>$('t'+x).setAttribute('aria-pressed',m===x.toLowerCase()));
   $('endLock').hidden=jDone();$('endlessCtl').hidden=m!=='endless'||!jDone();$('lineMap').hidden=m!=='journey';$('timer').hidden=m==='journey';
-  $('dailyNote').hidden=true;$('lockPanel').hidden=true;$('svg').style.display='';stopTimer();if(anim)cancelAnimationFrame(anim);$('win').hidden=true}
+  $('dailyNote').hidden=true;$('lockPanel').hidden=true;$('svg').style.display='';stopTimer();if(anim)cancelAnimationFrame(anim);$('win').hidden=true;
+  $('revealBtn').hidden=m==='journey'}
 
 function setPuzzle(puz,state){
   P=puz;G=geom(P.W,P.H);EX=G.NN;st=state;route=st.route.slice();partial=null;badClues=[];
-  $('loading').hidden=true;render();tick();refreshLegend();
+  $('loading').hidden=true;$('revealBtn').disabled=!!st.solved;render();tick();refreshLegend();
   if(st.solved)showWin(false);else if(st.started&&mode!=='journey')startTimer();
 }
 const G0=pz=>geom(pz.W,pz.H);
@@ -462,20 +463,21 @@ function openJourney(ci,pi){
   renderMap();
   if(!st.solved)hint(jIdx(ci,pi)===0?'Drag the locomotive onto the board and drive it to the buffer stop.':'');
 }
-function loadDaily(){
-  setMode('daily');$('loading').hidden=false;$('svg').innerHTML='';
-  setTimeout(()=>{const d=dayInfo();const pz=generate('whistlestop-'+d.iso,d.N,d.N,d.theme);pz.label=`#${d.num} · ${d.label}`;pz.iso=d.iso;
-    $('sub').textContent='Daily line '+pz.label;$('themeTag').textContent=THEME_NAMES[pz.theme];
-    let saved=store.get('whistlestop-daily-v4');if(saved&&saved.iso!==d.iso)saved=null;
+function loadDaily(dayIso){
+  setMode(dayIso?'day':'daily');$('loading').hidden=false;$('svg').innerHTML='';
+  try{history.replaceState(null,'',dayIso?'#d'+dayIso:location.pathname+location.search)}catch(e){}
+  setTimeout(()=>{const d=dayInfo(dayIso);const pz=generate('whistlestop-'+d.iso,d.N,d.N,d.theme);pz.label=`#${d.num} · ${d.label}`;pz.iso=d.iso;
+    $('sub').textContent=dayIso?`Shared daily line ${pz.label} · just for fun, not your streak`:'Daily line '+pz.label;$('themeTag').textContent=THEME_NAMES[pz.theme];
+    let saved=dayIso?null:store.get('whistlestop-daily-v4');if(saved&&saved.iso!==d.iso)saved=null;
     setPuzzle(pz,saved?saved.st:{route:[pz.start],tries:[],elapsed:0,started:false,solved:false});
     const unknown=[...new Set(P.clues.map(c=>c.t))].filter(k=>!J.learned.includes(k));
     if(unknown.length&&!st.solved){$('dailyNote').hidden=false;$('dailyNoteTxt').textContent=`Today's line uses ${unknown.length===1?'a sign':'signs'} you haven't met on the journey yet. Experiment, or learn ${unknown.length===1?'it':'them'} first.`}
     if(!st.solved&&route.length<2)hint('Drag the locomotive onto the board and drive it to the buffer stop.');
   },30);
 }
-function loadEndless(code){
+function loadEndless(code,shared){
   setMode('endless');
-  if(!jDone()){$('lockPanel').hidden=false;$('svg').style.display='none';$('hint').textContent='';$('themeTag').textContent='Locked';
+  if(!jDone()&&!shared){$('lockPanel').hidden=false;$('svg').style.display='none';$('hint').textContent='';$('themeTag').textContent='Locked';
     $('lockTxt').textContent=`Finish the journey to open endless lines. You've reached ${jCount()} of ${FLAT.length} stops.`;$('sub').textContent='Endless mode';refreshLegend();return}
   $('loading').hidden=false;$('svg').innerHTML='';
   setTimeout(()=>{const c=code||Math.random().toString(36).slice(2,7),theme=$('themeSel').value,N=+$('sizeSel').value;
@@ -627,6 +629,10 @@ function arrive(){
   st.tries.push(1);st.solved=true;stopTimer();persist();hint('');
   if(mode==='journey')journeySolved();else showWin(true);
 }
+// Reveal: lays a working route, ends the line, doesn't count toward the streak
+function reveal(){if(!P||st.solved||mode==='journey'||!P.sol)return;
+  if(!confirm('Reveal a route that works? That ends this line'+(mode==='daily'?', and today won\'t count toward your streak.':'.')))return;
+  route=[...(Array.isArray(P.sol)?P.sol:P.sol.nodes),EX];badClues=[];st.revealed=true;st.solved=true;stopTimer();persist();hint('');showWin(false)}
 function hint(t,cls=''){$('hint').textContent=t;$('hint').className='hint '+cls}
 
 // ---- win ----
@@ -656,11 +662,14 @@ function journeySolved(){
 }
 const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
 function shareText(){const strip=st.tries.map(t=>t?'🟩':'🟥').join('');const fails=st.tries.filter(t=>!t).length;
-  return `The Puzz · Whistlestop ${P.label} 🚂\n${THEME_NAMES[P.theme]} · ${P.W}×${P.H} · ⏱ ${fmt(st.elapsed)}\n${fails?fails+' wrong route'+(fails>1?'s':''):'Right first time'} 🚂${strip}`}
-function showWin(animate){if(window.Kitchen&&(mode==="daily"||(mode==="journey"&&animate)))Kitchen.mark("ws");const w=$("win");w.hidden=false;
+  // the link opens this exact line: the day for a daily, the route code for endless
+  const link=`thecosmickitchen.github.io/The-Puzz/whistlestop.html#${mode==='endless'?P.code:'d'+P.iso}`;
+  if(st.revealed)return `The Puzz · Whistlestop ${P.label} 🚂\n${THEME_NAMES[P.theme]} · ${P.W}×${P.H} · route revealed\n${link}`;
+  return `The Puzz · Whistlestop ${P.label} 🚂\n${THEME_NAMES[P.theme]} · ${P.W}×${P.H} · ⏱ ${fmt(st.elapsed)}\n${fails?fails+' wrong route'+(fails>1?'s':''):'Right first time'} 🚂${strip}\n${link}`}
+function showWin(animate){if(window.Kitchen&&!st.revealed&&(mode==="daily"||(mode==="journey"&&animate)))Kitchen.mark("ws");$('revealBtn').disabled=true;const w=$("win");w.hidden=false;
   if(mode==='journey'){w.innerHTML=`<h2>Already ridden</h2><div class="row"><button class="btn primary" id="nextStop">Next stop →</button><button class="btn" id="again">Ride it again</button></div>`;
     const nx=jNext();$('nextStop').onclick=()=>openJourney(nx.ci,nx.pi);$('again').onclick=()=>{st.solved=false;route=[P.start];w.hidden=true;render();hint('')};render();return}
-  w.innerHTML=`<h2>All aboard!</h2><pre id="shareTxt">${shareText()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New route</button>':'<span class="sub">A new line opens at midnight.</span>'}</div>`;
+  w.innerHTML=`<h2>${st.revealed?'Here\'s a route that works':'All aboard!'}</h2><pre id="shareTxt">${shareText()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New route</button>':'<span class="sub">A new line opens at midnight.</span>'}</div>`;
   $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected · copy it'};
     try{navigator.clipboard.writeText(shareText()).then(ok,fb)}catch(err){fb()}};
   if($('nextBtn'))$('nextBtn').onclick=()=>loadEndless();
@@ -670,13 +679,15 @@ function stopTimer(){clearInterval(timerInt);timerInt=null}
 function tick(){$('timer').textContent=fmt(st&&st.elapsed||0)}
 
 $('tJourney').onclick=()=>{const n=jNext();openJourney(n.ci,n.pi)};
-$('tDaily').onclick=()=>loadDaily();$('tEndless').onclick=()=>loadEndless();$('newBtn').onclick=()=>loadEndless();
+$('tDaily').onclick=()=>loadDaily();$('revealBtn').onclick=reveal;$('tEndless').onclick=()=>loadEndless();$('newBtn').onclick=()=>loadEndless();
 $('themeSel').onchange=()=>loadEndless();$('sizeSel').onchange=()=>loadEndless();
 $('lockGo').onclick=()=>{const n=jNext();openJourney(n.ci,n.pi)};$('toJourney').onclick=()=>{const n=jNext();openJourney(n.ci,n.pi)};
 $('peekBtn').onclick=()=>{dailyPeek=true;refreshLegend();$('legend').open=true;$('legend').scrollIntoView({behavior:'smooth',block:'nearest'})};
 document.querySelectorAll('.legend li').forEach(li=>{const k=li.dataset.k,svg=li.querySelector('svg');if(ICON[k])svg.innerHTML=ICON[k]()});
 
-(function boot(){const h=(location.hash||'').slice(1),m=/^([a-z0-9]{5})([0-7])([45])$/.exec(h);
+(function boot(){const h=(location.hash||'').slice(1),m=/^([a-z0-9]{5})([0-7])([45])$/.exec(h),day=/^d(\d{4}-\d{2}-\d{2})$/.exec(h);
+  if(day&&day[1]<dayInfo().iso){loadDaily(day[1]);return}
+  if(m){$('themeSel').value=Object.keys(THEME_NAMES)[+m[2]];$('sizeSel').value=m[3];loadEndless(m[1],true);return}
   if(m&&jDone()){$('themeSel').value=Object.keys(THEME_NAMES)[+m[2]];$('sizeSel').value=m[3];loadEndless(m[1]);return}
   if(jDone())loadDaily();else{const n=jNext();openJourney(n.ci,n.pi)}})();
 </script>
