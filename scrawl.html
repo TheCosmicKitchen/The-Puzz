@@ -108,6 +108,30 @@ h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:v
 .hand button:disabled{cursor:default}
 @media (max-width:380px){.hand .tile{--ts:44px}}
 @media (prefers-reduced-motion:no-preference){.tile.new{animation:morph .45s cubic-bezier(.3,1.4,.6,1)}@keyframes morph{0%{transform:rotateY(90deg) scale(.9)}100%{transform:none}}}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:54px;height:54px;flex:none}
+@media (prefers-reduced-motion:no-preference){.logo .flame{transform-origin:36px 22px;animation:candle 1.8s ease-in-out infinite}@keyframes candle{0%,100%{transform:scale(1) rotate(0)}30%{transform:scale(1.08,.95) rotate(-3deg)}60%{transform:scale(.96,1.06) rotate(2deg)}}}
+/* previews: what a card will do with the tile in your hand */
+.onerow{display:flex;align-items:center;gap:8px;min-height:44px}
+.pv{font:700 13px var(--body);line-height:1.2}
+.pv.ok{color:var(--ink)}.pv.no{color:var(--hp)}
+.pv .arr{font-family:var(--display);font-size:16px;letter-spacing:.02em}
+.slot .tile.ghost{opacity:.55;outline:2px dashed var(--gold);outline-offset:2px}
+.cardx.drop{border-color:var(--gold);transform:scale(1.03);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 60%,transparent),0 8px 18px rgba(0,0,0,.18)}
+.cardx{transition:transform .12s,box-shadow .12s}
+.hand{touch-action:none}
+.hand button.lifted .tile{opacity:.25}
+/* animation layer */
+#fx{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
+.flyer,.dragghost{position:fixed;display:grid;place-items:center}
+.dragghost{transform:translate(-50%,-60%) rotate(-4deg);filter:drop-shadow(0 10px 12px rgba(0,0,0,.35))}
+.dragghost .tile{--ts:54px}
+.float{position:fixed;font:800 26px/1 var(--display);white-space:nowrap;text-shadow:0 2px 0 rgba(0,0,0,.25),0 0 10px rgba(255,255,255,.4)}
+.float.big{font-size:34px}
+.float.dmg{color:#E23B2E}.float.heal{color:#2EA35B}.float.blk{color:#3E6FB8;font-size:22px}
+.hand button.deal .tile{animation:deal .5s cubic-bezier(.3,1.5,.6,1) both;animation-delay:var(--d,0s)}
+@keyframes deal{from{transform:translateY(46px) rotate(-14deg) scale(.6);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.hand button.deal .tile{animation:none}}
 .foot{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .log{font-size:13px;color:var(--muted);min-height:1.4em;flex:1}
 .log b{color:var(--ink)}
@@ -123,7 +147,14 @@ details p{margin:8px 0;font-size:14px}
 <div class="wrap">
   <a class="eyebrow" href="./">← The Puzz</a>
   <header>
-    <div><h1>Dungeon <span>Scrawl</span></h1><div class="sub" id="sub"></div></div>
+    <div class="brand"><svg class="logo" viewBox="0 0 72 72" aria-hidden="true">
+        <rect x="4" y="44" width="64" height="20" rx="6" fill="#7A4C26"/><rect x="4" y="44" width="64" height="5" rx="2.5" fill="#94612F"/>
+        <g font-family="Fraunces,Georgia,serif" font-weight="800" font-size="15" text-anchor="middle">
+          <rect x="8" y="28" width="17" height="17" rx="3.5" fill="#F4E4C0" stroke="#B88B45" stroke-width="1.2"/><text x="16.5" y="41.5" fill="#2B2117">Z</text>
+          <rect x="27.5" y="25" width="17" height="17" rx="3.5" fill="#FF8A2B" stroke="#9C2A12" stroke-width="1.2" transform="rotate(-6 36 33.5)"/><text x="36" y="38.5" fill="#3A0E05" transform="rotate(-6 36 33.5)">A</text>
+          <rect x="47" y="28" width="17" height="17" rx="3.5" fill="#C9D1D9" stroke="#5D6874" stroke-width="1.2"/><text x="55.5" y="41.5" fill="#1E2630">P</text></g>
+        <path class="flame" d="M36,6 C42,14 30,16 36,22 C30,20 28,12 36,6Z" fill="#E0A526"/><path class="flame" d="M36,11 C39,15 33,16 36,20 C33,18 33,14 36,11Z" fill="#FFD25A"/></svg>
+      <div><h1>Dungeon <span>Scrawl</span></h1><div class="sub" id="sub"></div></div></div>
     <div class="trail" id="trail" aria-label="Foes"></div>
   </header>
   <section class="foe" id="foe" aria-live="polite"></section>
@@ -137,7 +168,7 @@ details p{margin:8px 0;font-size:14px}
   <details id="rules">
     <summary>How to play</summary>
     <p>Beat today's three foes. Everyone gets the same foes and the same tiles.</p>
-    <p>Each turn you draw six letter tiles. Tap a tile, then a card's slot. <b>Nudge</b> moves a letter one step on (B→C, Z→A). <b>Flip</b> mirrors it across the alphabet (A↔Z, B↔Y, M↔N). Changed tiles come back to your hand, so you can keep working on them.</p>
+    <p>Each turn you draw six letter tiles. Tap a tile, then a card's slot, or drag the tile onto the card. While you hold a tile, every card shows what it would do with it. <b>Nudge</b> moves a letter one step on (B→C, Z→A). <b>Flip</b> mirrors it across the alphabet (A↔Z, B↔Y, M↔N). Changed tiles come back to your hand, so you can keep working on them.</p>
     <p><b>Spellblade</b> takes a real word of three letters or more and deals its points, plus a bonus for long words. <b>Quill</b> throws one consonant. <b>Vowel Ward</b> turns a vowel into a shield for the foe's next move. Each card works once a turn (Nudge twice). Unused tiles are lost when you end your turn.</p>
     <p><b>Enchanted tiles</b> turn up now and then, and keep their enchantment when you Nudge or Flip them: 🔥 <b>Flaming</b> adds 4 damage when it attacks, 🛡 <b>Steel</b> fits Vowel Ward even as a consonant and adds 6 block, ✨ <b>Gilded</b> is worth double, and 🌿 <b>Leaf</b> heals you 3 when it's used.</p>
     <p>Watch what the foe will do next: attacks, and tricks like <b>Jumble</b> (one of your next tiles changes), <b>Nibble</b> (one fewer tile) and <b>Muffle</b> (vowels worth nothing).</p>
@@ -209,7 +240,7 @@ const foe=()=>S.foes[S.fi],F=()=>FOES[foe().k],nextMove=()=>F().moves[foe().mi%F
 const pts=t=>(S.muffle&&VOW.has(t.ch)?0:VAL[t.ch])*(t.fx==='gold'?2:1);
 const fireOf=ts=>ts.filter(t=>t.fx==='fire').length*4;
 // a leaf tile heals when it's used, whatever it's used for
-function useUp(ts){let heal=0;ts.forEach(t=>{if(t.fx==='leaf')heal+=3;removeTile(t)});if(heal){const was=S.hp;S.hp=Math.min(HP,S.hp+heal);return S.hp-was}return 0}
+function useUp(ts){let heal=0;ts.forEach(t=>{if(t.fx==='leaf')heal+=3;removeTile(t)});if(heal){const was=S.hp;S.hp=Math.min(HP,S.hp+heal);if(S.hp>was)fxq.push({t:'heal',n:S.hp-was,delay:520});return S.hp-was}return 0}
 
 let S=null,mode='daily',D=null,sel=null,flash='';
 function load(m,arg){
@@ -223,6 +254,45 @@ function load(m,arg){
 function persist(){if(mode==='daily')store.set('scrawl-daily',S)}
 function say(t){S.log=t;$('log').innerHTML=t}
 
+// ---- game feel: animations drawn on a layer above the board ----
+const MOTION=!matchMedia('(prefers-reduced-motion: reduce)').matches;
+let fxq=[],drag=null,dragSrc=null,dealNext=true,suppress=false;
+const fxLayer=document.createElement('div');fxLayer.id='fx';document.body.append(fxLayer);
+const centerOf=el=>{const r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}};
+const anchor=k=>k==='foe'?($('foe').querySelector('svg')||$('foe')):$('youBar');
+function floatText(k,text,cls,delay=0){const c=centerOf(anchor(k)),el=document.createElement('div');el.className='float '+cls;el.textContent=text;
+  el.style.left=c.x+'px';el.style.top=c.y+'px';el.style.opacity=0;fxLayer.append(el);
+  el.animate([{opacity:0,transform:'translate(-50%,-20%) scale(.5)'},{opacity:1,transform:'translate(-50%,-75%) scale(1.2)',offset:.2},{opacity:1,transform:'translate(-50%,-120%) scale(1)',offset:.7},{opacity:0,transform:'translate(-50%,-165%) scale(.95)'}],
+    {duration:MOTION?1100:800,delay,easing:'ease-out',fill:'forwards'}).onfinish=()=>el.remove()}
+// tiles flying from where they were to the foe (or to you)
+function fly(items,k,delay=0){if(!MOTION||!items.length)return delay;const c=centerOf(anchor(k));
+  items.forEach((it,i)=>{const el=document.createElement('div');el.className='flyer';el.innerHTML=it.html;
+    Object.assign(el.style,{left:it.r.left+'px',top:it.r.top+'px',width:it.r.width+'px',height:it.r.height+'px'});fxLayer.append(el);
+    const dx=c.x-(it.r.left+it.r.width/2),dy=c.y-(it.r.top+it.r.height/2),sp=(i%2?1:-1)*(18+i*6);
+    el.animate([{transform:'none'},{transform:`translate(${dx*.45}px,${dy*.45-50}px) rotate(${sp}deg) scale(1.15)`,offset:.55},{transform:`translate(${dx}px,${dy}px) rotate(${sp*2}deg) scale(.35)`,opacity:.15}],
+      {duration:430,delay:delay+i*60,easing:'cubic-bezier(.45,0,.7,.2)',fill:'forwards'}).onfinish=()=>el.remove()});
+  return delay+(items.length-1)*60+430}
+function shake(el,amt=7,delay=0){if(MOTION&&el)el.animate([{transform:'none'},{transform:`translateX(${-amt}px)`},{transform:`translateX(${amt}px)`},{transform:`translateX(${-amt/2}px)`},{transform:'none'}],{duration:340,delay})}
+function playFx(list){for(const e of list){
+  if(e.t==='hit'){const at=fly(e.from||[],'foe');const sv=$('foe').querySelector('svg');
+    if(MOTION&&sv)sv.animate([{filter:'none'},{filter:'brightness(2.4) saturate(.2)'},{filter:'none'}],{duration:260,delay:at});shake($('foe'),e.n>=15?11:7,at);
+    if(e.n)floatText('foe','−'+e.n,'dmg'+(e.n>=15?' big':''),at);if(e.blocked)floatText('foe','🛡 '+e.blocked,'blk',at+140);if(e.fire&&MOTION)floatText('foe','🔥','dmg',at+60)}
+  else if(e.t==='ward'){const at=fly(e.from||[],'you');floatText('you','+'+e.n+' 🛡','blk',at);if(MOTION)$('youBlock').animate([{transform:'scale(2)'},{transform:'none'}],{duration:420,delay:at,easing:'ease-out'})}
+  else if(e.t==='heal')floatText('you','+'+e.n+' ❤','heal',e.delay||0);
+  else if(e.t==='spark'){const card=document.querySelector(`[data-card="${e.card}"]`);if(card&&MOTION)card.animate([{boxShadow:'0 0 0 0 rgba(224,165,38,.95)'},{boxShadow:'0 0 0 16px rgba(224,165,38,0)'}],{duration:520,easing:'ease-out'})}
+  else if(e.t==='foeTurn'){const sv=$('foe').querySelector('svg');
+    if(MOTION&&sv&&e.atk)sv.animate([{transform:'none'},{transform:'translateY(20px) scale(1.14)',offset:.35},{transform:'none'}],{duration:440,easing:'ease-in-out'});
+    if(e.dmg){shake(document.querySelector('.you'),9,200);floatText('you','−'+e.dmg,'dmg big',200);
+      if(MOTION)document.querySelector('.wrap').animate([{boxShadow:'inset 0 0 0 0 rgba(210,40,40,0)'},{boxShadow:'inset 0 0 80px 10px rgba(210,40,40,.4)'},{boxShadow:'inset 0 0 0 0 rgba(210,40,40,0)'}],{duration:520,delay:200})}
+    if(e.blocked)floatText('you','🛡 '+e.blocked,'blk',260);if(e.armor)floatText('foe','+'+e.armor+' 🛡','blk',120)}
+  else if(e.t==='poof'){if(!MOTION)continue;const el=document.createElement('div');el.className='flyer';el.innerHTML=e.html;
+    Object.assign(el.style,{left:e.r.left+'px',top:e.r.top+'px',width:e.r.width+'px',height:e.r.height+'px'});fxLayer.append(el);
+    el.animate([{transform:'none',opacity:1},{transform:'scale(1.3) rotate(-10deg)',filter:'brightness(2.5)',opacity:1,offset:.3},{transform:'translateY(-60px) scale(.15) rotate(50deg)',opacity:0}],{duration:700,delay:e.delay||0,easing:'ease-in',fill:'forwards'}).onfinish=()=>el.remove();
+    if(e.next)$('foe').animate([{opacity:0,transform:'translateX(60px)'},{opacity:0,transform:'translateX(60px)',offset:.55},{opacity:1,transform:'none'}],{duration:1100,easing:'cubic-bezier(.3,1.3,.6,1)'})}}}
+// where a tile is now, so it can fly from there
+const srcOf=t=>{if(dragSrc)return dragSrc;const el=document.querySelector(`#hand [data-t="${t.id}"] .tile`);return el?{r:el.getBoundingClientRect(),html:el.outerHTML}:null};
+function foeSnap(){const sv=$('foe').querySelector('svg');return sv?{html:sv.outerHTML,r:sv.getBoundingClientRect()}:null}
+
 // ---- playing tiles ----
 const tileHTML=(t,extra='')=>`<span class="tile ${t.fx?'fx-'+t.fx:''} ${S.muffle&&VOW.has(t.ch)?'muted':''} ${t.crossed?'crossed':''} ${t.fresh?'new':''} ${VAL[t.ch]>=5?'hi':''} ${extra}">${t.fx?`<em aria-hidden="true">${FX[t.fx].icon}</em>`:''}${t.ch}<sub>${pts(t)}</sub></span>`;
 const byId=id=>S.hand.find(t=>t.id===id);
@@ -231,10 +301,10 @@ function useOn(card){
   if(card==='spell'){if(!S.uses.spell)return;if(S.spell.length>=8)return;S.spell.push(t.id);sel=null;render();return}
   if(!S.uses[card]){say('That card is used up this turn.');return}
   const c=t.ch;
-  if(card==='nudge'){t.ch=nudge(c);say(`Nudged <b>${c.toUpperCase()}</b> to <b>${t.ch.toUpperCase()}</b>.`)}
-  else if(card==='flip'){t.ch=flip(c);say(`Flipped <b>${c.toUpperCase()}</b> to <b>${t.ch.toUpperCase()}</b>.`)}
-  else if(card==='quill'){if(VOW.has(c)){say('Quill needs a consonant.');return}hitFoe(pts(t)+1+fireOf([t]),`Quill: <b>${c.toUpperCase()}</b>${t.fx==='fire'?' 🔥':''}`);const h=useUp([t]);if(h)S.log+=` 🌿 +${h} HP.`}
-  else if(card==='ward'){if(!VOW.has(c)&&t.fx!=='steel'){say('Vowel Ward needs a vowel (or a steel tile).');return}const b=2+pts(t)+(t.fx==='steel'?6:0);S.block+=b;say(`Ward up: <b>${b}</b> block${t.fx==='steel'?' 🛡':''}.`);const h=useUp([t]);if(h)S.log+=` 🌿 +${h} HP.`}
+  if(card==='nudge'){fxq.push({t:'spark',card});t.ch=nudge(c);say(`Nudged <b>${c.toUpperCase()}</b> to <b>${t.ch.toUpperCase()}</b>.`)}
+  else if(card==='flip'){fxq.push({t:'spark',card});t.ch=flip(c);say(`Flipped <b>${c.toUpperCase()}</b> to <b>${t.ch.toUpperCase()}</b>.`)}
+  else if(card==='quill'){if(VOW.has(c)){say('Quill needs a consonant.');return}hitFoe(pts(t)+1+fireOf([t]),`Quill: <b>${c.toUpperCase()}</b>${t.fx==='fire'?' 🔥':''}`,[srcOf(t)].filter(Boolean),t.fx==='fire');const h=useUp([t]);if(h)S.log+=` 🌿 +${h} HP.`}
+  else if(card==='ward'){if(!VOW.has(c)&&t.fx!=='steel'){say('Vowel Ward needs a vowel (or a steel tile).');return}const b=2+pts(t)+(t.fx==='steel'?6:0);S.block+=b;fxq.push({t:'ward',n:b,from:[srcOf(t)].filter(Boolean)});say(`Ward up: <b>${b}</b> block${t.fx==='steel'?' 🛡':''}.`);const h=useUp([t]);if(h)S.log+=` 🌿 +${h} HP.`}
   S.uses[card]--;if(card==='nudge'||card==='flip')t.fresh=true;sel=null;afterAction()}
 function removeTile(t){S.hand=S.hand.filter(x=>x!==t);S.spell=S.spell.filter(id=>id!==t.id)}
 const spellWord=()=>S.spell.map(id=>byId(id).ch).join('');
@@ -242,19 +312,22 @@ function wordDamage(){const ts=S.spell.map(byId);return ts.reduce((s,t)=>s+pts(t
 function strike(){
   const w=spellWord();if(w.length<3||!WORDS.has(w)||!S.uses.spell)return;
   const dmg=wordDamage();if(!S.best||dmg>S.best.dmg)S.best={w,dmg};
+  const from=[...document.querySelectorAll('[data-spell] .tile')].map(el=>({r:el.getBoundingClientRect(),html:el.outerHTML}));
   const ts=S.spell.map(byId),fire=fireOf(ts);const heal=useUp(ts);S.spell=[];S.uses.spell=0;
-  hitFoe(dmg,`Spellblade: <b>${w.toUpperCase()}</b>${fire?' 🔥':''}`);if(heal)S.log+=` 🌿 +${heal} HP.`;afterAction()}
-function hitFoe(n,what){const f=foe(),soak=Math.min(f.block,n);f.block-=soak;f.hp=Math.max(0,f.hp-(n-soak));
+  hitFoe(dmg,`Spellblade: <b>${w.toUpperCase()}</b>${fire?' 🔥':''}`,from,!!fire);if(heal)S.log+=` 🌿 +${heal} HP.`;afterAction()}
+function hitFoe(n,what,from,fire){const f=foe(),soak=Math.min(f.block,n);f.block-=soak;f.hp=Math.max(0,f.hp-(n-soak));fxq.push({t:'hit',n:n-soak,blocked:soak,from:from||[],fire});
   say(`${what} hits for <b>${n-soak}</b>${soak?` (${soak} blocked)`:''}.`);flash='foe'}
 function afterAction(){
   if(foe().hp<=0){
-    if(S.fi===S.foes.length-1){S.over='won';persist();render();showResult();return}
-    const name=F().name;S.fi++;S.hp=Math.min(HP,S.hp+6);S.turn=0;S.drawn=0;S.pending={};startTurn();say(`<b>${name}</b> is beaten. You catch your breath (+6). Next: <b>${F().name}</b>.`)}
+    const snap=foeSnap(),last=S.fi===S.foes.length-1;if(snap)fxq.push({t:'poof',...snap,delay:520,next:!last});
+    if(last){S.over='won';persist();render();showResult();return}
+    const name=F().name;dealNext=true;S.fi++;S.hp=Math.min(HP,S.hp+6);S.turn=0;S.drawn=0;S.pending={};startTurn();say(`<b>${name}</b> is beaten. You catch your breath (+6). Next: <b>${F().name}</b>.`)}
   persist();render()}
 function endTurn(){
   if(S.over)return;const m=nextMove(),f=foe();f.block=0;
   if(m.armor)f.block+=m.armor;
-  let dmg=0;if(m.atk)for(let k=0;k<(m.twice?2:1);k++){const soak=Math.min(S.block,m.atk);S.block-=soak;dmg+=m.atk-soak}
+  let dmg=0,blocked=0;if(m.atk)for(let k=0;k<(m.twice?2:1);k++){const soak=Math.min(S.block,m.atk);S.block-=soak;blocked+=soak;dmg+=m.atk-soak}
+  fxq.push({t:'foeTurn',atk:!!m.atk,dmg,blocked,armor:m.armor});dealNext=true;
   S.hp=Math.max(0,S.hp-dmg);S.pending={jumble:m.jumble,nibble:m.nibble,muffle:m.muffle,redpen:m.redpen};f.mi++;
   const bits=[];if(m.atk)bits.push(`hits you for <b>${dmg}</b>`);if(m.armor)bits.push(`armours up (${m.armor})`);if(m.jumble)bits.push('jumbles a tile');if(m.nibble)bits.push('nibbles a tile');if(m.muffle)bits.push('muffles your vowels');if(m.redpen)bits.push(`crosses out ${m.redpen} tiles`);
   if(S.hp<=0){S.over='lost';persist();render();showResult();return}
@@ -267,28 +340,35 @@ function render(){
   $('foe').innerHTML=`${foeSVG(fd)}<div><h2>${fd.name}</h2><div class="about">${fd.about}</div>
     <div class="bar"><i style="width:${f.hp/f.max*100}%"></i><b>${f.hp} / ${f.max}</b></div>
     ${f.block?`<span class="blk">🛡 ${f.block}</span>`:''}<div class="intent"><span class="k">Next</span>${moveText(m)}</div></div>`;
-  if(flash==='foe'){$('foe').classList.remove('hit');void $('foe').offsetWidth;$('foe').classList.add('hit')}flash='';
+  flash='';
   $('youBar').querySelector('i').style.width=(S.hp/HP*100)+'%';$('youBar').querySelector('b').textContent=`${S.hp} / ${HP}`;
   $('youBlock').textContent=S.block?`🛡 ${S.block}`:'';
   const st=[];if(S.muffle)st.push('Muffled: vowels worth 0');if(S.hand.some(t=>t.crossed))st.push('Red pen: crossed tiles can\'t be used');
   $('status').innerHTML=st.map(x=>`<span>${x}</span>`).join('');
-  const T=sel&&byId(sel),can=k=>T&&!T.crossed&&S.uses[k]&&(k!=='quill'||!VOW.has(T.ch))&&(k!=='ward'||VOW.has(T.ch)||T.fx==='steel');
+  const T=(drag&&drag.started&&byId(drag.id))||(sel&&byId(sel)),can=k=>T&&!T.crossed&&S.uses[k]&&(k!=='quill'||!VOW.has(T.ch))&&(k!=='ward'||VOW.has(T.ch)||T.fx==='steel');
   const w=spellWord(),valid=w.length>=3&&WORDS.has(w);
   const card=(k,title,uses,desc,wide)=>`<div class="cardx ${wide?'wide':''} ${S.uses[k]?'':'spent'} ${can(k)?'can':''}" data-card="${k}"><h3>${title}<small>${uses}</small></h3><p>${desc}</p>`;
   let h=card('spell','Spellblade',S.uses.spell?'once a turn':'used','A real word, 3+ letters: its points, plus a bonus for length.',true)+
     `<div class="wordrow"><div class="slots">${[...Array(Math.max(5,S.spell.length+1))].slice(0,8).map((_,i)=>{const t=S.spell[i]&&byId(S.spell[i]);return `<button class="slot ${t?'full':''}" data-spell="${i}" aria-label="${t?'Letter '+t.ch.toUpperCase()+', tap to take back':'Empty word slot'}">${t?tileHTML(t):''}</button>`}).join('')}</div>
     <button class="btn primary" id="strikeBtn" ${valid&&S.uses.spell?'':'disabled'}>Strike</button></div>
     <div class="wordinfo">${w.length?(w.length<3?'Three letters or more.':valid?`<b>${w.toUpperCase()}</b> · ${wordDamage()} damage${fireOf(S.spell.map(byId))?' (🔥 +'+fireOf(S.spell.map(byId))+')':''}`:`<span class="bad">${w.toUpperCase()} isn't in the word list</span>`):'Tap tiles to spell into the blade.'}</div></div>`;
-  const one=(k,title,desc)=>card(k,title,S.uses[k]?(S.uses[k]>1?`×${S.uses[k]}`:'ready'):'used',desc)+`<div class="slots"><button class="slot" data-use="${k}" aria-label="${title} slot"></button></div></div>`;
+  // with a tile in hand, each card shows what it would do with it
+  const preview=k=>{if(!T||T.crossed||!S.uses[k])return null;const c=T.ch;
+    if(k==='nudge'||k==='flip'){const n=k==='nudge'?nudge(c):flip(c);return{ghost:tileHTML({...T,ch:n,fresh:false},'ghost'),html:`<span class="arr">${c.toUpperCase()} → ${n.toUpperCase()}</span>`,ok:true}}
+    if(k==='quill')return VOW.has(c)?{html:'Consonants only',ok:false}:{html:`${pts(T)+1+fireOf([T])} damage${T.fx==='fire'?' 🔥':''}`,ok:true};
+    if(k==='ward')return VOW.has(c)||T.fx==='steel'?{html:`+${2+pts(T)+(T.fx==='steel'?6:0)} block`,ok:true}:{html:'Vowels or steel only',ok:false};return null};
+  const one=(k,title,desc)=>{const p=preview(k);return card(k,title,S.uses[k]?(S.uses[k]>1?`×${S.uses[k]}`:'ready'):'used',desc)+
+    `<div class="onerow"><button class="slot" data-use="${k}" aria-label="${title} slot${p?': '+p.html.replace(/<[^>]+>/g,''):''}">${p&&p.ghost?p.ghost:''}</button>${p?`<span class="pv ${p.ok?'ok':'no'}">${p.html}</span>`:''}</div></div>`};
   h+=one('nudge','Nudge','One step on: B→C, Z→A.')+one('flip','Flip','Mirror it: A↔Z, B↔Y, M↔N.')+one('quill','Quill','A consonant: its points +1.')+one('ward','Vowel Ward','A vowel (or steel): 2 + its points in block.');
-  $('cards').innerHTML=h;
+  $('cards').innerHTML=h;if(drag&&drag.over){const c=document.querySelector(`[data-card="${drag.over}"]`);if(c)c.classList.add('drop')}
   if($('strikeBtn'))$('strikeBtn').onclick=strike;
   const inSpell=new Set(S.spell);
-  $('hand').innerHTML=S.hand.filter(t=>!inSpell.has(t.id)).map(t=>`<button data-t="${t.id}" class="${sel===t.id?'sel':''}" aria-label="${t.fx?FX[t.fx].name+' ':''}${t.ch.toUpperCase()}, ${pts(t)} points${t.crossed?', crossed out':''}" ${S.over?'disabled':''}>${tileHTML(t)}</button>`).join('')||'<span class="sub" style="align-self:center">No tiles left. End your turn.</span>';
+  $('hand').innerHTML=S.hand.filter(t=>!inSpell.has(t.id)).map((t,i)=>`<button data-t="${t.id}" class="${sel===t.id&&!(drag&&drag.started)?'sel':''} ${drag&&drag.started&&drag.id===t.id?'lifted':''} ${dealNext?'deal':''}" style="--d:${dealNext?(0.25+i*0.07).toFixed(2)+'s':'0s'}" aria-label="${t.fx?FX[t.fx].name+' ':''}${t.ch.toUpperCase()}, ${pts(t)} points${t.crossed?', crossed out':''}" ${S.over?'disabled':''}>${tileHTML(t)}</button>`).join('')||'<span class="sub" style="align-self:center">No tiles left. End your turn.</span>';
   const fxs=[...new Set(S.hand.map(t=>t.fx).filter(Boolean))];
   $('fxkey').innerHTML=fxs.map(k=>`<span><b>${FX[k].icon} ${FX[k].name}</b> ${FX[k].say}</span>`).join('');
   S.hand.forEach(t=>t.fresh=false);
   $('endBtn').disabled=!!S.over;$('log').innerHTML=S.log||'';
+  dealNext=false;if(fxq.length)playFx(fxq.splice(0));
 }
 function shareText(){const head=mode==='endless'?`Dungeon Scrawl endless ${S.seed.slice(8)}`:`Dungeon Scrawl #${D.num} · ${D.label}`;
   const link=`thecosmickitchen.github.io/The-Puzz/scrawl.html#${mode==='endless'?S.seed.slice(8):'d'+D.iso}`;
@@ -303,7 +383,7 @@ function showResult(){const R=$('result');R.hidden=false;
   R.scrollIntoView({behavior:'smooth',block:'nearest'})}
 
 // ---- input ----
-$('hand').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;sel=sel===b.dataset.t?null:b.dataset.t;render()});
+$('hand').addEventListener('click',e=>{if(suppress)return;const b=e.target.closest('[data-t]');if(!b)return;sel=sel===b.dataset.t?null:b.dataset.t;render()});
 $('cards').addEventListener('click',e=>{
   const sp=e.target.closest('[data-spell]');if(sp){const i=+sp.dataset.spell;if(S.spell[i]&&!sel){S.spell.splice(i,1);render();return}useOn('spell');return}
   const u=e.target.closest('[data-use]');if(u){useOn(u.dataset.use);return}
@@ -313,6 +393,18 @@ document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||!S||S
   else if(e.key==='Backspace'){S.spell.pop();render();e.preventDefault()}
   else if(e.key==='Enter'){strike();e.preventDefault()}});
 $('endBtn').onclick=endTurn;
+// drag: pick a tile up, carry it over a card (it previews what it'll do), let go to use it
+$('hand').addEventListener('pointerdown',e=>{const b=e.target.closest('[data-t]');if(!b||!S||S.over)return;drag={id:b.dataset.t,x:e.clientX,y:e.clientY,started:false,over:null}});
+document.addEventListener('pointermove',e=>{if(!drag)return;
+  if(!drag.started){if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<8)return;const t=byId(drag.id);if(!t||t.crossed){drag=null;return}
+    drag.started=true;drag.ghost=document.createElement('div');drag.ghost.className='dragghost';drag.ghost.innerHTML=tileHTML(t);fxLayer.append(drag.ghost);render()}
+  e.preventDefault();drag.ghost.style.left=e.clientX+'px';drag.ghost.style.top=e.clientY+'px';
+  const el=document.elementFromPoint(e.clientX,e.clientY),c=el&&el.closest('[data-card]'),k=c?c.dataset.card:null;
+  if(k!==drag.over){drag.over=k;document.querySelectorAll('.cardx.drop').forEach(x=>x.classList.remove('drop'));if(c)c.classList.add('drop')}},{passive:false});
+function endDrag(e,cancel){if(!drag)return;const d=drag;drag=null;if(!d.started)return;
+  suppress=true;setTimeout(()=>suppress=false,0);const g=d.ghost.querySelector('.tile');dragSrc=g?{r:g.getBoundingClientRect(),html:g.outerHTML}:null;d.ghost.remove();
+  if(!cancel&&d.over){sel=d.id;useOn(d.over)}else{sel=null;render()}dragSrc=null}
+document.addEventListener('pointerup',e=>endDrag(e,false));document.addEventListener('pointercancel',e=>endDrag(e,true));
 (function boot(){const h=(location.hash||'').slice(1),day=/^d(\d{4}-\d{2}-\d{2})$/.exec(h);
   if(day&&day[1]<dayInfo().iso)load('day',day[1]);else if(/^[a-z0-9]{5}$/.test(h))load('endless',h);
   else{load('daily');if(!store.get('scrawl-seen')){$('rules').open=true;store.set('scrawl-seen',1)}}})();
