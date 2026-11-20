@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>*{box-sizing:border-box}:root{color-scheme:light;padding-block:env(safe-area-inset-top,0px) env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}a.eyebrow{display:block;text-decoration:none}</style>
+<title>Dungeon Scrawl</title>
+<meta name="description" content="Dungeon Scrawl, a daily word crawl: draw letter tiles, nudge and flip them, spell words to beat three foes.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: a cellar library. The foe on a parchment plate, your cards below, your tiles at the bottom with End turn. */
+:root{
+  --bg:#EFE6D3; --paper:#FBF6EA; --card:#FFFDF6; --ink:#24203A; --muted:#6B6378; --rule:#D9CDB4;
+  --tile:#E9C98A; --tile-edge:#B88B45; --tile-ink:#2B2117; --gold:#E0A526;
+  --hp:#C23B3B; --block:#3E6FB8; --ok:#2E8A55; --foe:#7B4FA8; --sel:#24203A;
+  --display:"Fraunces",Georgia,serif; --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#17142A; --paper:#211D38; --card:#2A2546; --ink:#F3EBDA; --muted:#A79FBD; --rule:#3A3460;
+  --tile:#E3C27E; --tile-edge:#A9803E; --tile-ink:#2B2117; --gold:#F0B84A;
+  --hp:#E85A5A; --block:#6C9BE3; --ok:#5CC98A; --foe:#B58AE6; --sel:#F3EBDA; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17142A; --paper:#211D38; --card:#2A2546; --ink:#F3EBDA; --muted:#A79FBD; --rule:#3A3460;
+  --tile:#E3C27E; --tile-edge:#A9803E; --tile-ink:#2B2117; --gold:#F0B84A;
+  --hp:#E85A5A; --block:#6C9BE3; --ok:#5CC98A; --foe:#B58AE6; --sel:#F3EBDA; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--body)}
+.wrap{max-width:520px;margin:0 auto;padding-block:14px 32px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:12px}
+.eyebrow{font:700 12px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
+h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:var(--gold)}
+.sub{color:var(--muted);font-size:13px}
+.trail{display:flex;gap:6px;align-items:center}
+.trail i{width:12px;height:12px;border-radius:50%;border:2px solid var(--muted);display:block}
+.trail i.done{background:var(--ok);border-color:var(--ok)}.trail i.now{border-color:var(--foe);background:var(--foe)}
+/* the foe */
+.foe{background:var(--paper);border-radius:18px;padding:12px 14px;display:grid;grid-template-columns:84px 1fr;gap:12px;align-items:center;border:2px solid var(--rule)}
+.foe svg{width:84px;height:84px;display:block}
+.foe h2{font:800 20px/1.1 var(--display);margin:0}
+.foe .about{font-size:12.5px;color:var(--muted);margin:2px 0 6px}
+.bar{position:relative;height:16px;border-radius:99px;background:color-mix(in srgb,var(--hp) 18%,transparent);overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--hp);border-radius:99px;transition:width .3s}
+.bar b{position:relative;display:block;text-align:center;font:700 11px/16px var(--body);color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.35)}
+.intent{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font:700 13px var(--body);padding:4px 10px;border-radius:99px;background:color-mix(in srgb,var(--foe) 16%,transparent);color:var(--ink)}
+.intent .k{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.blk{display:inline-block;margin-left:6px;font:700 12px var(--body);color:var(--block)}
+@media (prefers-reduced-motion:no-preference){.hit{animation:hit .35s}@keyframes hit{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}}}
+/* you */
+.you{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.you .bar{flex:1}
+.status{display:flex;gap:6px;flex-wrap:wrap}
+.status span{font:700 11.5px var(--body);padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--foe) 20%,transparent);color:var(--ink)}
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cardx{background:var(--card);border:2px solid var(--rule);border-radius:14px;padding:9px 10px 10px;display:flex;flex-direction:column;gap:6px;min-width:0;position:relative}
+.cardx.wide{grid-column:1/-1}
+.cardx.spent{opacity:.45}
+.cardx.can{border-color:var(--ink);box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 70%,transparent)}
+.cardx h3{font:800 16px/1 var(--display);margin:0;display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+.cardx h3 small{font:700 11px var(--body);color:var(--muted);letter-spacing:.06em}
+.cardx p{margin:0;font-size:12px;color:var(--muted);line-height:1.3}
+.slots{display:flex;gap:4px;flex-wrap:wrap}
+.slot{width:44px;height:44px;border-radius:10px;border:2px dashed var(--rule);background:transparent;padding:0;cursor:pointer;position:relative;display:grid;place-items:center}
+.slot.full{border:0}
+.wordrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.wordrow .slots{flex:1}
+.wordinfo{font-size:12.5px;color:var(--muted);min-height:1.3em}
+.wordinfo b{color:var(--ink)}.wordinfo .bad{color:var(--hp)}
+.btn{font:700 14px var(--body);border:2px solid var(--ink);background:var(--card);color:var(--ink);padding:7px 14px;border-radius:12px;cursor:pointer}
+.btn.primary{background:var(--ink);color:var(--bg)}
+.btn:disabled{opacity:.35;cursor:default}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+/* tiles */
+/* Tiles: chunky bone-and-wood blocks. Ivory face, a darker bevel underneath, a big serif letter, points in the corner. */
+.tile{display:block;width:var(--ts,50px);height:var(--ts,50px);border-radius:10px;position:relative;color:var(--tile-ink);text-transform:uppercase;user-select:none;
+  background:radial-gradient(120% 90% at 30% 20%,#FFF8E6 0%,#F3E2BC 55%,#E6CC97 100%);
+  box-shadow:inset 0 -4px 0 var(--tile-edge),inset 0 0 0 1.5px color-mix(in srgb,var(--tile-edge) 70%,transparent),inset 0 2px 0 rgba(255,255,255,.7),0 3px 6px rgba(40,25,10,.28);
+  font:800 calc(var(--ts,50px)*.56)/var(--ts,50px) var(--display);text-align:center;letter-spacing:0}
+.tile::before{content:"";position:absolute;inset:4px 4px 7px;border-radius:7px;border:1px solid rgba(120,85,40,.18);pointer-events:none}
+.tile sub{position:absolute;right:5px;bottom:6px;font:700 calc(var(--ts,50px)*.22)/1 var(--body);color:#6B4A22}
+.tile.hi sub{color:#B3261E}
+.tile.muted{filter:saturate(.3) brightness(.92)}.tile.muted sub{color:var(--hp);text-decoration:line-through}
+.tile.crossed{filter:grayscale(.7) brightness(.9)}
+.tile.crossed::after{content:"";position:absolute;inset:8px;background:linear-gradient(45deg,transparent 45%,#B3261E 45% 55%,transparent 55%),linear-gradient(-45deg,transparent 45%,#B3261E 45% 55%,transparent 55%)}
+.slot .tile{--ts:40px}
+.tile em{position:absolute;left:3px;top:1px;font:normal calc(var(--ts,50px)*.24)/1 system-ui;filter:drop-shadow(0 1px 0 rgba(0,0,0,.25))}
+.tile.fx-fire{background:radial-gradient(110% 80% at 50% 110%,#FFD25A 0%,#FF8A2B 45%,#D8461F 100%);color:#3A0E05;box-shadow:inset 0 -4px 0 #9C2A12,inset 0 0 0 1.5px #9C2A12,inset 0 2px 0 rgba(255,240,200,.6),0 0 12px rgba(255,120,40,.55),0 3px 6px rgba(40,25,10,.28)}
+.tile.fx-fire sub{color:#4A1206}
+.tile.fx-steel{background:linear-gradient(160deg,#F2F5F8 0%,#BAC4CE 45%,#8E99A6 55%,#C9D1D9 100%);color:#1E2630;box-shadow:inset 0 -4px 0 #5D6874,inset 0 0 0 1.5px #5D6874,inset 0 2px 0 rgba(255,255,255,.8),0 3px 6px rgba(20,25,35,.3)}
+.tile.fx-steel::before{border:0;inset:0;background:radial-gradient(circle at 7px 7px,#6B7682 1.6px,transparent 2.2px),radial-gradient(circle at calc(100% - 7px) 7px,#6B7682 1.6px,transparent 2.2px),radial-gradient(circle at 7px calc(100% - 9px),#6B7682 1.6px,transparent 2.2px)}
+.tile.fx-steel sub{color:#2C3540}
+.tile.fx-gold{background:linear-gradient(135deg,#FFF3B0 0%,#F4C842 35%,#C8921B 60%,#FBE08A 100%);color:#3B2800;box-shadow:inset 0 -4px 0 #8F6410,inset 0 0 0 1.5px #8F6410,inset 0 2px 0 rgba(255,255,230,.8),0 0 10px rgba(240,190,60,.45),0 3px 6px rgba(40,25,10,.28)}
+.tile.fx-gold sub{color:#5A3B00}
+.tile.fx-leaf{background:radial-gradient(120% 90% at 30% 20%,#E9F7DC 0%,#B9DE98 55%,#86BF66 100%);color:#183313;box-shadow:inset 0 -4px 0 #4E8A3A,inset 0 0 0 1.5px #4E8A3A,inset 0 2px 0 rgba(255,255,255,.7),0 3px 6px rgba(20,40,15,.28)}
+.tile.fx-leaf::before{border:0;inset:0;background:linear-gradient(135deg,transparent 48%,rgba(60,110,40,.22) 49% 51%,transparent 52%)}
+.tile.fx-leaf sub{color:#2F5A23}
+@media (prefers-reduced-motion:no-preference){.tile.fx-fire{animation:flicker 1.6s ease-in-out infinite}
+  @keyframes flicker{0%,100%{filter:brightness(1)}40%{filter:brightness(1.12) saturate(1.1)}60%{filter:brightness(.96)}}}
+.fxkey{display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:center;font-size:12.5px;color:var(--muted);min-height:0}
+.fxkey b{color:var(--ink)}
+.hand{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;min-height:72px;padding:10px 8px 12px;border-radius:16px;
+  background:linear-gradient(#8A5A2E,#6E4522);box-shadow:inset 0 3px 0 rgba(255,255,255,.12),inset 0 -6px 0 rgba(0,0,0,.25)}
+.hand .sub{color:#F3E2BC!important}
+.hand button{padding:0;border:0;background:none;cursor:pointer;border-radius:10px;transition:transform .12s}
+.hand button:hover .tile{transform:translateY(-2px)}
+.hand button.sel .tile{transform:translateY(-9px) rotate(-3deg);box-shadow:inset 0 -4px 0 var(--tile-edge),inset 0 0 0 1.5px var(--tile-edge),0 0 0 3px var(--gold),0 10px 14px rgba(40,25,10,.35)}
+.hand button:disabled{cursor:default}
+@media (max-width:380px){.hand .tile{--ts:44px}}
+@media (prefers-reduced-motion:no-preference){.tile.new{animation:morph .45s cubic-bezier(.3,1.4,.6,1)}@keyframes morph{0%{transform:rotateY(90deg) scale(.9)}100%{transform:none}}}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.log{font-size:13px;color:var(--muted);min-height:1.4em;flex:1}
+.log b{color:var(--ink)}
+.result{background:var(--paper);border:3px solid var(--ink);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.result h2{font:800 28px/1 var(--display);margin:0}
+.result pre{font-family:var(--body);margin:0;white-space:pre-wrap;background:var(--bg);padding:10px 12px;border-radius:10px;font-size:14.5px;user-select:all}
+details{background:var(--paper);border-radius:14px;padding:10px 14px;border:2px solid var(--rule)}
+summary{font:800 16px var(--display);cursor:pointer}
+details p{margin:8px 0;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="eyebrow" href="./">← The Puzz</a>
+  <header>
+    <div><h1>Dungeon <span>Scrawl</span></h1><div class="sub" id="sub"></div></div>
+    <div class="trail" id="trail" aria-label="Foes"></div>
+  </header>
+  <section class="foe" id="foe" aria-live="polite"></section>
+  <div class="you"><span>You</span><div class="bar" id="youBar"><i></i><b></b></div><span id="youBlock" class="blk"></span></div>
+  <div class="status" id="status"></div>
+  <section class="cards" id="cards"></section>
+  <div class="hand" id="hand" role="group" aria-label="Your tiles"></div>
+  <div class="fxkey" id="fxkey" aria-live="polite"></div>
+  <div class="foot"><div class="log" id="log"></div><button class="btn primary" id="endBtn">End turn</button></div>
+  <section class="result" id="result" hidden></section>
+  <details id="rules">
+    <summary>How to play</summary>
+    <p>Beat today's three foes. Everyone gets the same foes and the same tiles.</p>
+    <p>Each turn you draw six letter tiles. Tap a tile, then a card's slot. <b>Nudge</b> moves a letter one step on (B→C, Z→A). <b>Flip</b> mirrors it across the alphabet (A↔Z, B↔Y, M↔N). Changed tiles come back to your hand, so you can keep working on them.</p>
+    <p><b>Spellblade</b> takes a real word of three letters or more and deals its points, plus a bonus for long words. <b>Quill</b> throws one consonant. <b>Vowel Ward</b> turns a vowel into a shield for the foe's next move. Each card works once a turn (Nudge twice). Unused tiles are lost when you end your turn.</p>
+    <p><b>Enchanted tiles</b> turn up now and then, and keep their enchantment when you Nudge or Flip them: 🔥 <b>Flaming</b> adds 4 damage when it attacks, 🛡 <b>Steel</b> fits Vowel Ward even as a consonant and adds 6 block, ✨ <b>Gilded</b> is worth double, and 🌿 <b>Leaf</b> heals you 3 when it's used.</p>
+    <p>Watch what the foe will do next: attacks, and tricks like <b>Jumble</b> (one of your next tiles changes), <b>Nibble</b> (one fewer tile) and <b>Muffle</b> (vowels worth nothing).</p>
+  </details>
+</div>
+<script src="typeset-words.js"></script>
+<script src="streak.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function hseed(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19}h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return (h^h>>>16)>>>0}
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const shuffle=(r,a)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function decode(s){const out=[];let prev='';for(const m of s.match(/[A-K][a-z]*/g)){const w=prev.slice(0,m.charCodeAt(0)-65)+m.slice(1);out.push(w);prev=w}return out}
+const WORDS=new Set([...decode(TS_WORDS.common),...decode(TS_WORDS.extra)].filter(w=>w.length>=3));
+
+// ---- letters ----
+const VAL={a:1,b:3,c:3,d:2,e:1,f:4,g:3,h:3,i:1,j:8,k:5,l:2,m:3,n:1,o:1,p:3,q:10,r:1,s:1,t:1,u:2,v:5,w:4,x:8,y:3,z:9};
+const BAG='aaaaaaaaabbccddddeeeeeeeeeeeeffggghhiiiiiiiiijkllllmmnnnnnnooooooooppqrrrrrrssssttttttuuuuvvwwxyyz';
+const VOW=new Set('aeiou');
+const nudge=c=>String.fromCharCode((c.charCodeAt(0)-97+1)%26+97);
+const flip=c=>String.fromCharCode(25-(c.charCodeAt(0)-97)+97);
+// Enchanted tiles. They keep their enchantment through Nudge and Flip.
+const FX={
+  fire:{name:'Flaming',icon:'🔥',say:'+4 damage when it attacks'},
+  steel:{name:'Steel',icon:'🛡',say:'Vowel Ward takes it, +6 block'},
+  gold:{name:'Gilded',icon:'✨',say:'double points'},
+  leaf:{name:'Leaf',icon:'🌿',say:'heals 3 when used'}};
+const HAND=6,HP=30,WORD_BONUS=[0,0,0,0,2,4,7,10,14];
+
+// ---- foes: each move is shown one turn ahead ----
+const FOES={
+  gremlin:{name:'Typo Gremlin',about:'Swaps letters when you are not looking.',hp:20,col:'#C2643B',eye:'#fff',glyph:'ß',moves:[{atk:9},{jumble:1,atk:5},{atk:12}]},
+  worm:{name:'Bookworm',about:'Nibbles tiles out of your hand.',hp:22,col:'#7FA65A',eye:'#fff',glyph:'w',moves:[{nibble:1,atk:6},{atk:10},{nibble:1,atk:6}]},
+  hush:{name:'Silent E',about:'Takes the voice out of your vowels.',hp:22,col:'#5D7FC2',eye:'#fff',glyph:'e',moves:[{muffle:1,atk:5},{atk:12},{atk:7}]},
+  jacket:{name:'Dust Jacket',about:'Wraps itself in armour.',hp:23,col:'#9A8A6A',eye:'#fff',glyph:'J',moves:[{armor:8,atk:5},{atk:12},{armor:6,atk:7}]},
+  splice:{name:'Comma Splice',about:'Hits twice, joined together badly.',hp:22,col:'#C24F7A',eye:'#fff',glyph:',',moves:[{atk:6,twice:1},{atk:9},{atk:6,twice:1}]},
+  editor:{name:'The Editor',about:'Crosses out what you write. Last foe of the day.',hp:32,col:'#B33A3A',eye:'#fff',glyph:'✎',moves:[{atk:12},{redpen:2,atk:6},{atk:14},{armor:8,atk:6}]}};
+const moveText=m=>{const p=[];if(m.atk)p.push(`⚔ ${m.atk}${m.twice?' ×2':''}`);if(m.armor)p.push(`🛡 ${m.armor}`);if(m.jumble)p.push('Jumble');if(m.nibble)p.push('Nibble');if(m.muffle)p.push('Muffle');if(m.redpen)p.push(`Red pen ×${m.redpen}`);return p.join(' · ')};
+function foeSVG(f){return `<svg viewBox="0 0 84 84" aria-hidden="true"><ellipse cx="42" cy="78" rx="26" ry="4" fill="rgba(0,0,0,.15)"/>
+  <path d="M14,70 C8,40 20,10 42,10 C64,10 76,40 70,70 Q56,64 42,72 Q28,64 14,70Z" fill="${f.col}"/>
+  <circle cx="32" cy="34" r="7" fill="${f.eye}"/><circle cx="52" cy="34" r="7" fill="${f.eye}"/><circle cx="33" cy="35" r="3.2" fill="#1d1a2b"/><circle cx="53" cy="35" r="3.2" fill="#1d1a2b"/>
+  <text x="42" y="60" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-weight="800" font-size="22" fill="rgba(255,255,255,.85)">${f.glyph}</text></svg>`}
+
+// ---- the day's run ----
+function dayInfo(on){const d=on?new Date(on+'T12:00'):new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
+  const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+  return{num:Math.round((t-s)/864e5)+1,iso,label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
+function newRun(seed){const r=mulberry(hseed(seed));const two=shuffle(r,['gremlin','worm','hush','jacket','splice']).slice(0,2);
+  return{seed,foes:[...two,'editor'].map((k,i)=>({k,hp:FOES[k].hp+i*2,max:FOES[k].hp+i*2,block:0,mi:Math.floor(r()*FOES[k].moves.length)})),
+    fi:0,turn:0,turns:0,hp:HP,block:0,hand:[],spell:[],uses:{},pending:{},muffle:false,best:null,drawn:0,over:null,log:''}}
+// Each hand is drawn from the seed, the foe and the turn, so everyone gets the same tiles whatever they played.
+// Two or three vowels a hand, the rest consonants, each weighted like the letter bag.
+const BAG_V=[...BAG].filter(c=>VOW.has(c)),BAG_C=[...BAG].filter(c=>!VOW.has(c));
+function drawTiles(n){const r=mulberry(hseed(S.seed+'-hand-'+S.fi+'-'+S.turn)),nv=Math.min(n-1,r()<.55?2:3),out=[];
+  for(let k=0;k<n;k++){const pool=k<nv?BAG_V:BAG_C;out.push({id:S.fi+'-'+S.turn+'-'+k,ch:pool[Math.floor(r()*pool.length)]})}
+  const nfx=r()<.35?0:r()<.7?1:2,kinds=Object.keys(FX);
+  shuffle(r,out.map((_,i)=>i)).slice(0,nfx).forEach(i=>out[i].fx=kinds[Math.floor(r()*kinds.length)]);
+  return shuffle(r,out)}
+function startTurn(){
+  S.turn++;S.turns++;S.uses={nudge:2,flip:1,quill:1,ward:1,spell:1};S.spell=[];S.block=0;
+  const p=S.pending;S.muffle=!!p.muffle;
+  S.hand=drawTiles(HAND-(p.nibble||0));
+  const r=mulberry(hseed(S.seed+'-trick-'+S.fi+'-'+S.turn));
+  if(p.jumble){const t=S.hand[Math.floor(r()*S.hand.length)];t.ch='qxzjkvwy'[Math.floor(r()*8)];t.fresh=true}
+  if(p.redpen){shuffle(r,S.hand.map((_,i)=>i)).slice(0,p.redpen).forEach(i=>S.hand[i].crossed=true)}
+  S.pending={};sel=null}
+const foe=()=>S.foes[S.fi],F=()=>FOES[foe().k],nextMove=()=>F().moves[foe().mi%F().moves.length];
+const pts=t=>(S.muffle&&VOW.has(t.ch)?0:VAL[t.ch])*(t.fx==='gold'?2:1);
+const fireOf=ts=>ts.filter(t=>t.fx==='fire').length*4;
+// a leaf tile heals when it's used, whatever it's used for
+function useUp(ts){let heal=0;ts.forEach(t=>{if(t.fx==='leaf')heal+=3;removeTile(t)});if(heal){const was=S.hp;S.hp=Math.min(HP,S.hp+heal);return S.hp-was}return 0}
+
+let S=null,mode='daily',D=null,sel=null,flash='';
+function load(m,arg){
+  mode=m;D=m==='endless'?null:dayInfo(m==='day'?arg:null);
+  const seed=m==='endless'?'endless-'+(arg||Math.random().toString(36).slice(2,7)):'scrawl-'+D.iso;
+  const saved=m==='daily'?store.get('scrawl-daily'):null;
+  S=saved&&saved.seed===seed?saved:newRun(seed);if(!S.turn)startTurn();
+  $('sub').textContent=m==='endless'?'Endless crawl · '+seed.slice(8):m==='day'?`Shared crawl #${D.num} · ${D.label} · not your streak`:`Daily crawl #${D.num} · ${D.label}`;
+  try{history.replaceState(null,'',m==='daily'?location.pathname:m==='day'?'#d'+D.iso:'#'+seed.slice(8))}catch(e){}
+  render();if(S.over)showResult()}
+function persist(){if(mode==='daily')store.set('scrawl-daily',S)}
+function say(t){S.log=t;$('log').innerHTML=t}
+
+// ---- playing tiles ----
+const tileHTML=(t,extra='')=>`<span class="tile ${t.fx?'fx-'+t.fx:''} ${S.muffle&&VOW.has(t.ch)?'muted':''} ${t.crossed?'crossed':''} ${t.fresh?'new':''} ${VAL[t.ch]>=5?'hi':''} ${extra}">${t.fx?`<em aria-hidden="true">${FX[t.fx].icon}</em>`:''}${t.ch}<sub>${pts(t)}</sub></span>`;
+const byId=id=>S.hand.find(t=>t.id===id);
+function useOn(card){
+  if(S.over||!sel)return;const t=byId(sel);if(!t||t.crossed){say('That tile is crossed out.');return}
+  if(card==='spell'){if(!S.uses.spell)return;if(S.spell.length>=8)return;S.spell.push(t.id);sel=null;render();return}
+  if(!S.uses[card]){say('That card is used up this turn.');return}
+  const c=t.ch;
+  if(card==='nudge'){t.ch=nudge(c);say(`Nudged <b>${c.toUpperCase()}</b> to <b>${t.ch.toUpperCase()}</b>.`)}
+  else if(card==='flip'){t.ch=flip(c);say(`Flipped <b>${c.toUpperCase()}</b> to <b>${t.ch.toUpperCase()}</b>.`)}
+  else if(card==='quill'){if(VOW.has(c)){say('Quill needs a consonant.');return}hitFoe(pts(t)+1+fireOf([t]),`Quill: <b>${c.toUpperCase()}</b>${t.fx==='fire'?' 🔥':''}`);const h=useUp([t]);if(h)S.log+=` 🌿 +${h} HP.`}
+  else if(card==='ward'){if(!VOW.has(c)&&t.fx!=='steel'){say('Vowel Ward needs a vowel (or a steel tile).');return}const b=2+pts(t)+(t.fx==='steel'?6:0);S.block+=b;say(`Ward up: <b>${b}</b> block${t.fx==='steel'?' 🛡':''}.`);const h=useUp([t]);if(h)S.log+=` 🌿 +${h} HP.`}
+  S.uses[card]--;if(card==='nudge'||card==='flip')t.fresh=true;sel=null;afterAction()}
+function removeTile(t){S.hand=S.hand.filter(x=>x!==t);S.spell=S.spell.filter(id=>id!==t.id)}
+const spellWord=()=>S.spell.map(id=>byId(id).ch).join('');
+function wordDamage(){const ts=S.spell.map(byId);return ts.reduce((s,t)=>s+pts(t),0)+(WORD_BONUS[ts.length]??14)+fireOf(ts)}
+function strike(){
+  const w=spellWord();if(w.length<3||!WORDS.has(w)||!S.uses.spell)return;
+  const dmg=wordDamage();if(!S.best||dmg>S.best.dmg)S.best={w,dmg};
+  const ts=S.spell.map(byId),fire=fireOf(ts);const heal=useUp(ts);S.spell=[];S.uses.spell=0;
+  hitFoe(dmg,`Spellblade: <b>${w.toUpperCase()}</b>${fire?' 🔥':''}`);if(heal)S.log+=` 🌿 +${heal} HP.`;afterAction()}
+function hitFoe(n,what){const f=foe(),soak=Math.min(f.block,n);f.block-=soak;f.hp=Math.max(0,f.hp-(n-soak));
+  say(`${what} hits for <b>${n-soak}</b>${soak?` (${soak} blocked)`:''}.`);flash='foe'}
+function afterAction(){
+  if(foe().hp<=0){
+    if(S.fi===S.foes.length-1){S.over='won';persist();render();showResult();return}
+    const name=F().name;S.fi++;S.hp=Math.min(HP,S.hp+6);S.turn=0;S.drawn=0;S.pending={};startTurn();say(`<b>${name}</b> is beaten. You catch your breath (+6). Next: <b>${F().name}</b>.`)}
+  persist();render()}
+function endTurn(){
+  if(S.over)return;const m=nextMove(),f=foe();f.block=0;
+  if(m.armor)f.block+=m.armor;
+  let dmg=0;if(m.atk)for(let k=0;k<(m.twice?2:1);k++){const soak=Math.min(S.block,m.atk);S.block-=soak;dmg+=m.atk-soak}
+  S.hp=Math.max(0,S.hp-dmg);S.pending={jumble:m.jumble,nibble:m.nibble,muffle:m.muffle,redpen:m.redpen};f.mi++;
+  const bits=[];if(m.atk)bits.push(`hits you for <b>${dmg}</b>`);if(m.armor)bits.push(`armours up (${m.armor})`);if(m.jumble)bits.push('jumbles a tile');if(m.nibble)bits.push('nibbles a tile');if(m.muffle)bits.push('muffles your vowels');if(m.redpen)bits.push(`crosses out ${m.redpen} tiles`);
+  if(S.hp<=0){S.over='lost';persist();render();showResult();return}
+  startTurn();say(`<b>${F().name}</b> ${bits.join(', ')}.`);flash=dmg?'you':'';persist();render()}
+
+// ---- drawing ----
+function render(){
+  const f=foe(),fd=F(),m=nextMove();
+  $('trail').innerHTML=S.foes.map((_,i)=>`<i class="${i<S.fi||S.over==='won'?'done':i===S.fi?'now':''}" title="${FOES[S.foes[i].k].name}"></i>`).join('');
+  $('foe').innerHTML=`${foeSVG(fd)}<div><h2>${fd.name}</h2><div class="about">${fd.about}</div>
+    <div class="bar"><i style="width:${f.hp/f.max*100}%"></i><b>${f.hp} / ${f.max}</b></div>
+    ${f.block?`<span class="blk">🛡 ${f.block}</span>`:''}<div class="intent"><span class="k">Next</span>${moveText(m)}</div></div>`;
+  if(flash==='foe'){$('foe').classList.remove('hit');void $('foe').offsetWidth;$('foe').classList.add('hit')}flash='';
+  $('youBar').querySelector('i').style.width=(S.hp/HP*100)+'%';$('youBar').querySelector('b').textContent=`${S.hp} / ${HP}`;
+  $('youBlock').textContent=S.block?`🛡 ${S.block}`:'';
+  const st=[];if(S.muffle)st.push('Muffled: vowels worth 0');if(S.hand.some(t=>t.crossed))st.push('Red pen: crossed tiles can\'t be used');
+  $('status').innerHTML=st.map(x=>`<span>${x}</span>`).join('');
+  const T=sel&&byId(sel),can=k=>T&&!T.crossed&&S.uses[k]&&(k!=='quill'||!VOW.has(T.ch))&&(k!=='ward'||VOW.has(T.ch)||T.fx==='steel');
+  const w=spellWord(),valid=w.length>=3&&WORDS.has(w);
+  const card=(k,title,uses,desc,wide)=>`<div class="cardx ${wide?'wide':''} ${S.uses[k]?'':'spent'} ${can(k)?'can':''}" data-card="${k}"><h3>${title}<small>${uses}</small></h3><p>${desc}</p>`;
+  let h=card('spell','Spellblade',S.uses.spell?'once a turn':'used','A real word, 3+ letters: its points, plus a bonus for length.',true)+
+    `<div class="wordrow"><div class="slots">${[...Array(Math.max(5,S.spell.length+1))].slice(0,8).map((_,i)=>{const t=S.spell[i]&&byId(S.spell[i]);return `<button class="slot ${t?'full':''}" data-spell="${i}" aria-label="${t?'Letter '+t.ch.toUpperCase()+', tap to take back':'Empty word slot'}">${t?tileHTML(t):''}</button>`}).join('')}</div>
+    <button class="btn primary" id="strikeBtn" ${valid&&S.uses.spell?'':'disabled'}>Strike</button></div>
+    <div class="wordinfo">${w.length?(w.length<3?'Three letters or more.':valid?`<b>${w.toUpperCase()}</b> · ${wordDamage()} damage${fireOf(S.spell.map(byId))?' (🔥 +'+fireOf(S.spell.map(byId))+')':''}`:`<span class="bad">${w.toUpperCase()} isn't in the word list</span>`):'Tap tiles to spell into the blade.'}</div></div>`;
+  const one=(k,title,desc)=>card(k,title,S.uses[k]?(S.uses[k]>1?`×${S.uses[k]}`:'ready'):'used',desc)+`<div class="slots"><button class="slot" data-use="${k}" aria-label="${title} slot"></button></div></div>`;
+  h+=one('nudge','Nudge','One step on: B→C, Z→A.')+one('flip','Flip','Mirror it: A↔Z, B↔Y, M↔N.')+one('quill','Quill','A consonant: its points +1.')+one('ward','Vowel Ward','A vowel (or steel): 2 + its points in block.');
+  $('cards').innerHTML=h;
+  if($('strikeBtn'))$('strikeBtn').onclick=strike;
+  const inSpell=new Set(S.spell);
+  $('hand').innerHTML=S.hand.filter(t=>!inSpell.has(t.id)).map(t=>`<button data-t="${t.id}" class="${sel===t.id?'sel':''}" aria-label="${t.fx?FX[t.fx].name+' ':''}${t.ch.toUpperCase()}, ${pts(t)} points${t.crossed?', crossed out':''}" ${S.over?'disabled':''}>${tileHTML(t)}</button>`).join('')||'<span class="sub" style="align-self:center">No tiles left. End your turn.</span>';
+  const fxs=[...new Set(S.hand.map(t=>t.fx).filter(Boolean))];
+  $('fxkey').innerHTML=fxs.map(k=>`<span><b>${FX[k].icon} ${FX[k].name}</b> ${FX[k].say}</span>`).join('');
+  S.hand.forEach(t=>t.fresh=false);
+  $('endBtn').disabled=!!S.over;$('log').innerHTML=S.log||'';
+}
+function shareText(){const head=mode==='endless'?`Dungeon Scrawl endless ${S.seed.slice(8)}`:`Dungeon Scrawl #${D.num} · ${D.label}`;
+  const link=`thecosmickitchen.github.io/The-Puzz/scrawl.html#${mode==='endless'?S.seed.slice(8):'d'+D.iso}`;
+  const foes=S.foes.map((f,i)=>i<S.fi||S.over==='won'?'🟩':i===S.fi?'🟥':'⬛').join('');
+  return `The Puzz · ${head}\n${foes} ${S.over==='won'?`all 3 foes in ${S.turns} turns · ❤️ ${S.hp}/${HP}`:`fell to ${FOES[foe().k].name} on turn ${S.turns}`}\n${S.best?`Best word: ${S.best.w.toUpperCase()} (${S.best.dmg})`:'No words struck'}\n${link}`}
+function showResult(){const R=$('result');R.hidden=false;
+  if(mode==='daily'&&S.over==='won'&&window.Kitchen)Kitchen.mark('tc');
+  R.innerHTML=`<h2>${S.over==='won'?'The cellar is quiet':'You were edited out'}</h2><pre id="shareTxt">${shareText()}</pre>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='daily'?'<span class="sub">A new crawl tomorrow.</span>':'<button class="btn" id="againBtn">Another crawl</button>'}</div>`;
+  $('copyBtn').onclick=e=>{const b=e.currentTarget;try{navigator.clipboard.writeText(shareText()).then(()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)})}catch(err){}};
+  if($('againBtn'))$('againBtn').onclick=()=>{R.hidden=true;load('endless')};
+  R.scrollIntoView({behavior:'smooth',block:'nearest'})}
+
+// ---- input ----
+$('hand').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;sel=sel===b.dataset.t?null:b.dataset.t;render()});
+$('cards').addEventListener('click',e=>{
+  const sp=e.target.closest('[data-spell]');if(sp){const i=+sp.dataset.spell;if(S.spell[i]&&!sel){S.spell.splice(i,1);render();return}useOn('spell');return}
+  const u=e.target.closest('[data-use]');if(u){useOn(u.dataset.use);return}
+  const c=e.target.closest('[data-card]');if(c&&sel&&c.dataset.card!=='spell')useOn(c.dataset.card)});
+document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||!S||S.over)return;
+  if(/^[a-z]$/i.test(e.key)){const inSpell=new Set(S.spell),t=S.hand.find(t=>!inSpell.has(t.id)&&!t.crossed&&t.ch===e.key.toLowerCase());if(t&&S.uses.spell){S.spell.push(t.id);sel=null;render()}e.preventDefault()}
+  else if(e.key==='Backspace'){S.spell.pop();render();e.preventDefault()}
+  else if(e.key==='Enter'){strike();e.preventDefault()}});
+$('endBtn').onclick=endTurn;
+(function boot(){const h=(location.hash||'').slice(1),day=/^d(\d{4}-\d{2}-\d{2})$/.exec(h);
+  if(day&&day[1]<dayInfo().iso)load('day',day[1]);else if(/^[a-z0-9]{5}$/.test(h))load('endless',h);
+  else{load('daily');if(!store.get('scrawl-seen')){$('rules').open=true;store.set('scrawl-seen',1)}}})();
+</script>
+</body>
+</html>
