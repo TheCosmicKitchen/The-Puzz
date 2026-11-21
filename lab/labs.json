@@ -1,0 +1,16 @@
+{
+ "note": "The Puzz Lab registry. Add one entry per game lab. `index` points at that lab's index.json: {sim_version, changelog:[{version,date,note,tag}], reports:[{id, kind, tag, headline, run:{date, sim_version}}]}. Reports open at `href` + '#report-' + id.",
+ "labs": [
+  {
+   "id": "scrawl",
+   "game": "Dungeon Scrawl",
+   "title": "Scrawl Lab",
+   "href": "../scrawl-lab/",
+   "index": "../scrawl-lab/index.json",
+   "play": "../scrawl.html",
+   "color": "f0",
+   "summary": "Bots play thousands of crawls to find which tricks matter, which ones players will want to reach for, and which ones backfire. New tricks are bred over evolution rounds.",
+   "tools": "tools/scrawl_sim.py"
+  }
+ ]
+}

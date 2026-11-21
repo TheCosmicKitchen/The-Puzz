@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Puzz Lab</title>
+<meta name="description" content="Analytics, experiments and reports behind The Puzz games.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: the home page's masthead and card stack, turned to experiments: labs first, then the newest reports across all labs. */
+:root{
+  --bg:#E6EBEE; --surface:#F6F8F9; --ink:#1C2530; --muted:#5A6772; --felt:#D3DADF; --line:#A9B5BE; --ok:#2C7A4C;
+  --f0:#B5432F; --f1:#2C4B88; --f2:#D69720; --f3:#4D8257; --code:#E9EEF1;
+  --display:"Fredoka",ui-rounded,"Segoe UI",system-ui,sans-serif; --body:"Atkinson Hyperlegible",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#121820;--surface:#1A222B;--ink:#E4EAEE;--muted:#93A1AC;--felt:#26323C;--line:#3B4954;--ok:#62C38A;--f0:#D2583F;--f1:#4C70C4;--f2:#E7AE3A;--f3:#66A271;--code:#151C24;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+a{color:var(--f1)}
+.wrap{max-width:720px;margin:0 auto;padding-block:max(20px,env(safe-area-inset-top,0px)) 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+.back{font:600 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--ink)}
+.mast{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+h1{font:600 52px/0.95 var(--display);margin:0;letter-spacing:-.02em}
+h1 .z{display:inline-block}
+h1 .z:nth-child(1){color:var(--f0)}h1 .z:nth-child(2){color:var(--f1);transform:translateY(-4px) rotate(-6deg)}
+.flask{font:600 15px var(--display);letter-spacing:.14em;text-transform:uppercase;background:var(--ink);color:var(--bg);padding:5px 12px 4px;border-radius:999px;margin-bottom:6px}
+.tag{color:var(--muted);margin:0;max-width:60ch}
+h2{font:600 15px var(--display);letter-spacing:.12em;text-transform:uppercase;margin:0;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:10px;min-width:0}
+/* lab cards */
+.lab{background:var(--surface);border-radius:18px;padding:16px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:16px;border:2px solid transparent}
+.lab:hover{border-color:var(--line)}
+.lab svg{width:72px;height:72px}
+.lab h3{font:600 24px var(--display);margin:0}
+.lab h3 a{color:inherit;text-decoration:none}
+.lab h3 a:focus-visible{outline:2.5px solid var(--f1);outline-offset:3px;border-radius:6px}
+.lab p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.stats{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.stats b{color:var(--ink);font-weight:700}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.btn{font:600 14px var(--display);padding:7px 14px;border-radius:999px;text-decoration:none;border:2px solid var(--line);color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn:focus-visible{outline:2.5px solid var(--f1);outline-offset:2px}
+@media (max-width:460px){.lab{grid-template-columns:1fr}.lab svg{width:56px;height:56px}}
+/* report feed */
+.feed{background:var(--surface);border-radius:18px;padding:4px 16px}
+.item{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;padding:12px 0;border-top:1.5px solid var(--felt);text-decoration:none;color:inherit}
+.item:first-child{border-top:0}
+.item:hover .hl{text-decoration:underline}
+.item:focus-visible{outline:2.5px solid var(--f1);outline-offset:2px;border-radius:8px}
+.when{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;padding-top:2px}
+.hl{font-size:14.5px}
+.meta{grid-column:2;display:flex;flex-wrap:wrap;gap:6px}
+.pill{font:600 11px var(--display);letter-spacing:.06em;text-transform:uppercase;padding:2px 9px;border-radius:999px;background:var(--felt);color:var(--muted);white-space:nowrap}
+.pill.trial{background:color-mix(in srgb,var(--f1) 22%,transparent);color:var(--ink)}
+.pill.report{background:color-mix(in srgb,var(--f3) 25%,transparent);color:var(--ink)}
+@media (max-width:460px){.item{grid-template-columns:1fr}.meta{grid-column:1}}
+/* add a lab */
+.soon{border:2px dashed var(--line);border-radius:18px;padding:14px 16px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:8px}
+.soon b{color:var(--ink)}
+.soon code{font:12.5px var(--mono);background:var(--code);padding:1px 6px;border-radius:5px;overflow-wrap:anywhere}
+.empty{color:var(--muted);padding:12px 0;margin:0}
+footer{color:var(--muted);font-size:13px;text-align:center;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← The Puzz</a>
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <div class="mast"><h1>The Pu<span class="z">z</span><span class="z">z</span></h1><span class="flask">Lab</span></div>
+    <p class="tag">Where we test the games before you play them: bots that play thousands of rounds, experiments with new rules, and the reports they produce. Every report says how to run it again.</p>
+  </header>
+
+  <section aria-labelledby="labs-h">
+    <h2 id="labs-h">Labs</h2>
+    <div id="labs"><p class="empty">Loading labs…</p></div>
+  </section>
+
+  <section aria-labelledby="feed-h">
+    <h2 id="feed-h">Latest reports</h2>
+    <div class="feed" id="feed"><p class="empty">Loading reports…</p></div>
+  </section>
+
+  <section aria-labelledby="add-h">
+    <h2 id="add-h">Add a lab</h2>
+    <div class="soon">
+      <p style="margin:0">Any game can have a lab. Give it a folder with an <code>index.json</code> listing its reports (each with an id, a headline, and the version and date it ran on), then add it to <code>lab/labs.json</code>. It shows up here with its newest reports.</p>
+      <p style="margin:0"><b>Dungeon Scrawl</b> is the template: <code>tools/scrawl_sim.py publish</code> writes <code>scrawl-lab/index.json</code> after every run.</p>
+    </div>
+  </section>
+
+  <footer>Experiments run offline and are published with the site · numbers come from bots, not players</footer>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// game marks, keyed by lab id; anything else gets a plain flask
+const MARK = {
+  scrawl: `<svg viewBox="0 0 72 72" aria-hidden="true"><rect x="4" y="44" width="64" height="20" rx="6" fill="#7A4C26"/><rect x="4" y="44" width="64" height="5" rx="2.5" fill="#94612F"/>
+    <g font-family="Fredoka,system-ui,sans-serif" font-weight="600" font-size="15" text-anchor="middle">
+    <rect x="8" y="28" width="17" height="17" rx="3.5" fill="#F4E4C0" stroke="#B88B45" stroke-width="1.2"/><text x="16.5" y="41.5" fill="#2B2117">Z</text>
+    <rect x="27.5" y="25" width="17" height="17" rx="3.5" fill="#FF8A2B" stroke="#9C2A12" stroke-width="1.2" transform="rotate(-6 36 33.5)"/><text x="36" y="38.5" fill="#3A0E05" transform="rotate(-6 36 33.5)">A</text>
+    <rect x="47" y="28" width="17" height="17" rx="3.5" fill="#C9D1D9" stroke="#5D6874" stroke-width="1.2"/><text x="55.5" y="41.5" fill="#1E2630">P</text></g>
+    <path d="M36,6 C42,14 30,16 36,22 C30,20 28,12 36,6Z" fill="#E0A526"/></svg>`};
+const flask = c => `<svg viewBox="0 0 72 72" aria-hidden="true"><path d="M28 8h16M31 8v20L14 58a6 6 0 0 0 5 8h34a6 6 0 0 0 5-8L41 28V8" fill="none" stroke="var(--${c||'f1'})" stroke-width="4" stroke-linejoin="round"/><path d="M20 50h32l5 9a3 3 0 0 1-3 4H18a3 3 0 0 1-3-4z" fill="var(--${c||'f1'})" opacity=".35"/></svg>`;
+const fmtDate = d => { const t = new Date(d.replace(' ', 'T')); return isNaN(t) ? d : t.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'}) };
+
+(async () => {
+  let reg;
+  try { reg = await (await fetch('labs.json')).json() } catch { $('labs').innerHTML = '<p class="empty">The lab registry (labs.json) is missing.</p>'; $('feed').innerHTML = ''; return }
+  const all = [];
+  const cards = await Promise.all(reg.labs.map(async L => {
+    let idx = null;
+    try { idx = await (await fetch(L.index)).json() } catch {}
+    const reps = idx ? idx.reports : [];
+    reps.forEach(r => all.push({...r, lab: L}));
+    const newest = reps.map(r => r.run.date).sort().pop();
+    return `<article class="lab">${MARK[L.id] || flask(L.color)}<div style="min-width:0">
+      <h3><a href="${esc(L.href)}">${esc(L.title)}</a></h3><p>${esc(L.summary)}</p>
+      <div class="stats"><span><b>${reps.length}</b> report${reps.length === 1 ? '' : 's'}</span>${idx ? `<span>sim <b>${esc(idx.sim_version)}</b></span>` : ''}${newest ? `<span>updated <b>${esc(fmtDate(newest))}</b></span>` : ''}${idx ? '' : '<span>index not built yet</span>'}</div>
+      <div class="links"><a class="btn primary" href="${esc(L.href)}">Open ${esc(L.title)}</a>${L.play ? `<a class="btn" href="${esc(L.play)}">Play ${esc(L.game)}</a>` : ''}</div></div></article>`;
+  }));
+  $('labs').innerHTML = cards.join('') || '<p class="empty">No labs yet.</p>';
+  all.sort((a, b) => b.run.date.localeCompare(a.run.date));
+  $('feed').innerHTML = all.slice(0, 10).map(r => `<a class="item" href="${esc(r.lab.href)}#report-${encodeURIComponent(r.id)}">
+      <span class="when">${esc(fmtDate(r.run.date))}</span><span class="hl">${esc(r.headline)}</span>
+      <span class="meta"><span class="pill">${esc(r.lab.game)}</span><span class="pill ${esc(r.kind)}">${r.kind === 'trial' ? 'Trial' : 'Report'} · ${esc(r.tag)}</span><span class="pill">sim ${esc(r.run.sim_version)}</span></span></a>`).join('')
+    || '<p class="empty">No reports yet.</p>';
+})();
+</script>
+</body>
+</html>

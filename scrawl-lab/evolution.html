@@ -1,0 +1,319 @@
+<title>Scrawl Trick Evolution</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one reading column; the family tree is the hero and scrolls sideways on phones; tiles carry trick names like the game's letter tiles */
+:root{
+  --bg:#EFE6D3; --paper:#FBF6EA; --card:#FFFDF6; --ink:#24203A; --muted:#6B6378; --rule:#D9CDB4;
+  --tile:#E9C98A; --tile-edge:#B88B45; --tile-ink:#2B2117; --gold:#C98D10;
+  --hp:#C23B3B; --block:#3E6FB8; --ok:#2E8A55; --foe:#7B4FA8; --faint:#B9AE98;
+  --display:"Fraunces",Georgia,serif; --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#17142A; --paper:#211D38; --card:#2A2546; --ink:#F3EBDA; --muted:#A79FBD; --rule:#3A3460;
+  --tile:#E3C27E; --tile-edge:#A9803E; --tile-ink:#2B2117; --gold:#F0B84A;
+  --hp:#E85A5A; --block:#6C9BE3; --ok:#5CC98A; --foe:#B58AE6; --faint:#4A4470; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17142A; --paper:#211D38; --card:#2A2546; --ink:#F3EBDA; --muted:#A79FBD; --rule:#3A3460;
+  --tile:#E3C27E; --tile-edge:#A9803E; --tile-ink:#2B2117; --gold:#F0B84A;
+  --hp:#E85A5A; --block:#6C9BE3; --ok:#5CC98A; --foe:#B58AE6; --faint:#4A4470; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+.wrap{max-width:980px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:28px}
+.eyebrow{font:700 12px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{font:800 clamp(30px,6vw,46px)/1.02 var(--display);margin:4px 0 6px;letter-spacing:-.01em;text-wrap:balance}
+h1 span{color:var(--gold)}
+h2{font:800 22px/1.2 var(--display);margin:0;text-wrap:balance}
+h3{font:700 17px/1.25 var(--display);margin:0}
+.lede{max-width:64ch;color:var(--muted);margin:0}
+.meta{font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-variant-numeric:tabular-nums}
+section{display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel{background:var(--paper);border:1px solid var(--rule);border-radius:16px;padding:16px}
+/* tiles: trick names on letter tiles */
+.tile{display:inline-flex;align-items:baseline;gap:6px;background:var(--tile);color:var(--tile-ink);border-radius:7px;padding:3px 9px 4px;
+  box-shadow:inset 0 -3px 0 var(--tile-edge);font:800 15px/1.2 var(--display);border:0;cursor:pointer;white-space:nowrap}
+.tile small{font:700 11px var(--body);opacity:.75;font-variant-numeric:tabular-nums}
+.tile:focus-visible,.node:focus-visible{outline:3px solid var(--foe);outline-offset:2px}
+.tile.idea{background:var(--card);color:var(--ink);box-shadow:inset 0 -3px 0 var(--rule),0 0 0 1.5px var(--foe)}
+/* standings */
+.podium{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.podium .panel{display:flex;flex-direction:column;gap:10px}
+.podium ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.podium li{display:grid;grid-template-columns:22px auto 1fr;align-items:center;gap:8px;min-width:0}
+.podium li .rank{font:800 14px var(--display);color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.podium li .why{font-size:12.5px;color:var(--muted);min-width:0}
+.win h3{color:var(--ok)} .lose h3{color:var(--hp)}
+/* tree */
+.treebox{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:16px;background:var(--paper);border:1px solid var(--rule)}
+svg text{font-family:var(--body);fill:var(--ink)}
+.axis text{fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.grid line{stroke:var(--rule);stroke-width:1}
+.zero{stroke:var(--muted);stroke-dasharray:4 4}
+.thread{fill:none;stroke:var(--faint);stroke-width:2}
+.lineage{fill:none;stroke:var(--foe);stroke-width:1.8;stroke-dasharray:5 4;opacity:.8}
+.node{cursor:pointer}
+.node .lbl{font-size:12px;font-weight:700}
+.node .lbl.idea{fill:var(--foe)}
+.leader{stroke:var(--faint);stroke-width:1}
+.dim{opacity:.16}
+.colhead{font:800 15px var(--display);fill:var(--ink)}
+.colsub{font-size:11px;fill:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:12.5px;color:var(--muted);align-items:center}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.legend i.sq{border-radius:3px}
+.legend i.ring{background:transparent;border:2.5px solid var(--hp)}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.filters button{font:700 12.5px var(--body);padding:5px 12px;border-radius:99px;border:1.5px solid var(--rule);background:var(--card);color:var(--ink);cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+/* detail */
+.detail{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px}
+@media (max-width:640px){.detail{grid-template-columns:1fr}}
+.detail .head{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.pill{font:700 11px var(--body);letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:99px;color:#fff}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.stat{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:8px 10px}
+.stat b{display:block;font:800 20px var(--display);font-variant-numeric:tabular-nums}
+.stat span{font-size:11.5px;color:var(--muted)}
+.family{font-size:13.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+/* rounds */
+.rounds{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px}
+.round{display:flex;flex-direction:column;gap:10px}
+.round .note{font-size:13.5px;color:var(--muted);margin:0}
+.bars{display:flex;flex-direction:column;gap:4px}
+.bar{display:grid;grid-template-columns:86px 1fr 46px;gap:8px;align-items:center;font-size:12.5px;cursor:pointer;border-radius:6px;padding:1px 2px}
+.bar:hover,.bar.sel{background:var(--card)}
+.bar .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .nm.idea{color:var(--foe)}
+.bar .track{height:12px;background:color-mix(in srgb,var(--rule) 55%,transparent);border-radius:4px;position:relative;overflow:hidden}
+.bar .fill{position:absolute;inset:0 auto 0 0;border-radius:4px}
+.bar .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.bar .trap{color:var(--hp);font-weight:700}
+.how{font-size:13.5px;color:var(--muted);max-width:70ch}
+.how b{color:var(--ink)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:no-preference){.node circle,.node rect{transition:transform .15s}.node:hover circle,.node:hover rect{transform:scale(1.15)}}
+.node circle,.node rect{transform-box:fill-box;transform-origin:center}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Dungeon Scrawl · trick lab</div>
+    <h1>Trick <span>Evolution</span></h1>
+    <p class="lede">Each round we brainstorm new letter tricks, a bot plays hundreds of runs with each one in its kit, and the results decide what gets bred into the next round. Higher on the tree means more wins than the plain Quill, Nudge and Flip kit.</p>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <section aria-labelledby="st-h">
+    <h2 id="st-h">Standings</h2>
+    <div class="podium">
+      <div class="panel win"><h3>Winners</h3><ol id="winners"></ol></div>
+      <div class="panel lose"><h3>Losers</h3><ol id="losers"></ol></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="tree-h">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap">
+      <h2 id="tree-h">Family tree</h2>
+      <div class="filters" role="group" aria-label="Show">
+        <button type="button" id="f-all" aria-pressed="true">Everything</button>
+        <button type="button" id="f-idea" aria-pressed="false">New ideas</button>
+        <button type="button" id="f-live" aria-pressed="false">Live tricks</button>
+      </div>
+    </div>
+    <div class="treebox"><svg id="tree" role="img" aria-label="Win lift of every trick in every round, with lines from each trick to the ones bred from it"></svg></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <section aria-labelledby="d-h">
+    <h2 id="d-h" class="sr">Selected trick</h2>
+    <div class="panel detail" id="detail"></div>
+  </section>
+
+  <section aria-labelledby="r-h">
+    <h2 id="r-h">Round by round</h2>
+    <div class="rounds" id="rounds"></div>
+  </section>
+
+  <section aria-labelledby="h-h">
+    <h2 id="h-h">How it's measured</h2>
+    <div class="how" id="how"></div>
+  </section>
+</div>
+
+<script>
+const DATA = {"rounds": [{"tag": "round1", "round": 1, "date": "2026-11-20 12:36", "sim_version": "1.2.0", "rules": "d9a80b459f96", "hard_scale": 2.5, "seeds": 600, "runs": 11850, "note": "First brainstorm: letter tricks of every shape, against the live tricks.", "idea_files": ["C:\\Users\\basti\\repos\\The-Puzz\\tools\\ideas\\r1.py"], "tricks": [{"trick": "(none)", "idea": 0, "win": 0.46166666666666667, "turns": 8.195, "hp_left": 4.845, "use_rate": 0.0, "uses_run": 0.0, "gain": 0.0, "hurt": null, "desc": "Quill + Nudge + Flip only", "lift": 0.0, "turns_saved": 0.0, "parent": null}, {"trick": "rotate", "idea": 0, "win": 0.5483333333333333, "turns": 8.053333333333333, "hp_left": 5.971666666666667, "use_rate": 0.34519867549668876, "uses_run": 2.78, "gain": 5.229454436450839, "hurt": 0.4139228598306679, "desc": "Turn by shape: b→d→p→q, n↔u, m↔w.", "lift": 0.08666666666666667, "turns_saved": 0.1416666666666675, "verdict": "weak+trap", "parent": null}, {"trick": "vshift", "idea": 0, "win": 0.5733333333333334, "turns": 8.046666666666667, "hp_left": 6.151666666666666, "use_rate": 0.3875310687655344, "uses_run": 4.211666666666667, "gain": 4.421610605461021, "hurt": 0.3333333333333333, "desc": "A→E→I→O→U→A (×2).", "lift": 0.11166666666666669, "turns_saved": 0.14833333333333343, "verdict": "keeper+trap", "parent": null}, {"trick": "swap", "idea": 0, "win": 0.5, "turns": 8.153333333333334, "hp_left": 5.178333333333334, "use_rate": 0.1439084219133279, "uses_run": 1.1733333333333333, "gain": 8.535156249999998, "hurt": 0.0, "desc": "Two tiles trade letters.", "lift": 0.03833333333333333, "turns_saved": 0.041666666666666075, "verdict": "weak", "parent": null}, {"trick": "twin", "idea": 0, "win": 0.8783333333333333, "turns": 7.373333333333333, "hp_left": 11.506666666666666, "use_rate": 0.7524864376130199, "uses_run": 5.548333333333333, "gain": 11.653184139381198, "hurt": 0.0, "desc": "Copy a tile.", "lift": 0.41666666666666663, "turns_saved": 0.8216666666666672, "verdict": "keeper", "parent": null}, {"trick": "split", "idea": 0, "win": 0.6666666666666666, "turns": 7.956666666666667, "hp_left": 7.48, "use_rate": 0.36992040217846667, "uses_run": 2.9433333333333334, "gain": 6.8590543601359, "hurt": 0.5426774483378257, "desc": "A 4+ tile breaks into E and A.", "lift": 0.20499999999999996, "turns_saved": 0.23833333333333329, "verdict": "keeper+trap", "parent": null}, {"trick": "inkblot", "idea": 0, "win": 0.5616666666666666, "turns": 8.02, "hp_left": 6.241666666666666, "use_rate": 0.34995843724023273, "uses_run": 2.8066666666666666, "gain": 5.007779097387172, "hurt": 0.35280898876404493, "desc": "Make a blank (once a foe).", "lift": 0.09999999999999998, "turns_saved": 0.1750000000000007, "verdict": "weak+trap", "parent": null}, {"trick": "back", "idea": 1, "win": 0.735, "turns": 7.736666666666666, "hp_left": 8.383333333333333, "use_rate": 0.6512279190004309, "uses_run": 7.605, "gain": 7.580894148586455, "hurt": 0.13157894736842105, "desc": "One step back: C→B (×2).", "lift": 0.2733333333333333, "turns_saved": 0.4583333333333339, "verdict": "keeper", "parent": "nudge"}, {"trick": "leap", "idea": 1, "win": 0.685, "turns": 7.873333333333333, "hp_left": 7.551666666666667, "use_rate": 0.6632091447925487, "uses_run": 5.221666666666667, "gain": 8.33011171401213, "hurt": 0.10105949470252648, "desc": "Two steps on: B→D.", "lift": 0.22333333333333338, "turns_saved": 0.3216666666666672, "verdict": "keeper", "parent": "nudge"}, {"trick": "whisper", "idea": 1, "win": 0.6716666666666666, "turns": 7.838333333333333, "hp_left": 7.101666666666667, "use_rate": 0.5220072294280247, "uses_run": 5.5633333333333335, "gain": 7.403124625524266, "hurt": 0.2372112211221122, "desc": "Voice swap: B↔P, D↔T, G↔K, V↔F, Z↔S, M↔N (×2).", "lift": 0.20999999999999996, "turns_saved": 0.35666666666666735, "verdict": "keeper", "parent": null}, {"trick": "slip", "idea": 1, "win": 0.6866666666666666, "turns": 7.871666666666667, "hp_left": 7.555, "use_rate": 0.5985602371374127, "uses_run": 4.711666666666667, "gain": 8.453799080297134, "hurt": 0.13170731707317074, "desc": "Slip one key right on a keyboard: Q→W, L→A.", "lift": 0.22499999999999998, "turns_saved": 0.32333333333333325, "verdict": "keeper", "parent": null}, {"trick": "echo", "idea": 1, "win": 0.7616666666666667, "turns": 7.77, "hp_left": 9.15, "use_rate": 0.6881166881166881, "uses_run": 5.346666666666667, "gain": 10.839476309226933, "hurt": 0.053858520900321546, "desc": "A tile takes another tile's letter.", "lift": 0.30000000000000004, "turns_saved": 0.4250000000000007, "verdict": "keeper", "parent": null}, {"trick": "sprout", "idea": 1, "win": 0.7866666666666666, "turns": 7.735, "hp_left": 9.111666666666666, "use_rate": 0.6933850463262228, "uses_run": 5.363333333333333, "gain": 7.563968303293971, "hurt": 0.0, "desc": "A tile sprouts an E beside it.", "lift": 0.32499999999999996, "turns_saved": 0.45999999999999996, "verdict": "keeper", "parent": null}, {"trick": "smudge", "idea": 1, "win": 0.7033333333333334, "turns": 7.878333333333333, "hp_left": 8.258333333333333, "use_rate": 0.6572879204569494, "uses_run": 5.178333333333334, "gain": 7.401577084003862, "hurt": 0.24025974025974026, "desc": "Make a blank, once a turn (Ink Blot is once a foe).", "lift": 0.2416666666666667, "turns_saved": 0.3166666666666673, "verdict": "keeper", "parent": "inkblot"}, {"trick": "soften", "idea": 1, "win": 0.5833333333333334, "turns": 8.058333333333334, "hp_left": 6.153333333333333, "use_rate": 0.3904860392967942, "uses_run": 3.1466666666666665, "gain": 5.087420550847458, "hurt": 0.40112540192926044, "desc": "Consonant → nearest vowel: D→E, N→O.", "lift": 0.1216666666666667, "turns_saved": 0.13666666666666671, "verdict": "keeper+trap", "parent": null}, {"trick": "harden", "idea": 1, "win": 0.505, "turns": 8.088333333333333, "hp_left": 5.38, "use_rate": 0.2553059962909541, "uses_run": 2.065, "gain": 5.1619451170298625, "hurt": 0.6304549675023212, "desc": "Vowel → next consonant: A→B, E→F, O→P.", "lift": 0.043333333333333335, "turns_saved": 0.10666666666666735, "verdict": "weak+trap", "parent": null}], "run": {"sim_version": "1.2.0", "tag": "scrawl-sim-v1.2.0", "rules": "d9a80b459f96", "commit": "57a55a6", "dirty": false, "command": "py tools/scrawl_sim.py trial --round 1 -n 600 --eager-n 150 --hard-scale 2.5", "date": "2026-11-20 12:36", "python": "3.12.3"}}, {"tag": "round2", "round": 2, "date": "2026-11-20 12:50", "sim_version": "1.2.0", "rules": "d9a80b459f96", "hard_scale": 2.5, "seeds": 600, "runs": 13350, "note": "Give the fixed-outcome traps a choice; try cheaper versions of the hand-growers so Twin is not the only answer.", "idea_files": ["C:\\Users\\basti\\repos\\The-Puzz\\tools\\ideas\\r1.py", "C:\\Users\\basti\\repos\\The-Puzz\\tools\\ideas\\r2.py"], "tricks": [{"trick": "(none)", "idea": 0, "win": 0.46166666666666667, "turns": 8.195, "hp_left": 4.845, "use_rate": 0.0, "uses_run": 0.0, "gain": 0.0, "hurt": null, "desc": "Quill + Nudge + Flip only", "lift": 0.0, "turns_saved": 0.0, "parent": null}, {"trick": "twin", "idea": 0, "win": 0.8783333333333333, "turns": 7.373333333333333, "hp_left": 11.506666666666666, "use_rate": 0.7524864376130199, "uses_run": 5.548333333333333, "gain": 11.653184139381194, "hurt": 0.0, "desc": "Copy a tile.", "lift": 0.41666666666666663, "turns_saved": 0.8216666666666672, "verdict": "keeper", "parent": null}, {"trick": "sprout", "idea": 1, "win": 0.7866666666666666, "turns": 7.735, "hp_left": 9.111666666666666, "use_rate": 0.6933850463262228, "uses_run": 5.363333333333333, "gain": 7.563968303293971, "hurt": 0.0, "desc": "A tile sprouts an E beside it.", "lift": 0.32499999999999996, "turns_saved": 0.45999999999999996, "verdict": "keeper", "parent": null}, {"trick": "echo", "idea": 1, "win": 0.7616666666666667, "turns": 7.77, "hp_left": 9.15, "use_rate": 0.6881166881166881, "uses_run": 5.346666666666667, "gain": 10.839476309226933, "hurt": 0.053858520900321546, "desc": "A tile takes another tile's letter.", "lift": 0.30000000000000004, "turns_saved": 0.4250000000000007, "verdict": "keeper", "parent": null}, {"trick": "back", "idea": 1, "win": 0.735, "turns": 7.736666666666666, "hp_left": 8.383333333333333, "use_rate": 0.6512279190004309, "uses_run": 7.605, "gain": 7.580894148586457, "hurt": 0.13157894736842105, "desc": "One step back: C→B (×2).", "lift": 0.2733333333333333, "turns_saved": 0.4583333333333339, "verdict": "keeper", "parent": "nudge"}, {"trick": "split", "idea": 0, "win": 0.6666666666666666, "turns": 7.956666666666667, "hp_left": 7.48, "use_rate": 0.36992040217846667, "uses_run": 2.9433333333333334, "gain": 6.8590543601359, "hurt": 0.5426774483378257, "desc": "A 4+ tile breaks into E and A.", "lift": 0.20499999999999996, "turns_saved": 0.23833333333333329, "verdict": "keeper+trap", "parent": null}, {"trick": "swap", "idea": 0, "win": 0.5, "turns": 8.153333333333334, "hp_left": 5.178333333333334, "use_rate": 0.1439084219133279, "uses_run": 1.1733333333333333, "gain": 8.535156249999998, "hurt": 0.0, "desc": "Two tiles trade letters.", "lift": 0.03833333333333333, "turns_saved": 0.041666666666666075, "verdict": "weak", "parent": null}, {"trick": "revowel", "idea": 1, "win": 0.6166666666666667, "turns": 8.04, "hp_left": 6.77, "use_rate": 0.5445688225538972, "uses_run": 4.378333333333333, "gain": 7.190890749904835, "hurt": 0.1471301535974131, "desc": "A vowel becomes any vowel you like. (Vowel Shift, evolved)", "lift": 0.15500000000000003, "turns_saved": 0.15500000000000114, "verdict": "keeper", "parent": "vshift"}, {"trick": "dial", "idea": 1, "win": 0.7216666666666667, "turns": 7.76, "hp_left": 8.093333333333334, "use_rate": 0.6621563573883161, "uses_run": 7.865, "gain": 7.35604365331638, "hurt": 0.10892710892710893, "desc": "One step either way: C→B or C→D (×2). (Back + Nudge)", "lift": 0.26, "turns_saved": 0.4350000000000005, "verdict": "keeper", "parent": "back"}, {"trick": "recast", "idea": 1, "win": 0.64, "turns": 7.888333333333334, "hp_left": 6.846666666666667, "use_rate": 0.37882949503486163, "uses_run": 2.9883333333333333, "gain": 10.162353597322921, "hurt": 0.0, "desc": "A tile becomes any letter, once a foe. (Ink Blot, evolved: keeps points)", "lift": 0.17833333333333334, "turns_saved": 0.30666666666666664, "verdict": "keeper", "parent": "inkblot"}, {"trick": "upend", "idea": 1, "win": 0.6533333333333333, "turns": 7.84, "hp_left": 7.16, "use_rate": 0.5652636054421769, "uses_run": 4.431666666666667, "gain": 8.747314779992479, "hurt": 0.1930567315834039, "desc": "Turn or flip by shape: b d p q, n u, m w, s z, h y. (Rotate, evolved)", "lift": 0.19166666666666665, "turns_saved": 0.3550000000000004, "verdict": "keeper", "parent": "rotate"}, {"trick": "sprout_s", "idea": 1, "win": 0.6833333333333333, "turns": 7.89, "hp_left": 7.785, "use_rate": 0.6806083650190115, "uses_run": 5.37, "gain": 7.49780571073867, "hurt": 0.0, "desc": "A tile sprouts an S beside it (plurals!).", "lift": 0.22166666666666668, "turns_saved": 0.3050000000000006, "verdict": "keeper", "parent": "sprout"}, {"trick": "twin_v", "idea": 1, "win": 0.78, "turns": 7.735, "hp_left": 9.298333333333334, "use_rate": 0.6401637578108166, "uses_run": 4.951666666666667, "gain": 6.0470447660720295, "hurt": 0.0, "desc": "Copy a vowel. (Twin, nerfed)", "lift": 0.31833333333333336, "turns_saved": 0.45999999999999996, "verdict": "keeper", "parent": "twin"}, {"trick": "twin_c", "idea": 1, "win": 0.875, "turns": 7.371666666666667, "hp_left": 11.361666666666666, "use_rate": 0.7379606601853945, "uses_run": 5.44, "gain": 11.479659926470589, "hurt": 0.0, "desc": "Copy a consonant. (Twin, nerfed)", "lift": 0.41333333333333333, "turns_saved": 0.8233333333333333, "verdict": "keeper", "parent": "twin"}, {"trick": "echo2", "idea": 1, "win": 0.8516666666666667, "turns": 7.508333333333334, "hp_left": 10.62, "use_rate": 0.7067702552719201, "uses_run": 8.126666666666667, "gain": 9.532953240360952, "hurt": 0.12792574656981437, "desc": "A tile takes another tile's letter (×2). (Echo, buffed)", "lift": 0.39, "turns_saved": 0.6866666666666665, "verdict": "keeper", "parent": "echo"}, {"trick": "rotate", "idea": 0, "win": 0.5483333333333333, "turns": 8.053333333333333, "hp_left": 5.971666666666667, "use_rate": 0.34519867549668876, "uses_run": 2.78, "gain": 5.229454436450839, "hurt": 0.4139228598306679, "desc": "Turn by shape: b→d→p→q, n↔u, m↔w.", "lift": 0.08666666666666667, "turns_saved": 0.1416666666666675, "verdict": "weak+trap", "parent": null}, {"trick": "vshift", "idea": 0, "win": 0.5733333333333334, "turns": 8.046666666666667, "hp_left": 6.151666666666666, "use_rate": 0.3875310687655344, "uses_run": 4.211666666666667, "gain": 4.421610605461021, "hurt": 0.3333333333333333, "desc": "A→E→I→O→U→A (×2).", "lift": 0.11166666666666669, "turns_saved": 0.14833333333333343, "verdict": "keeper+trap", "parent": null}, {"trick": "inkblot", "idea": 0, "win": 0.5616666666666666, "turns": 8.02, "hp_left": 6.241666666666666, "use_rate": 0.34995843724023273, "uses_run": 2.8066666666666666, "gain": 5.007779097387172, "hurt": 0.35280898876404493, "desc": "Make a blank (once a foe).", "lift": 0.09999999999999998, "turns_saved": 0.1750000000000007, "verdict": "weak+trap", "parent": null}], "run": {"sim_version": "1.2.0", "tag": "scrawl-sim-v1.2.0", "rules": "d9a80b459f96", "commit": "57a55a6", "dirty": true, "command": "py tools/scrawl_sim.py trial --round 2 -n 600 --eager-n 150 --hard-scale 2.5", "date": "2026-11-20 12:50", "python": "3.12.3"}}, {"tag": "round3", "round": 3, "date": "2026-11-20 13:04", "sim_version": "1.2.0", "rules": "d9a80b459f96", "hard_scale": 2.5, "seeds": 600, "runs": 14850, "note": "Balance pass: rein in Twin, give the cured choice tricks a second charge, try narrower Echo and a consonant Respell.", "idea_files": ["C:\\Users\\basti\\repos\\The-Puzz\\tools\\ideas\\r1.py", "C:\\Users\\basti\\repos\\The-Puzz\\tools\\ideas\\r2.py", "C:\\Users\\basti\\repos\\The-Puzz\\tools\\ideas\\r3.py"], "tricks": [{"trick": "(none)", "idea": 0, "win": 0.46166666666666667, "turns": 8.195, "hp_left": 4.845, "use_rate": 0.0, "uses_run": 0.0, "gain": 0.0, "hurt": null, "desc": "Quill + Nudge + Flip only", "lift": 0.0, "turns_saved": 0.0, "parent": null}, {"trick": "twin", "idea": 0, "win": 0.8783333333333333, "turns": 7.373333333333333, "hp_left": 11.506666666666666, "use_rate": 0.7524864376130199, "uses_run": 5.548333333333333, "gain": 11.653184139381194, "hurt": 0.0, "desc": "Copy a tile.", "lift": 0.41666666666666663, "turns_saved": 0.8216666666666672, "verdict": "keeper", "parent": null}, {"trick": "echo", "idea": 1, "win": 0.7616666666666667, "turns": 7.77, "hp_left": 9.15, "use_rate": 0.6881166881166881, "uses_run": 5.346666666666667, "gain": 10.839476309226933, "hurt": 0.053858520900321546, "desc": "A tile takes another tile's letter.", "lift": 0.30000000000000004, "turns_saved": 0.4250000000000007, "verdict": "keeper", "parent": null}, {"trick": "echo2", "idea": 1, "win": 0.8516666666666667, "turns": 7.508333333333334, "hp_left": 10.62, "use_rate": 0.7067702552719201, "uses_run": 8.126666666666667, "gain": 9.532953240360952, "hurt": 0.12792574656981437, "desc": "A tile takes another tile's letter (×2). (Echo, buffed)", "lift": 0.39, "turns_saved": 0.6866666666666665, "verdict": "keeper", "parent": "echo"}, {"trick": "sprout", "idea": 1, "win": 0.7866666666666666, "turns": 7.735, "hp_left": 9.111666666666666, "use_rate": 0.6933850463262228, "uses_run": 5.363333333333333, "gain": 7.563968303293971, "hurt": 0.0, "desc": "A tile sprouts an E beside it.", "lift": 0.32499999999999996, "turns_saved": 0.45999999999999996, "verdict": "keeper", "parent": null}, {"trick": "back", "idea": 1, "win": 0.735, "turns": 7.736666666666666, "hp_left": 8.383333333333333, "use_rate": 0.6512279190004309, "uses_run": 7.605, "gain": 7.580894148586455, "hurt": 0.13157894736842105, "desc": "One step back: C→B (×2).", "lift": 0.2733333333333333, "turns_saved": 0.4583333333333339, "verdict": "keeper", "parent": "nudge"}, {"trick": "upend", "idea": 1, "win": 0.6533333333333333, "turns": 7.84, "hp_left": 7.16, "use_rate": 0.5652636054421769, "uses_run": 4.431666666666667, "gain": 8.747314779992479, "hurt": 0.1930567315834039, "desc": "Turn or flip by shape: b d p q, n u, m w, s z, h y. (Rotate, evolved)", "lift": 0.19166666666666665, "turns_saved": 0.3550000000000004, "verdict": "keeper", "parent": "rotate"}, {"trick": "revowel", "idea": 1, "win": 0.6166666666666667, "turns": 8.04, "hp_left": 6.77, "use_rate": 0.5445688225538972, "uses_run": 4.378333333333333, "gain": 7.190890749904835, "hurt": 0.1471301535974131, "desc": "A vowel becomes any vowel you like. (Vowel Shift, evolved)", "lift": 0.15500000000000003, "turns_saved": 0.15500000000000114, "verdict": "keeper", "parent": "vshift"}, {"trick": "recast", "idea": 1, "win": 0.64, "turns": 7.888333333333334, "hp_left": 6.846666666666667, "use_rate": 0.37882949503486163, "uses_run": 2.9883333333333333, "gain": 10.162353597322921, "hurt": 0.0, "desc": "A tile becomes any letter, once a foe. (Ink Blot, evolved: keeps points)", "lift": 0.17833333333333334, "turns_saved": 0.30666666666666664, "verdict": "keeper", "parent": "inkblot"}, {"trick": "split", "idea": 0, "win": 0.6666666666666666, "turns": 7.956666666666667, "hp_left": 7.48, "use_rate": 0.36992040217846667, "uses_run": 2.9433333333333334, "gain": 6.8590543601359, "hurt": 0.5426774483378257, "desc": "A 4+ tile breaks into E and A.", "lift": 0.20499999999999996, "turns_saved": 0.23833333333333329, "verdict": "keeper+trap", "parent": null}, {"trick": "twin_foe", "idea": 1, "win": 0.675, "turns": 7.846666666666667, "hp_left": 7.685, "use_rate": 0.37638062871707734, "uses_run": 2.953333333333333, "gain": 7.6412076749435665, "hurt": 0.0, "desc": "Copy a tile, once a foe. (Twin, rationed)", "lift": 0.21333333333333337, "turns_saved": 0.3483333333333336, "verdict": "keeper", "parent": "twin"}, {"trick": "twin_f2", "idea": 1, "win": 0.81, "turns": 7.491666666666666, "hp_left": 9.893333333333333, "use_rate": 0.40778642936596216, "uses_run": 5.85, "gain": 7.426843304843305, "hurt": 0.0, "desc": "Copy a tile, twice a foe. (Twin, rationed)", "lift": 0.3483333333333334, "turns_saved": 0.703333333333334, "verdict": "keeper", "parent": "twin"}, {"trick": "upend2", "idea": 1, "win": 0.735, "turns": 7.683333333333334, "hp_left": 8.223333333333333, "use_rate": 0.5978308026030369, "uses_run": 6.546666666666667, "gain": 8.231150712830956, "hurt": 0.21428571428571427, "desc": "Turn or flip by shape: b d p q, n u, m w, s z, h y (×2). (Upend, buffed)", "lift": 0.2733333333333333, "turns_saved": 0.5116666666666667, "verdict": "keeper", "parent": "upend"}, {"trick": "revowel2", "idea": 1, "win": 0.6366666666666667, "turns": 7.985, "hp_left": 7.203333333333333, "use_rate": 0.5808808182007932, "uses_run": 6.0183333333333335, "gain": 6.366211575740792, "hurt": 0.18284333467579542, "desc": "A vowel becomes any vowel (×2). (Revowel, buffed)", "lift": 0.17500000000000004, "turns_saved": 0.20999999999999996, "verdict": "keeper", "parent": "revowel"}, {"trick": "respell", "idea": 1, "win": 0.8466666666666667, "turns": 7.46, "hp_left": 10.288333333333334, "use_rate": 0.8071939231456657, "uses_run": 6.0216666666666665, "gain": 15.25235261555494, "hurt": 0.0008230452674897119, "desc": "A consonant becomes any consonant, once a turn. (Recast, narrowed)", "lift": 0.385, "turns_saved": 0.7350000000000003, "verdict": "keeper", "parent": "recast"}, {"trick": "echo_kin", "idea": 1, "win": 0.825, "turns": 7.52, "hp_left": 10.386666666666667, "use_rate": 0.6824024822695035, "uses_run": 7.64, "gain": 9.28858202443281, "hurt": 0.1533199195171026, "desc": "A tile takes the letter of another of its kind, vowel to vowel or consonant to consonant (×2). (Echo, narrowed)", "lift": 0.3633333333333333, "turns_saved": 0.6750000000000007, "verdict": "keeper", "parent": "echo2"}, {"trick": "rotate", "idea": 0, "win": 0.5483333333333333, "turns": 8.053333333333333, "hp_left": 5.971666666666667, "use_rate": 0.34519867549668876, "uses_run": 2.78, "gain": 5.229454436450839, "hurt": 0.4139228598306679, "desc": "Turn by shape: b→d→p→q, n↔u, m↔w.", "lift": 0.08666666666666667, "turns_saved": 0.1416666666666675, "verdict": "weak+trap", "parent": null}, {"trick": "vshift", "idea": 0, "win": 0.5733333333333334, "turns": 8.046666666666667, "hp_left": 6.151666666666666, "use_rate": 0.3875310687655344, "uses_run": 4.211666666666667, "gain": 4.421610605461021, "hurt": 0.3333333333333333, "desc": "A→E→I→O→U→A (×2).", "lift": 0.11166666666666669, "turns_saved": 0.14833333333333343, "verdict": "keeper+trap", "parent": null}, {"trick": "swap", "idea": 0, "win": 0.5, "turns": 8.153333333333334, "hp_left": 5.178333333333334, "use_rate": 0.1439084219133279, "uses_run": 1.1733333333333333, "gain": 8.535156249999998, "hurt": 0.0, "desc": "Two tiles trade letters.", "lift": 0.03833333333333333, "turns_saved": 0.041666666666666075, "verdict": "weak", "parent": null}, {"trick": "inkblot", "idea": 0, "win": 0.5616666666666666, "turns": 8.02, "hp_left": 6.241666666666666, "use_rate": 0.34995843724023273, "uses_run": 2.8066666666666666, "gain": 5.007779097387172, "hurt": 0.35280898876404493, "desc": "Make a blank (once a foe).", "lift": 0.09999999999999998, "turns_saved": 0.1750000000000007, "verdict": "weak+trap", "parent": null}], "run": {"sim_version": "1.2.0", "tag": "scrawl-sim-v1.2.0", "rules": "d9a80b459f96", "commit": "57a55a6", "dirty": true, "command": "py tools/scrawl_sim.py trial --round 3 -n 600 --eager-n 150 --hard-scale 2.5", "date": "2026-11-20 13:04", "python": "3.12.3"}}]};
+if (window.self !== window.top) { document.querySelector('header').hidden = true; document.querySelector('.wrap').style.paddingTop = '4px' }
+const VERDICT = {
+  overpowered:{label:'Overpowered',col:'var(--gold)'}, keeper:{label:'Keeper',col:'var(--ok)'},
+  niche:{label:'Niche',col:'var(--block)'}, weak:{label:'Weak',col:'var(--muted)'}, dud:{label:'Dud',col:'var(--faint)'}};
+const base = v => v.split('+')[0], isTrap = v => v.includes('trap');
+const pct = x => (x*100).toFixed(0)+'%', pts = x => (x>=0?'+':'')+(x*100).toFixed(1);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const R = DATA.rounds.filter(r => r.round != null).sort((a,b) => a.round - b.round);
+const NR = R.length;
+
+// every appearance of every trick: {name, ri (round index), ...row}
+const apps = [];
+R.forEach((r, ri) => r.tricks.forEach(t => { if (t.trick !== '(none)') apps.push({...t, name:t.trick, ri, round:r.round}) }));
+const byName = {};
+apps.forEach(a => (byName[a.name] = byName[a.name] || []).push(a));
+const parentOf = {};
+apps.forEach(a => { if (a.parent) parentOf[a.name] = a.parent });
+const childrenOf = {};
+Object.entries(parentOf).forEach(([c,p]) => (childrenOf[p] = childrenOf[p] || []).push(c));
+const last = n => byName[n][byName[n].length-1];
+const descOf = n => (last(n) || {}).desc || '';
+
+// meta
+const L = R[NR-1];
+document.getElementById('meta').innerHTML = [
+  `${NR} round${NR>1?'s':''}`, `${Object.keys(byName).length} tricks tested`, `${R.reduce((s,r)=>s+(r.runs||r.seeds*r.tricks.length),0).toLocaleString()} bot runs`,
+  `foe HP ×${L.hard_scale}`, `${L.seeds} seeds per trick`, `sim ${L.sim_version}`, `rules ${L.rules}`, `updated ${L.date}`].map(esc).map(s=>`<span>${s}</span>`).join('');
+
+// standings: each trick judged by its latest appearance
+const latest = Object.keys(byName).map(last);
+const winners = latest.filter(a => ['keeper','overpowered'].includes(base(a.verdict)) && !isTrap(a.verdict)).sort((a,b) => b.lift - a.lift).slice(0,6);
+const losers = latest.filter(a => isTrap(a.verdict) || ['weak','dud'].includes(base(a.verdict))).sort((a,b) => a.lift - b.lift).slice(0,6);
+const reason = a => {
+  const bits = [`${pts(a.lift)} pts`, `used on ${pct(a.use_rate)} of turns`];
+  if (isTrap(a.verdict)) bits.push(`backfires ${pct(a.hurt)} of the time`);
+  else if (a.hurt != null && a.hurt > 0.1) bits.push(`backfires ${pct(a.hurt)}`);
+  return bits.join(' · ');
+};
+const tileBtn = (a, extra='') => `<button type="button" class="tile ${a.idea?'idea':''}" data-pick="${esc(a.name)}" data-ri="${a.ri}">${esc(a.name)}${extra}</button>`;
+document.getElementById('winners').innerHTML = winners.map((a,i) => `<li><span class="rank">${i+1}</span>${tileBtn(a)}<span class="why">${reason(a)}</span></li>`).join('') || '<li>No keepers yet.</li>';
+document.getElementById('losers').innerHTML = losers.map((a,i) => `<li><span class="rank">${i+1}</span>${tileBtn(a)}<span class="why">${reason(a)}</span></li>`).join('') || '<li>Nothing failed.</li>';
+
+// ---- the family tree
+const svg = document.getElementById('tree'), NS = 'http://www.w3.org/2000/svg';
+const colW = 250, padL = 52, padR = 30, padT = 64, padB = 36, H = 520;
+const W = padL + NR*colW + padR;
+svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.style.width = Math.max(W, 0)+'px'; svg.style.maxWidth = 'none'; svg.style.display = 'block';
+const lifts = apps.map(a => a.lift*100);
+const lo = Math.min(0, Math.floor(Math.min(...lifts)/10)*10), hi = Math.ceil(Math.max(...lifts)/10)*10;
+const y = v => padT + (hi - v) / (hi - lo) * (H - padT - padB);
+const cx = ri => padL + ri*colW + 46;
+const el = (tag, attrs, parent=svg) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e };
+let filter = 'all', picked = null, focused = false;
+
+function drawTree() {
+  svg.innerHTML = '';
+  const g = el('g', {class:'grid'}), ax = el('g', {class:'axis'});
+  for (let v = lo; v <= hi; v += 10) {
+    el('line', {x1:padL-6, x2:W-padR, y1:y(v), y2:y(v)}, g);
+    const t = el('text', {x:padL-10, y:y(v)+4, 'text-anchor':'end'}, ax); t.textContent = (v>0?'+':'')+v;
+  }
+  el('line', {x1:padL-6, x2:W-padR, y1:y(0), y2:y(0), class:'zero'});
+  const z = el('text', {x:W-padR, y:y(0)-6, 'text-anchor':'end', class:'colsub'}); z.textContent = 'Quill + Nudge + Flip only';
+  const yl = el('text', {x:14, y:padT-28, class:'colsub'}); yl.textContent = 'win lift, pts';
+  R.forEach((r, ri) => {
+    const h = el('text', {x:cx(ri)-8, y:26, class:'colhead'}); h.textContent = `Round ${r.round}`;
+    const s = el('text', {x:cx(ri)-8, y:42, class:'colsub'});
+    s.textContent = `${r.tricks.length-1} tested · baseline ${pct(r.tricks.find(t=>t.trick==='(none)')?.win ?? 0)} wins`;
+  });
+  const shown = a => filter === 'all' || (filter === 'idea' ? a.idea : !a.idea);
+  const related = picked && focused ? family(picked) : null;
+  const cls = a => related && !related.has(a.name) ? 'dim' : '';
+  // threads: the same trick across rounds
+  Object.values(byName).forEach(list => { for (let i = 1; i < list.length; i++) { const a = list[i-1], b = list[i]; if (!shown(a) || !shown(b)) continue;
+    el('path', {d:`M${cx(a.ri)},${y(a.lift*100)} C${cx(a.ri)+colW/2},${y(a.lift*100)} ${cx(b.ri)-colW/2},${y(b.lift*100)} ${cx(b.ri)},${y(b.lift*100)}`, class:'thread '+cls(b)}) } });
+  // lineage: parent's latest appearance before the child's round -> child
+  apps.forEach(c => { if (!c.parent || !byName[c.parent] || !shown(c)) return; if (byName[c.name][0] !== c) return;
+    const p = [...byName[c.parent]].reverse().find(a => a.ri < c.ri); if (!p) return;
+    el('path', {d:`M${cx(p.ri)},${y(p.lift*100)} C${cx(p.ri)+colW*.55},${y(p.lift*100)} ${cx(c.ri)-colW*.45},${y(c.lift*100)} ${cx(c.ri)},${y(c.lift*100)}`, class:'lineage '+cls(c)}) });
+  // nodes, with labels nudged apart per column
+  R.forEach((r, ri) => {
+    const col = apps.filter(a => a.ri === ri && shown(a)).sort((a,b) => b.lift - a.lift);
+    let prev = -1e9; const pos = col.map(a => { const ly = Math.max(y(a.lift*100), prev + 14); prev = ly; return ly });
+    const over = pos.length ? pos[pos.length-1] - (H - padB + 6) : 0;
+    if (over > 0) { for (let i = pos.length-1; i >= 0; i--) { pos[i] -= over; if (i && pos[i-1] > pos[i]-14) pos[i-1] = pos[i]-14 } }
+    col.forEach((a, i) => {
+      const v = VERDICT[base(a.verdict)] || VERDICT.weak, ny = y(a.lift*100), rr = 4 + a.use_rate*9, x = cx(ri);
+      const g = el('g', {class:'node '+cls(a), tabindex:0, role:'button', 'aria-label':`${a.name}, round ${a.round}, ${v.label}, ${pts(a.lift)} points`});
+      g.dataset.pick = a.name; g.dataset.ri = ri;
+      if (Math.abs(pos[i] - ny) > 2) el('line', {x1:x+rr+2, y1:ny, x2:x+22, y2:pos[i]-4, class:'leader'}, g);
+      if (isTrap(a.verdict)) el('circle', {cx:x, cy:ny, r:rr+4, fill:'none', stroke:'var(--hp)', 'stroke-width':2.5}, g);
+      if (a.idea) el('circle', {cx:x, cy:ny, r:rr, fill:v.col, stroke:'var(--paper)', 'stroke-width':1.5}, g);
+      else el('rect', {x:x-rr, y:ny-rr, width:rr*2, height:rr*2, rx:3, fill:v.col, stroke:'var(--paper)', 'stroke-width':1.5}, g);
+      if (picked && picked.name === a.name && picked.ri === ri) el('circle', {cx:x, cy:ny, r:rr+8, fill:'none', stroke:'var(--ink)', 'stroke-width':1.5, 'stroke-dasharray':'3 3'}, g);
+      const t = el('text', {x:x+24, y:pos[i], class:'lbl '+(a.idea?'idea':'')}, g); t.textContent = a.name;
+      const s = el('tspan', {dx:6, 'font-weight':400, fill:'var(--muted)', 'font-size':11}, t); s.textContent = pts(a.lift);
+    });
+  });
+}
+function family(p) {
+  const out = new Set([p.name]); let n = p.name;
+  while (parentOf[n]) { n = parentOf[n]; out.add(n) }
+  const down = m => (childrenOf[m]||[]).forEach(c => { out.add(c); down(c) }); down(p.name);
+  return out;
+}
+document.getElementById('legend').innerHTML =
+  Object.values(VERDICT).map(v => `<span><i style="background:${v.col}"></i>${v.label}</span>`).join('') +
+  `<span><i class="ring"></i>Trap: backfires when used blindly</span><span><i class="sq" style="background:var(--muted)"></i>Square: live trick</span>` +
+  `<span>Bigger = used on more turns</span><span style="color:var(--foe)">- - bred from</span>`;
+
+// ---- detail
+function showDetail(a) {
+  const v = VERDICT[base(a.verdict)] || VERDICT.weak, hist = byName[a.name];
+  const kids = (childrenOf[a.name]||[]).filter(c => byName[c]);
+  const spark = hist.length > 1 ? sparkline(hist) : '';
+  document.getElementById('detail').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+      <div class="head"><span class="tile ${a.idea?'idea':''}" style="cursor:default">${esc(a.name)}</span>
+        <span class="pill" style="background:${v.col}">${v.label}</span>${isTrap(a.verdict)?'<span class="pill" style="background:var(--hp)">Trap</span>':''}
+        <span class="eyebrow">${a.idea?'New idea':'Live trick'} · round ${a.round}</span></div>
+      <p style="margin:0">${esc(a.desc)}</p>
+      <div class="family">${parentOf[a.name] ? `Bred from ${tileBtn(byName[parentOf[a.name]] ? last(parentOf[a.name]) : {name:parentOf[a.name], ri:-1})}` : (a.idea ? 'A fresh idea.' : 'In the game today.')}
+        ${kids.length ? ` · led to ${kids.map(c => tileBtn(byName[c][0])).join(' ')}` : ''}</div>
+      ${spark}
+    </div>
+    <div class="stats">
+      <div class="stat"><b>${pct(a.win)}</b><span>runs won</span></div>
+      <div class="stat"><b>${pts(a.lift)}</b><span>pts over no trick</span></div>
+      <div class="stat"><b>${(a.turns_saved>=0?'−':'+')+Math.abs(a.turns_saved).toFixed(2)}</b><span>turns per run</span></div>
+      <div class="stat"><b>${pct(a.use_rate)}</b><span>of turns it gets used</span></div>
+      <div class="stat"><b>${(a.gain>=0?'+':'')+a.gain.toFixed(1)}</b><span>turn value per use</span></div>
+      <div class="stat"><b>${a.hurt==null?'–':pct(a.hurt)}</b><span>backfires when spammed</span></div>
+    </div>`;
+}
+function sparkline(hist) {
+  const w = 220, h = 54, xs = i => 10 + i*(w-20)/(hist.length-1), ys = v => 8 + (hi - v)/(hi - lo)*(h-22);
+  const d = hist.map((a,i) => `${i?'L':'M'}${xs(i)},${ys(a.lift*100)}`).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-label="Lift by round">
+    <path d="${d}" fill="none" stroke="var(--foe)" stroke-width="2"/>
+    ${hist.map((a,i) => `<circle cx="${xs(i)}" cy="${ys(a.lift*100)}" r="3.5" fill="${(VERDICT[base(a.verdict)]||VERDICT.weak).col}"/><text x="${xs(i)}" y="${h-2}" text-anchor="middle" font-size="10" fill="var(--muted)">R${a.round} ${pts(a.lift)}</text>`).join('')}</svg>`;
+}
+
+// ---- rounds
+const maxLift = Math.max(...apps.map(a => a.lift));
+document.getElementById('rounds').innerHTML = R.map((r, ri) => {
+  const rows = r.tricks.filter(t => t.trick !== '(none)').sort((a,b) => b.lift - a.lift);
+  const b0 = r.tricks.find(t => t.trick === '(none)');
+  return `<div class="panel round"><div><div class="eyebrow">Round ${r.round} · ${esc(r.date)}</div>
+    <p class="note">${esc(r.note || '')}</p></div>
+    <div class="bars">${rows.map(t => { const v = VERDICT[base(t.verdict)] || VERDICT.weak;
+      return `<div class="bar" data-pick="${esc(t.trick)}" data-ri="${ri}" tabindex="0" role="button" aria-label="${esc(t.trick)} ${pts(t.lift)} points">
+        <span class="nm ${t.idea?'idea':''}">${esc(t.trick)}</span>
+        <span class="track"><span class="fill" style="width:${Math.max(1, t.lift/maxLift*100)}%;background:${v.col}"></span></span>
+        <span class="v">${pts(t.lift)}${isTrap(t.verdict)?' <span class="trap">!</span>':''}</span></div>` }).join('')}</div>
+    <div class="eyebrow" style="letter-spacing:.06em">Baseline ${b0 ? pct(b0.win) : '–'} wins · purple = new this round or bred · ! = trap</div></div>`;
+}).join('');
+
+document.getElementById('how').innerHTML = `<p>Every trick gets the same test: a kit of <b>Quill, Nudge, Flip</b> plus that trick, played by the <b>smart bot</b> on the same ${L.seeds} seeded runs, with foes at ${L.hard_scale}× health so the strong tricks don't all win every time. <b>Lift</b> is how many more runs it wins than the kit without it. A second bot, the <b>eager</b> one, spends every charge whether it helps or not; when that makes a turn worse a quarter of the time or more, the trick is a <b>trap</b>.</p>
+<p>The bots know all 67,000 words and never miss one, so they are far stronger than a person. Read the numbers as how much a trick is worth, not how hard the game is. <b>Keeper</b>: at least as good as the median live trick and used on 15%+ of turns. <b>Niche</b>: good but rarely used. <b>Weak</b>: below the median live trick. <b>Dud</b>: next to no effect. <b>Overpowered</b>: 3+ points above the best live trick.</p>`;
+
+// ---- interaction
+function pick(name, ri, focus = true) {
+  focused = focus;
+  const list = byName[name]; if (!list) return;
+  picked = (ri != null && ri >= 0 && list.find(a => a.ri === +ri)) || list[list.length-1];
+  drawTree(); showDetail(picked);
+  document.querySelectorAll('.bar').forEach(b => b.classList.toggle('sel', b.dataset.pick === name));
+}
+document.addEventListener('click', e => { const t = e.target.closest('[data-pick]'); if (t) pick(t.dataset.pick, t.dataset.ri); else if (e.target.closest('#tree') && focused) { focused = false; drawTree() } });
+document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest?.('[data-pick]') && !e.target.matches('button')) { e.preventDefault(); const t = e.target.closest('[data-pick]'); pick(t.dataset.pick, t.dataset.ri) } });
+['all','idea','live'].forEach(f => document.getElementById('f-'+f).addEventListener('click', () => {
+  filter = f; document.querySelectorAll('.filters button').forEach(b => b.setAttribute('aria-pressed', b.id === 'f-'+f)); drawTree() }));
+pick((winners[0] || latest[0]).name, null, false);
+</script>
