@@ -1,6 +1,6 @@
 {
  "sim_version": "1.2.0",
- "built": "2026-11-20 12:24",
+ "built": "2026-11-20 13:04",
  "changelog": [
   {
    "version": "1.2.0",
@@ -22,6 +22,54 @@
   }
  ],
  "reports": [
+  {
+   "id": "20261120-1304-round3",
+   "kind": "trial",
+   "tag": "round3",
+   "headline": "19 tricks at foe HP x2.5; baseline wins 46%. Best new: echo2 +39.0 pts (keeper). Keepers: 16, traps: 4.",
+   "run": {
+    "sim_version": "1.2.0",
+    "tag": "scrawl-sim-v1.2.0",
+    "rules": "d9a80b459f96",
+    "commit": "57a55a6",
+    "dirty": true,
+    "command": "py tools/scrawl_sim.py trial --round 3 -n 600 --eager-n 150 --hard-scale 2.5",
+    "date": "2026-11-20 13:04",
+    "python": "3.12.3"
+   }
+  },
+  {
+   "id": "20261120-1250-round2",
+   "kind": "trial",
+   "tag": "round2",
+   "headline": "17 tricks at foe HP x2.5; baseline wins 46%. Best new: twin_c +41.3 pts (keeper). Keepers: 14, traps: 4.",
+   "run": {
+    "sim_version": "1.2.0",
+    "tag": "scrawl-sim-v1.2.0",
+    "rules": "d9a80b459f96",
+    "commit": "57a55a6",
+    "dirty": true,
+    "command": "py tools/scrawl_sim.py trial --round 2 -n 600 --eager-n 150 --hard-scale 2.5",
+    "date": "2026-11-20 12:50",
+    "python": "3.12.3"
+   }
+  },
+  {
+   "id": "20261120-1236-round1",
+   "kind": "trial",
+   "tag": "round1",
+   "headline": "15 tricks at foe HP x2.5; baseline wins 46%. Best new: sprout +32.5 pts (keeper). Keepers: 11, traps: 6.",
+   "run": {
+    "sim_version": "1.2.0",
+    "tag": "scrawl-sim-v1.2.0",
+    "rules": "d9a80b459f96",
+    "commit": "57a55a6",
+    "dirty": true,
+    "command": "py tools/scrawl_sim.py trial --round 1 -n 600 --eager-n 150 --hard-scale 2.5",
+    "date": "2026-11-20 12:36",
+    "python": "3.12.3"
+   }
+  },
   {
    "id": "20261120-1221-round3",
    "kind": "trial",
