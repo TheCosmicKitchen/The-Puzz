@@ -26,7 +26,7 @@ from datetime import date, timedelta
 from itertools import combinations, product
 from multiprocessing import Pool
 
-SIM_VERSION = '1.4.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
+SIM_VERSION = '1.5.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 M = 0xFFFFFFFF
@@ -90,42 +90,49 @@ def _step(c, d): return chr((ord(c) - 97 + d + 26) % 26 + 97)
 nudge = lambda c: chr((ord(c) - 97 + 1) % 26 + 97)
 flip = lambda c: chr(25 - (ord(c) - 97) + 97)
 # kind, uses per turn (or perFight), ok(tile), effect
-TOOLS = {
-    'quill':   dict(kind='quill', uses=1, ok=lambda t: t['ch'] not in VOW and t['ch'] != BLANK),
-    'nudge':   dict(kind='morph', uses=2, ok=lambda t: t['ch'] != BLANK, to=lambda t: nudge(t['ch'])),
-    'flip':    dict(kind='morph', uses=1, ok=lambda t: t['ch'] != BLANK, to=lambda t: flip(t['ch'])),
-    'rotate':  dict(kind='morph', uses=1, ok=lambda t: t['ch'] in ROT, to=lambda t: ROT[t['ch']]),
-    'vshift':  dict(kind='morph', uses=2, ok=lambda t: t['ch'] in VSH, to=lambda t: VSH[t['ch']]),
-    'swap':    dict(kind='swap', uses=1, ok=lambda t: True),
-    'twin':    dict(kind='make', uses=1, ok=lambda t: True, make=lambda t: [(t['ch'], t.get('fx')), (t['ch'], None)]),
-    'split':   dict(kind='make', uses=1, ok=lambda t: t['ch'] != BLANK and VAL[t['ch']] >= 4, make=lambda t: [('e', None), ('a', None)]),
-    'inkblot': dict(kind='morph', perFight=1, ok=lambda t: t['ch'] != BLANK, to=lambda t: BLANK),
-    # the tiered roster (page: same names). common
-    'leap':    dict(kind='morph', uses=1, ok=lambda t: t['ch'] != BLANK, to=lambda t: _step(t['ch'], 2)),
-    'slip':    dict(kind='morph', uses=1, ok=lambda t: t['ch'] != BLANK, to=lambda t: _right_key(t['ch'])),
-    'whisper': dict(kind='morph', uses=2, ok=lambda t: t['ch'] in VOICE, to=lambda t: VOICE[t['ch']]),
-    'upend':   dict(kind='choose', uses=1, ok=lambda t: _shape(t['ch']) is not None, options=lambda t: list(_shape(t['ch']))),
-    'revowel': dict(kind='choose', uses=1, ok=lambda t: t['ch'] in VOW, options=lambda t: list('aeiou')),
-    'recast':  dict(kind='choose', perFight=1, ok=lambda t: t['ch'] != BLANK, options=lambda t: list('abcdefghijklmnopqrstuvwxyz')),
-    # uncommon
-    'back':    dict(kind='morph', uses=2, ok=lambda t: t['ch'] != BLANK, to=lambda t: _step(t['ch'], -1)),
-    'echo':    dict(kind='pair', ordered=True, uses=1, ok=lambda t: t['ch'] != BLANK, pair=lambda a, b: (b['ch'], b['ch'])),
-    'sprout':  dict(kind='make', uses=1, ok=lambda t: True, make=lambda t: [(t['ch'], t.get('fx')), ('e', None)]),
-    'double':  dict(kind='make', perFight=2, ok=lambda t: True, make=lambda t: [(t['ch'], t.get('fx')), (t['ch'], None)]),
-    # rare
-    'respell': dict(kind='choose', uses=1, ok=lambda t: t['ch'] != BLANK and t['ch'] not in VOW, options=lambda t: list('bcdfghjklmnpqrstvwxyz')),
-    'mimic':   dict(kind='pair', ordered=True, uses=2, ok=lambda t: t['ch'] != BLANK,
-                    pair=lambda a, b: (b['ch'], b['ch']) if (a['ch'] in VOW) == (b['ch'] in VOW) else (a['ch'], b['ch'])),
-}
-TIER = dict(nudge='common', flip='common', leap='common', slip='common', whisper='common', upend='common', revowel='common', recast='common',
-            back='uncommon', echo='uncommon', sprout='uncommon', double='uncommon', twin='rare', respell='rare', mimic='rare')
-for _k, _t in TIER.items(): TOOLS[_k]['tier'] = _t
-for _k, _d in dict(quill='Flick one consonant for its points.', nudge='One step on: B→C (×2).', flip='Mirror: A↔Z, B↔Y.',
-                   rotate='Turn by shape: b→d→p→q, n↔u, m↔w.', vshift='A→E→I→O→U→A (×2).', swap='Two tiles trade letters.',
-                   twin='Copy a tile.', split='A 4+ tile breaks into E and A.', inkblot='Make a blank (once a foe).').items(): TOOLS[_k]['desc'] = _d
+def load_items():
+    """The items, as data, from ../scrawl-items.js (the page reads the same file). Everything after '=' is strict JSON."""
+    src = open(os.path.join(ROOT, 'scrawl-items.js'), encoding='utf8').read()
+    body = src[src.index('=', src.index('window.SCRAWL_ITEMS')) + 1:].strip().rstrip(';')
+    return json.loads(body)
+
+def compile_item(r):
+    """page: compileItem(r). Turns a data record into what the engine and planner call."""
+    tg, e = r.get('target', {'type': 'any'}), r.get('effect', {})
+    ty = tg['type']
+    if ty == 'any': ok = lambda t: True
+    elif ty == 'notBlank': ok = lambda t: t['ch'] != BLANK
+    elif ty == 'vowel': ok = lambda t: t['ch'] in VOW
+    elif ty == 'consonant': ok = lambda t: t['ch'] != BLANK and t['ch'] not in VOW
+    elif ty == 'letters': ok = lambda t, L=tg['letters']: t['ch'] != BLANK and t['ch'] in L
+    elif ty == 'minValue': ok = lambda t, v=tg['value']: t['ch'] != BLANK and VAL[t['ch']] >= v
+    else: raise ValueError(f"{r['id']}: unknown target {ty}")
+    T = dict(kind=r['kind'], ok=ok, name=r['name'], desc=r['desc'])
+    for k in ('tier', 'uses', 'perFight'):
+        if r.get(k): T[k] = r[k]
+    kd = r['kind']
+    if kd == 'morph':
+        if 'shift' in e: T['to'] = lambda t, d=e['shift']: chr((ord(t['ch']) - 97 + d + 26) % 26 + 97)
+        elif e.get('mirror'): T['to'] = lambda t: flip(t['ch'])
+        elif 'map' in e: T['to'] = lambda t, m=e['map']: m[t['ch']]
+        else: T['to'] = lambda t, c=e['set']: c
+    elif kd == 'choose':
+        o = e['options']
+        T['options'] = (lambda t, G=o['groups']: list(next(g for g in G if t['ch'] in g))) if 'groups' in o else (lambda t, L=o['letters']: list(L))
+    elif kd == 'make':
+        T['make'] = lambda t, M=e['make']: [(t['ch'], t.get('fx')) if m.get('self') else (t['ch'], None) if m.get('copy') else (m['letter'], None) for m in M]
+    elif kd == 'pair':
+        T['ordered'] = True
+        T['pair'] = (lambda a, b: (b['ch'], b['ch']) if (a['ch'] in VOW) == (b['ch'] in VOW) else (a['ch'], b['ch'])) if e.get('sameKind') else (lambda a, b: (b['ch'], b['ch']))
+    return T
+
+ITEMS = load_items()
+TOOLS = {'quill': dict(kind='quill', uses=1, ok=lambda t: t['ch'] not in VOW and t['ch'] != BLANK,
+                       name='Quill', desc='Flick one consonant for its points.'),
+         **{r['id']: compile_item(r) for r in ITEMS['items']}}
 KIT_MAX, START = 4, ['quill', 'nudge', 'flip']
 TRICKS = [k for k in TOOLS if k != 'quill']
-LEGACY_OFFERS = ['nudge', 'flip', 'rotate', 'vshift', 'swap', 'twin', 'split', 'inkblot']   # dailies before 21 Nov
+LEGACY_OFFERS = ITEMS['legacyOffers']   # dailies before 21 Nov
 ROSTER = [k for k in TOOLS if TOOLS[k].get('tier')]
 LIVE_TRICKS = ROSTER[:]          # what the page offers now; every trial uses these as controls
 TIERS_FROM = '2026-11-21'
@@ -826,6 +833,7 @@ def rules_hash():
     for a, b in (('// ---- letters ----', '// ---- game feel'), ('function removeTile', 'function render')):
         i = page.find(a); j = page.find(b, i)
         parts.append(page[i:j] if i >= 0 and j >= 0 else '')
+    parts.append(open(os.path.join(ROOT, 'scrawl-items.js'), encoding='utf8', newline='').read().replace(chr(13) + chr(10), chr(10)))   # the items are rules too
     return hashlib.sha256(chr(10).join(parts).encode()).hexdigest()[:12]
 
 def selftest():
@@ -874,6 +882,7 @@ def selftest():
 
 LAB = os.path.join(ROOT, 'scrawl-lab')       # the analytics pages on the site
 CHANGELOG = [   # newest first; every version gets a git tag scrawl-sim-v<version> so old reports can be rerun
+    ('1.5.0', '2026-11-20', 'Items as data: every trick is read from scrawl-items.js, the same file the page uses; trick behaviour fingerprinted identical to 1.4.0 on page and sim.'),
     ('1.4.0', '2026-11-20', 'Tiered equipment from the 21 Nov daily: 15-trick roster (common / uncommon / rare from the 1.2.0 trials), tiered Armoury offers; Swap, Rotate, Vowel Shift, Split and Ink Blot retired from offers.'),
     ('1.3.0', '2026-11-20', 'Endless descent (deep runs: foes keep coming, every third is The Editor, +10% attack per set of three); fair draws from the 21 Nov daily on (no consonant twice in a hand, one of JQXZ, one of FKVWY), matching the page; fixtures recaptured.'),
     ('1.2.0', '2026-11-20', 'Exactly reproducible (ties between equal plays now break the same way in every process); every trial includes all live tricks as controls, so the keeper bar is the same in every round.'),
