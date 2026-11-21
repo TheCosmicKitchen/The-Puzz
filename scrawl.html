@@ -35,10 +35,6 @@ h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:v
 .trail{display:flex;gap:6px;align-items:center}
 .depth{font:700 13px var(--body);color:var(--muted);font-variant-numeric:tabular-nums}.depth b{font:800 20px var(--display);color:var(--foe)}
 .kitrow{display:flex;flex-wrap:wrap;gap:6px}.kitchip{font:700 12px var(--body);padding:3px 10px;border-radius:99px;background:color-mix(in srgb,var(--gold) 22%,transparent);color:var(--ink)}
-.modes{display:flex;gap:4px;background:var(--paper);border:1.5px solid var(--rule);border-radius:99px;padding:3px;align-self:flex-start}
-.modes button{font:700 13px var(--body);padding:6px 16px;border-radius:99px;border:0;background:none;color:var(--muted);cursor:pointer}
-.modes button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-.modes button:focus-visible{outline:3px solid var(--foe);outline-offset:2px}
 .trail i{width:12px;height:12px;border-radius:50%;border:2px solid var(--muted);display:block}
 .trail i.done{background:var(--ok);border-color:var(--ok)}.trail i.now{border-color:var(--foe);background:var(--foe)}
 /* the foe */
@@ -192,7 +188,6 @@ details p{margin:8px 0;font-size:14px}
       <div><h1>Dungeon <span>Scrawl</span></h1><div class="sub" id="sub"></div></div></div>
     <div class="trail" id="trail" aria-label="Foes"></div>
   </header>
-  <nav class="modes" aria-label="Mode"><button type="button" data-mode="daily" aria-pressed="true">Daily</button><button type="button" data-mode="endless" aria-pressed="false">Endless</button></nav>
   <section class="foe" id="foe" aria-live="polite"></section>
   <div class="you"><span>You</span><div class="bar" id="youBar"><i></i><b></b></div><span id="youBlock" class="blk"></span></div>
   <div class="status" id="status"></div>
@@ -206,7 +201,7 @@ details p{margin:8px 0;font-size:14px}
   <details id="rules">
     <summary>How to play</summary>
     <p>Beat today's three foes. Everyone gets the same foes, the same tiles and the same tricks on offer.</p>
-    <p><b>Endless</b> is one descent that never ends: every third foe is The Editor, foes hit 10% harder every three floors, and the Armoury offers a new trick between every fight. How deep can you go? Your descent saves as you play.</p>
+    <p><b>Win the daily and you can keep descending.</b> The same run carries on, kit and all: every third foe is The Editor, foes hit 10% harder every three floors, and the Armoury offers a new trick between every fight. How deep can you go? Your daily result is already counted, and the descent saves as you play.</p>
     <p>Each turn you draw six letter tiles. Tap a tile, then a card, or drag the tile onto the card. While you hold a tile, every card shows what it would do with it. Changed tiles come back to your hand, so you can keep working on them. Misplaced one? <b>Undo</b> takes back your last trick, Quill or Strike this turn. Unused tiles are lost when you end your turn.</p>
     <p><b>Spellblade</b> is your main attack: a real word of 3 to 6 letters deals its points, plus a bonus for long words. Use it as often as your tiles allow. Each day it has an <b>edge</b>, a bonus for words that fit today's rule: rhymes, palindromes, five-letter words, double letters and so on.</p>
     <p>Your kit holds four cards: <b>Quill</b>, which flicks a single consonant for its points, and three letter tricks. You start with <b>Nudge</b> (B→C) and <b>Flip</b> (A↔Z) and pick a third before the first foe. After each win you stop at the <b>Armoury</b>: take a new trick in place of one of yours, or keep your kit. Want to try every trick? <a href="#lab" onclick="setTimeout(()=>location.reload())">Open the tool lab</a>.</p>
@@ -352,7 +347,17 @@ function load(m,arg){
   $('sub').textContent=m==='lab'?'Tool lab · every trick':m==='endless'?'Endless descent · '+seed.slice(8):m==='day'?`Shared crawl #${D.num} · ${D.label} · not your streak`:`Daily crawl #${D.num} · ${D.label}`;
   try{history.replaceState(null,'',m==='daily'?location.pathname:m==='day'?'#d'+D.iso:m==='lab'?'#lab':'#'+seed.slice(8))}catch(e){}
   dealNext=true;render();if(S.over)showResult()}
-function persist(){if(mode==='daily')store.set('scrawl-daily',S);else if(mode==='endless')store.set('scrawl-endless',S)}
+function persist(){if(mode==='daily')store.set('scrawl-daily',S);else if(mode==='endless')store.set('scrawl-endless',S);else if(mode==='descent')store.set('scrawl-descent',S)}
+// Win the daily and you can keep descending, like Balatro's endless: same run, same kit, foes keep coming.
+// It continues exactly as a deep run would after the third foe, so the descent is the same for everyone today.
+function todaysDescent(){const d=store.get('scrawl-descent');return d&&d.seed===S.seed&&d.v===2?d:null}
+function keepDescending(){
+  if(mode!=='daily'||S.over!=='won')return;const saved=todaysDescent();
+  if(saved)S=saved;
+  else{S=JSON.parse(JSON.stringify(S));S.deep=true;S.over=null;S.foes.push(deepFoe(S.fi+1));S.fi++;S.hp=Math.min(HP,S.hp+6);startFight();
+    if(offers(S.fi).length)S.draft=S.fi;S.log='Down the stairs you go. You catch your breath (+6).'}
+  mode='descent';$('result').hidden=true;$('sub').textContent=`Endless descent · after Daily #${D.num}`;dealNext=true;persist();render();
+  if(S.over)showResult();else window.scrollTo({top:0,behavior:'smooth'})}
 function say(t){S.log=t;$('log').innerHTML=t}
 
 // ---- game feel: animations drawn on a layer above the board ----
@@ -471,7 +476,6 @@ function endTurn(){
 // ---- drawing ----
 function render(){
   const f=foe(),fd=F(),m=nextMove();
-  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===(mode==='day'?'daily':mode)));
   if(S.deep){const best=+store.get('scrawl-deep-best')||0;$('trail').innerHTML=`<span class="depth">Depth <b>${S.fi+1}</b>${best?` · best ${best}`:''}</span>`}
   else $('trail').innerHTML=S.foes.map((_,i)=>`<i class="${i<S.fi||S.over==='won'?'done':i===S.fi?'now':''}" title="${FOES[S.foes[i].k].name}"></i>`).join('');
   const about=S.deep&&f.k==='editor'?'Crosses out what you write. Waits at every third floor.':fd.about;
@@ -515,19 +519,24 @@ function render(){
   $('endBtn').disabled=!!S.over||drafting;$('log').innerHTML=S.log||'';
   if(!drafting)dealNext=false;if(fxq.length)playFx(fxq.splice(0));
 }
-function shareText(){if(S.deep)return `The Puzz · Dungeon Scrawl endless ${S.seed.slice(8)}\n⬇️ Depth ${S.fi+1}: beat ${S.fi} foe${S.fi===1?'':'s'} in ${S.turns} turns, fell to ${FOES[foe().k].name}\n${S.best?`Best word: ${S.best.w.toUpperCase()} (${S.best.dmg})`:'No words struck'} · Edge: ${EDGES[S.edge].name}\nKit: ${S.kit.filter(k=>k!=='quill').map(k=>TOOLS[k].name).join(' · ')}\nthecosmickitchen.github.io/The-Puzz/scrawl.html#${S.seed.slice(8)}`;
+function shareText(){if(S.deep)return `The Puzz · Dungeon Scrawl ${mode==='descent'?`#${D.num} endless`:`endless ${S.seed.slice(8)}`}\n⬇️ Depth ${S.fi+1}: beat ${S.fi} foe${S.fi===1?'':'s'} in ${S.turns} turns, fell to ${FOES[foe().k].name}\n${S.best?`Best word: ${S.best.w.toUpperCase()} (${S.best.dmg})`:'No words struck'} · Edge: ${EDGES[S.edge].name}\nKit: ${S.kit.filter(k=>k!=='quill').map(k=>TOOLS[k].name).join(' · ')}\nthecosmickitchen.github.io/The-Puzz/scrawl.html${mode==='descent'?'':'#'+S.seed.slice(8)}`;
   const head=mode==='daily'||mode==='day'?`Dungeon Scrawl #${D.num} · ${D.label}`:mode==='lab'?'Dungeon Scrawl tool lab':`Dungeon Scrawl endless ${S.seed.slice(8)}`;
   const link=`thecosmickitchen.github.io/The-Puzz/scrawl.html#${mode==='daily'||mode==='day'?'d'+D.iso:mode==='lab'?'lab':S.seed.slice(8)}`;
   const foes=S.foes.map((f,i)=>i<S.fi||S.over==='won'?'🟩':i===S.fi?'🟥':'⬛').join('');
   return `The Puzz · ${head}\n${foes} ${S.over==='won'?`all 3 foes in ${S.turns} turns · ❤️ ${S.hp}/${HP}`:`fell to ${FOES[foe().k].name} on turn ${S.turns}`}\n${S.best?`Best word: ${S.best.w.toUpperCase()} (${S.best.dmg})`:'No words struck'} · Edge: ${EDGES[S.edge].name}\nKit: ${S.kit.filter(k=>k!=='quill').map(k=>TOOLS[k].name).join(' · ')}\n${link}`}
+function descendButton(){if(S.over!=='won')return '<span class="sub">A new crawl tomorrow.</span>';const d=todaysDescent();
+  if(d&&d.over)return `<span class="sub">You fell at depth ${d.fi+1} in today's descent. A new crawl tomorrow.</span>`;
+  return `<button class="btn" id="descendBtn">${d?`Continue your descent (depth ${d.fi+1})`:'Keep descending ⬇'}</button>`}
 function showResult(){const R=$('result');R.hidden=false;
   if(mode==='daily'&&S.over==='won'&&window.Kitchen)Kitchen.mark('tc');
   let deepNote='';
   if(S.deep){const best=+store.get('scrawl-deep-best')||0,d=S.fi+1;if(d>best){store.set('scrawl-deep-best',d);deepNote=best?`<p class="sub">New best: depth ${d} (was ${best}).</p>`:''}else deepNote=`<p class="sub">Your best is depth ${best}.</p>`}
   R.innerHTML=`<h2>${S.deep?`You fell at depth ${S.fi+1}`:S.over==='won'?'The cellar is quiet':'You were edited out'}</h2>${deepNote}<pre id="shareTxt">${shareText()}</pre>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='daily'?'<span class="sub">A new crawl tomorrow.</span> <button class="btn" data-mode="endless">Try Endless</button>':`<button class="btn" id="againBtn">${S.deep?'New descent':'Another crawl'}</button>`}</div>`;
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='daily'?descendButton():mode==='descent'?'<button class="btn" id="backBtn">Today\'s result</button>':`<button class="btn" id="againBtn">${S.deep?'New descent':'Another crawl'}</button>`}</div>`;
   $('copyBtn').onclick=e=>{const b=e.currentTarget;try{navigator.clipboard.writeText(shareText()).then(()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)})}catch(err){}};
   if($('againBtn'))$('againBtn').onclick=()=>{R.hidden=true;load(mode==='lab'?'lab':'endless',Math.random().toString(36).slice(2,7))};
+  if($('descendBtn'))$('descendBtn').onclick=keepDescending;
+  if($('backBtn'))$('backBtn').onclick=()=>load('daily');
   R.scrollIntoView({behavior:'smooth',block:'nearest'})}
 
 // ---- input ----
@@ -573,8 +582,6 @@ function refreshExtras(){if(!S)return;$('undoBtn').disabled=!undoStack.length||!
 render=(f=>function(...a){const r=f(...a);refreshExtras();return r})(render);
 $('coachOff').onclick=()=>{store.set('scrawl-coach','off');$('coach').hidden=true};
 $('endBtn').onclick=()=>endTurn();
-document.addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b)return;const m=b.dataset.mode;
-  if(m===(mode==='day'?'daily':mode))return;$('result').hidden=true;load(m==='endless'?'endless':'daily');window.scrollTo({top:0,behavior:'smooth'})});
 // drag: pick a tile up, carry it over a card (it previews what it'll do), let go to use it
 $('hand').addEventListener('pointerdown',e=>{const b=e.target.closest('[data-t]');if(!b||!S||S.over)return;drag={id:b.dataset.t,x:e.clientX,y:e.clientY,started:false,over:null}});
 document.addEventListener('pointermove',e=>{if(!drag)return;
