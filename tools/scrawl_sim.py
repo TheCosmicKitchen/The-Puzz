@@ -26,7 +26,7 @@ from datetime import date, timedelta
 from itertools import combinations, product
 from multiprocessing import Pool
 
-SIM_VERSION = '1.2.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
+SIM_VERSION = '1.3.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 M = 0xFFFFFFFF
@@ -77,6 +77,7 @@ BAG = 'aaaaaaaaabbccddddeeeeeeeeeeeeffggghhiiiiiiiiijkllllmmnnnnnnooooooooppqrrr
 VOW = set('aeiou')
 BAG_V = [c for c in BAG if c in VOW]; BAG_C = [c for c in BAG if c not in VOW]
 FXK = ['fire', 'steel', 'gold', 'leaf']
+HARD_L, AWK_L, FAIR_FROM = set('jqxz'), set('fkvwy'), '2026-11-21'   # fair draws start with this daily
 HAND, HP, MAXWORD = 6, 30, 6
 WORD_BONUS = [0, 0, 0, 0, 2, 4, 7]
 BLANK = '?'
@@ -128,6 +129,7 @@ FOES = {
     'editor':  dict(hp=32, moves=[dict(atk=12), dict(redpen=2, atk=6), dict(atk=14), dict(armor=8, atk=6)]),
 }
 FOE_HP_SCALE, FOE_ATK_SCALE = 1.22, 1.0
+DEEP_KINDS = ['gremlin', 'worm', 'hush', 'jacket', 'splice']
 
 def edge_on(edge, w, ctx):
     last = ctx['last']
@@ -153,11 +155,11 @@ def fill_word(raw):
 
 class Game:
     """One run, following the page step for step. Tiles are dicts {id, ch, fx, crossed}."""
-    def __init__(self, seed, kit=None):
+    def __init__(self, seed, kit=None, deep=False):
         r = mulberry(hseed(seed))
         two = shuffle(r, ['gremlin', 'worm', 'hush', 'jacket', 'splice'])[:2]
         er = mulberry(hseed(seed + '-edge'))
-        self.seed = seed
+        self.seed = seed; self.deep = deep
         self.foes = []
         for i, k in enumerate(two + ['editor']):
             hp = jsround((FOES[k]['hp'] + i * 2) * FOE_HP_SCALE)
@@ -190,8 +192,13 @@ class Game:
     def draw(self, n):
         r = mulberry(hseed(f'{self.seed}-hand-{self.fi}-{self.turn}'))
         nv = min(n - 1, 2 if r() < .55 else 3); out = []
+        fair = not re.fullmatch(r'scrawl-\d{4}-\d{2}-\d{2}', self.seed) or self.seed[7:] >= FAIR_FROM
         for k in range(n):
             pool = BAG_V if k < nv else BAG_C
+            if fair and k >= nv:   # page: fair draws, no consonant twice, one of JQXZ, one of FKVWY
+                pool = [c for c in pool if not any(t['ch'] == c for t in out)]
+                if any(t['ch'] in HARD_L for t in out): pool = [c for c in pool if c not in HARD_L]
+                if any(t['ch'] in AWK_L for t in out): pool = [c for c in pool if c not in AWK_L]
             out.append(dict(id=f'{self.fi}-{self.turn}-{k}', ch=pool[math.floor(r() * len(pool))], fx=None, crossed=False))
         nfx = 0 if r() < .35 else (1 if r() < .7 else 2)
         for i in shuffle(r, range(len(out)))[:nfx]: out[i]['fx'] = FXK[math.floor(r() * 4)]
@@ -271,17 +278,25 @@ class Game:
         return w, dealt, on
     def after(self):
         if self.foe['hp'] > 0: return
-        if self.fi == len(self.foes) - 1: self.over = 'won'; return
+        if self.fi == len(self.foes) - 1:
+            if self.deep: self.foes.append(self.deep_foe(self.fi + 1))
+            else: self.over = 'won'; return
         self.fi += 1; self.hp = min(HP, self.hp + 6); self.start_fight()
         if self.draft is not None or self.kit_fixed: return
         if self.offers(self.fi): self.draft = self.fi
     kit_fixed = False
+    def deep_foe(self, i):
+        """page: deepFoe(i), the endless descent. Every third foe is The Editor; each set of three hits 10% harder."""
+        r = mulberry(hseed(f'{self.seed}-deep-{i}'))
+        k = 'editor' if i % 3 == 2 else DEEP_KINDS[math.floor(r() * len(DEEP_KINDS))]
+        hp = jsround((FOES[k]['hp'] + i * 2) * FOE_HP_SCALE)
+        return dict(k=k, hp=hp, max=hp, block=0, mi=math.floor(r() * len(FOES[k]['moves'])), ax=round(1 + 0.1 * (i // 3), 2))
     def end_turn(self):
         assert not self.over and self.draft is None
         m0 = self.next_move(); f = self.foe; f['block'] = 0
         m = {} if self.stun else m0
         if m.get('armor'): f['block'] += m['armor']
-        a = jsround(m.get('atk', 0) * FOE_ATK_SCALE); dmg = 0
+        a = jsround(m.get('atk', 0) * FOE_ATK_SCALE * f.get('ax', 1)); dmg = 0
         for _ in range(2 if m.get('twice') else 1 if a else 0):
             soak = min(self.block, a); self.block -= soak; dmg += a - soak
         self.hp = max(0, self.hp - dmg)
@@ -298,7 +313,7 @@ def pts(t, muffle):
 # ---------------------------------------------------------------- the turn planner
 KILL = 1000.0
 def incoming(g):
-    m = g.next_move(); a = jsround(m.get('atk', 0) * FOE_ATK_SCALE); return a * (2 if m.get('twice') else 1)
+    m = g.next_move(); a = jsround(m.get('atk', 0) * FOE_ATK_SCALE * g.foe.get('ax', 1)); return a * (2 if m.get('twice') else 1)
 
 def words_for(hand, muffle):
     """Every word the hand can spell: list of (mask, ordered tile ids, actual word, base damage, steel, leaf)."""
@@ -473,8 +488,8 @@ def draft_choice(g, policy, rng):
     return None, None
 
 # ---------------------------------------------------------------- one run
-def play(seed, bot, draft='random', kit=None, beam=5, verbose=False):
-    g = Game(seed, kit=kit)
+def play(seed, bot, draft='random', kit=None, beam=5, verbose=False, deep=False):
+    g = Game(seed, kit=kit, deep=deep)
     if kit: g.kit_fixed = True
     rng = random.Random(seed + '|' + bot)
     run = dict(seed=seed, bot=bot, edge=g.edge, foes='+'.join(f['k'] for f in g.foes), draft=draft)
@@ -483,7 +498,7 @@ def play(seed, bot, draft='random', kit=None, beam=5, verbose=False):
     say = print if verbose else (lambda *a: None)
     say(f'== {seed}  bot={bot}  edge={g.edge}{" ("+g.letter+")" if g.edge=="letter" else ""}  foes={run["foes"]}')
     guard = 0
-    while not g.over and guard < 200:
+    while not g.over and guard < (5000 if deep else 200):
         guard += 1
         if g.draft is not None:
             if bot == 'notools': g.take(None)
@@ -796,6 +811,25 @@ def selftest():
         diffs = [k for k in got if got[k] != c[k]]
         print(f"  {'ok  ' if not diffs else 'FAIL'} {c['seed']}" + (f"  differs in {diffs}" if diffs else ''))
         bad += bool(diffs)
+    global FOE_HP_SCALE, FOE_ATK_SCALE
+    for c in F.get('deep', []):   # the endless descent, scripted deep with attacks off
+        g0 = Game(c['seed'], deep=True); foes = [[f['k'], f['hp'], f['mi'], f['ax']] for f in (g0.deep_foe(i) for i in (3, 4, 5, 6, 9))]
+        keep = FOE_HP_SCALE, FOE_ATK_SCALE; FOE_HP_SCALE, FOE_ATK_SCALE = c['hp_scale'], c['atk_scale']
+        try:
+            g = Game(c['seed'], deep=True); trail = []
+            for _ in range(c['turns']):
+                if g.over: break
+                g.draft = None; h = [t for t in g.hand if not t['crossed']]; hit = '-'
+                for x, y, z in ((x, y, z) for x in range(len(h)) for y in range(len(h)) for z in range(len(h))):
+                    if len({x, y, z}) < 3: continue
+                    w = h[x]['ch'] + h[y]['ch'] + h[z]['ch']
+                    if w in WORDS: g.strike([h[x]['id'], h[y]['id'], h[z]['id']]); hit = w; break
+                if g.over: break
+                g.draft = None; g.end_turn(); trail.append([hit, g.fi, g.foes[g.fi]['hp']])
+        finally: FOE_HP_SCALE, FOE_ATK_SCALE = keep
+        diffs = [k for k, v in (('deep_foes', foes == c['deep_foes']), ('trail', trail == c['trail']), ('depth', g.fi + 1 == c['depth'])) if not v]
+        print(f"  {'ok  ' if not diffs else 'FAIL'} {c['seed']} endless descent to depth {g.fi + 1}" + (f"  differs in {diffs}" if diffs else ''))
+        bad += bool(diffs)
     h = rules_hash(); known = F.get('rules_hash')
     print(f"  sim {SIM_VERSION} · page rules {h}" + ('' if h == known else f"  (fixtures were captured at {known}: if the page's rules changed, re-port and recapture)"))
     print('selftest ' + ('passed' if not bad else f'FAILED on {bad} case(s)'))
@@ -803,6 +837,7 @@ def selftest():
 
 LAB = os.path.join(ROOT, 'scrawl-lab')       # the analytics pages on the site
 CHANGELOG = [   # newest first; every version gets a git tag scrawl-sim-v<version> so old reports can be rerun
+    ('1.3.0', '2026-11-20', 'Endless descent (deep runs: foes keep coming, every third is The Editor, +10% attack per set of three); fair draws from the 21 Nov daily on (no consonant twice in a hand, one of JQXZ, one of FKVWY), matching the page; fixtures recaptured.'),
     ('1.2.0', '2026-11-20', 'Exactly reproducible (ties between equal plays now break the same way in every process); every trial includes all live tricks as controls, so the keeper bar is the same in every round.'),
     ('1.1.0', '2026-11-20', 'Evolution rounds (trial, idea files with lineage, choose and pair trick kinds), selftest against the page, Lab snapshots.'),
     ('1.0.0', '2026-11-20', 'Port of the four-card kit rules (Spellblade up to 6, daily edge, foe HP x1.22); notools, smart and eager bots; compare, sweep, report.'),
@@ -917,6 +952,7 @@ def main():
     ap.add_argument('--draft', default='random', help='random | keep | first | comma list of tricks in order of preference')
     ap.add_argument('--kit', help='fixed kit of tricks, e.g. nudge,flip,rotate (no drafting)')
     ap.add_argument('--beam', type=int, default=5)
+    ap.add_argument('--deep', action='store_true', help='compare: endless descent runs; reports how deep each bot gets')
     ap.add_argument('--hp-scale', type=float, help='override FOE_HP_SCALE')
     ap.add_argument('-j', type=int, default=max(1, (os.cpu_count() or 2) - 1))
     a = ap.parse_args()
@@ -939,8 +975,14 @@ def main():
         trial(a); return
     seeds = seeds_from(a)
     if a.cmd == 'compare':
-        jobs = [(s, b, a.draft, kit, a.beam) for s in seeds for b in a.bots.split(',')]
+        jobs = [(s, b, a.draft, kit, a.beam, False, a.deep) for s in seeds for b in a.bots.split(',')]
         runs, turns, uses = run_all(jobs, a.j)
+        if a.deep:
+            print(f'{chr(10)}== endless descent, {len(seeds)} seeds: depth reached (foe you fell to) ==')
+            for b in a.bots.split(','):
+                d = sorted(r['reached'] for r in runs if r['bot'] == b); n = len(d)
+                hist = Counter(d)
+                print(f"  {b:8} mean {sum(d)/n:.1f} · median {d[n//2]} · 90th pct {d[int(n*.9)]} · max {d[-1]} · " + ' '.join(f'{k}:{hist[k]}' for k in sorted(hist)))
         summarize(runs, turns, uses, f'compare, {len(seeds)} seeds, draft={a.draft}{", kit="+a.kit if a.kit else ""}')
         tag = 'compare'
     else:
