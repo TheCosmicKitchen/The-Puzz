@@ -141,8 +141,17 @@ LINEAGE = {}      # idea -> the trick it evolved from
 ROUND_META = {}   # idea file -> its round, note and test list
 
 def load_ideas(paths):
-    """Add candidate tricks from idea files (each defines IDEAS = {name: tool dict})."""
+    """Add candidate tricks from idea files: .py files define IDEAS = {name: tool dict}; .json files hold item records
+    in the scrawl-items.js grammar (what evolve writes), each with an optional "parent"."""
     for p in paths or []:
+        if p.endswith('.json'):
+            for r in json.load(open(p, encoding='utf8')):
+                TOOLS[r['id']] = compile_item(r)
+                if r['id'] not in TRICKS: TRICKS.append(r['id'])
+                IDEAS_LOADED.append(r['id'])
+                if r.get('parent'): LINEAGE[r['id']] = r['parent']
+            ROUND_META[os.path.basename(p)] = dict(round=None, note='evolved', test=None)
+            continue
         ns = dict(VAL=VAL, VOW=VOW, BLANK=BLANK, nudge=nudge, flip=flip, ROT=ROT, VSH=VSH)
         exec(open(p, encoding='utf8').read(), ns)
         for k, T in ns['IDEAS'].items():
@@ -949,6 +958,122 @@ def viz():
     open(out, 'w', encoding='utf8', newline='').write(tpl.replace('__DATA__', json.dumps(hist, ensure_ascii=False).replace('</', '<' + chr(92) + '/')))
     print(f'Wrote {out}')
 
+# ---------------------------------------------------------------- evolve: the sim breeds items from the data grammar
+def describe(r):
+    """A plain sentence for any item record, so every evolved item can be read by a player."""
+    tg, e, kd = r.get('target', {'type': 'any'}), r.get('effect', {}), r['kind']
+    who = {'vowel': 'A vowel', 'consonant': 'A consonant', 'minValue': f"A tile worth {tg.get('value')}+", 'letters': f"One of {' '.join(tg.get('letters', ''))}"}.get(tg['type'], 'A tile')
+    if kd == 'morph':
+        if 'shift' in e: n = e['shift']; what = f"moves {abs(n)} step{'s' if abs(n) > 1 else ''} {'on' if n > 0 else 'back'}"
+        elif e.get('mirror'): what = 'is mirrored (A↔Z)'
+        elif e.get('set') == BLANK: what = 'becomes a blank'
+        else: what = 'changes by its table'
+    elif kd == 'choose':
+        o = e['options']; what = 'turns by shape, your pick' if 'groups' in o else {'aeiou': 'becomes any vowel', 'bcdfghjklmnpqrstvwxyz': 'becomes any consonant'}.get(o['letters'], f"becomes any of {o['letters'].upper()}")
+    elif kd == 'make':
+        parts = [('itself' if m.get('self') else 'a copy' if m.get('copy') else m['letter'].upper()) for m in e['make']]
+        what = 'becomes ' + ' + '.join(parts)
+    elif kd == 'pair': what = "takes another tile's letter" + (' (same kind only)' if e.get('sameKind') else '')
+    else: what = 'swaps with another tile'
+    ch = f" (×{r['uses']} a turn)" if r.get('uses', 1) > 1 else '' if r.get('uses') else f", {r['perFight']}× a foe"
+    return f'{who} {what}{ch}.'
+
+def mutate(r, rng, pool):
+    """One small change to an item record, kept inside what the page can play and explain."""
+    c = json.loads(json.dumps(r)); e = c.setdefault('effect', {}); kd = c['kind']
+    ops = ['charges']
+    if kd == 'morph' and 'shift' in e: ops += ['shift', 'shift', 'target']
+    if kd == 'choose': ops += ['letters', 'letters', 'target']
+    if kd == 'make': ops += ['parts', 'parts']
+    if kd == 'pair': ops += ['samekind']
+    same = [x for x in pool if x['kind'] == kd and x['id'] != r['id']]
+    if same: ops.append('cross')
+    op = rng.choice(ops)
+    if op == 'charges':
+        if c.get('uses') and rng.random() < .3: c['perFight'] = rng.choice([1, 2, 3]); c.pop('uses')
+        elif c.get('perFight') and rng.random() < .3: c['uses'] = rng.choice([1, 2]); c.pop('perFight')
+        elif c.get('uses'): c['uses'] = max(1, min(3, c['uses'] + rng.choice([-1, 1])))
+        else: c['perFight'] = max(1, min(3, c['perFight'] + rng.choice([-1, 1])))
+    elif op == 'shift': e['shift'] = rng.choice([n for n in (-3, -2, -1, 1, 2, 3) if n != e['shift']])
+    elif op == 'target':
+        c['target'] = rng.choice([{'type': 'notBlank', 'msg': 'Not on a blank'}, {'type': 'vowel', 'msg': 'Vowels only'},
+                                  {'type': 'consonant', 'msg': 'Consonants only'}, {'type': 'minValue', 'value': rng.choice([3, 4, 5]), 'msg': 'Only high tiles'}])
+        if kd == 'choose' and c['target']['type'] == 'minValue': c['target'] = {'type': 'notBlank', 'msg': 'Not on a blank'}
+    elif op == 'letters':
+        e['options'] = {'letters': rng.choice(['aeiou', 'bcdfghjklmnpqrstvwxyz', 'abcdefghijklmnopqrstuvwxyz', 'etaoinsrhl', 'rstlne', 'aeiouy', 'bdgkpt'])}
+    elif op == 'parts':
+        e['make'] = rng.choice([[{'self': True}, {'copy': True}], [{'self': True}, {'letter': rng.choice('eastrio')}],
+                                [{'letter': rng.choice('eao')}, {'letter': rng.choice('srtn')}], [{'self': True}, {'copy': True}, {'copy': True}],
+                                [{'copy': True}, {'letter': 'e'}]])
+        if any(m.get('copy') for m in e['make']) and len(e['make']) == 3: c['perFight'] = 1; c.pop('uses', None)
+    elif op == 'samekind': e['sameKind'] = not e.get('sameKind')
+    elif op == 'cross':
+        o = rng.choice(same); c['target'] = json.loads(json.dumps(o.get('target', {'type': 'any'})))
+        if rng.random() < .5: c['effect'] = json.loads(json.dumps(o['effect']))
+    if kd in ('morph', 'choose') and c['target']['type'] == 'any': c['target'] = {'type': 'notBlank', 'msg': 'Not on a blank'}
+    e = c['effect']   # guardrails: a table or a shape group only works on the letters it covers
+    if kd == 'morph' and 'map' in e and len(e['map']) < 26:
+        keys = ''.join(e['map']); c['target'] = {'type': 'letters', 'letters': keys, 'msg': 'Only ' + ' '.join(keys)}
+    if kd == 'choose' and 'groups' in e.get('options', {}):
+        keys = ''.join(e['options']['groups']); c['target'] = {'type': 'letters', 'letters': keys, 'msg': 'Only ' + ' '.join(keys)}
+    if kd == 'make' and any(m.get('self') or m.get('copy') for m in e['make']) and c['target']['type'] == 'notBlank': pass
+    if not c.get('uses') and not c.get('perFight'): c['uses'] = 1
+    return c, op
+
+def signature(r):
+    """What an item does to every letter: two items with the same signature are the same item."""
+    T = compile_item(r); out = [r['kind'], str(r.get('uses', 0)), str(r.get('perFight', 0))]
+    for ch in 'abcdefghijklmnopqrstuvwxyz':
+        t = dict(id='x', ch=ch, fx=None, crossed=False)
+        if not T['ok'](t): out.append('-'); continue
+        k = r['kind']
+        out.append(T['to'](t) if k == 'morph' else ''.join(T['options'](t)) if k == 'choose' else ''.join(c for c, _ in T['make'](t)) if k == 'make'
+                   else ''.join(''.join(T['pair'](t, dict(ch=b))) for b in 'aez') if k == 'pair' else 's')
+    return '|'.join(out)
+
+def evolve(a):
+    """Generations of items bred from the roster: mutate, trial against the live tricks, keep the ones that land in a tier
+    band, used often and rarely backfiring. Every generation is recorded like a trial, so the Lab shows its family tree."""
+    rng = random.Random(f'evolve-{a.tag or "run"}')
+    live = [r for r in ITEMS['items'] if r.get('tier')]
+    seen = {signature(r) for r in ITEMS['items']}
+    parents = live[:]; survivors = []
+    os.makedirs(os.path.join(HERE, 'evolution'), exist_ok=True)
+    for gen in range(1, a.gens + 1):
+        kids = []; tries = 0
+        while len(kids) < a.pop and tries < a.pop * 40:
+            tries += 1; par = rng.choice(parents); child, op = mutate(par, rng, live)
+            sig = signature(child)
+            if sig in seen: continue
+            seen.add(sig)
+            child.update(id=f"g{gen}x{len(kids) + 1}", name=f"{par['name']} {'′' * gen}{len(kids) + 1}", parent=par['id'], op=op)
+            child.pop('tier', None); child['desc'] = describe(child); kids.append(child)
+        path = os.path.join(HERE, 'evolution', f'{a.tag or "evo"}-gen{gen}.json')
+        json.dump(kids, open(path, 'w', encoding='utf8'), ensure_ascii=False, indent=1)
+        print(f'\n=== generation {gen}: {len(kids)} children ===', file=sys.stderr)
+        for k in kids: print(f"  {k['id']:6} from {k['parent']:8} ({k['op']}): {k['desc']}", file=sys.stderr)
+        IDEA_FILES[:] = IDEA_FILES + [path]; load_ideas([path])
+        t = argparse.Namespace(**vars(a)); t.tricks = ','.join(k['id'] for k in kids); t.tag = f"{a.tag or 'evo'}-gen{gen}"; t.round = None
+        trial(t)
+        rows = json.load(open(os.path.join(HERE, 'sim-out', f'{t.tag}.json'), encoding='utf8'))
+        def fit(r):
+            if r['lift'] < .08: return None
+            tier = 'rare' if r['lift'] >= .35 else 'uncommon' if r['lift'] >= .25 else 'common'
+            if r['use_rate'] < .15 or (r['hurt'] is not None and r['hurt'] >= .25): return None
+            return tier
+        good = []
+        for k in kids:
+            r = rows[k['id']]; tier = fit(r)
+            if tier: k['tier_guess'] = tier; k['lift'] = r['lift']; k['use_rate'] = r['use_rate']; k['hurt'] = r['hurt']; good.append(k)
+        good.sort(key=lambda k: -(k['use_rate'] - (k['hurt'] or 0)))
+        survivors += good
+        print(f"  survivors: {', '.join(k['id'] + ' ' + k['tier_guess'] for k in good) or 'none'}", file=sys.stderr)
+        parents = live + survivors
+    out = os.path.join(HERE, 'evolution', f'{a.tag or "evo"}-survivors.json')
+    json.dump(survivors, open(out, 'w', encoding='utf8'), ensure_ascii=False, indent=1)
+    print(f'\n{len(survivors)} survivors written to {out}')
+    for k in survivors: print(f"  {k['id']:6} {k['tier_guess']:8} lift {k['lift'] * 100:+.1f} · used {k['use_rate']:.0%} · backfires {0 if k['hurt'] is None else k['hurt']:.0%} · {k['desc']}")
+
 def write(name, rows):
     os.makedirs(os.path.join(HERE, 'sim-out'), exist_ok=True)
     if not rows: return
@@ -981,7 +1106,9 @@ def run_all(jobs, procs):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('cmd', choices=['report', 'trial', 'compare', 'sweep', 'replay', 'selftest', 'viz', 'publish'])
+    ap.add_argument('cmd', choices=['report', 'trial', 'compare', 'sweep', 'replay', 'selftest', 'viz', 'publish', 'evolve'])
+    ap.add_argument('--gens', type=int, default=3, help='evolve: generations')
+    ap.add_argument('--pop', type=int, default=8, help='evolve: children per generation')
     ap.add_argument('--round', type=int, help='trial: run evolution round N (loads ideas/r1..rN.py, tests the TEST list in rN.py)')
     ap.add_argument('--version', action='version', version=SIM_VERSION)
     ap.add_argument('--ideas', action='append', help='idea file(s) with IDEAS = {...} candidate tricks')
@@ -1018,6 +1145,8 @@ def main():
         play(a.seed or 'endless-sim0', a.bot, a.draft, kit, a.beam, verbose=True); return
     if a.cmd == 'report':
         report(a); return
+    if a.cmd == 'evolve':
+        evolve(a); return
     if a.cmd == 'trial':
         trial(a); return
     seeds = seeds_from(a)

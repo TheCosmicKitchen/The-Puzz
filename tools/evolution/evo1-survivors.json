@@ -1,0 +1,411 @@
+[
+ {
+  "id": "g1x5",
+  "name": "Respell ′5",
+  "kind": "choose",
+  "uses": 1,
+  "desc": "A consonant becomes any of ETAOINSRHL.",
+  "target": {
+   "type": "consonant",
+   "msg": "Consonants only"
+  },
+  "effect": {
+   "options": {
+    "letters": "etaoinsrhl"
+   }
+  },
+  "parent": "respell",
+  "op": "letters",
+  "tier_guess": "uncommon",
+  "lift": 0.2533333333333333,
+  "use_rate": 0.6771620486985727,
+  "hurt": 0.08862275449101796
+ },
+ {
+  "id": "g1x1",
+  "name": "Echo ′1",
+  "kind": "pair",
+  "uses": 1,
+  "desc": "A tile takes another tile's letter (same kind only).",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "copyFrom": true,
+   "sameKind": true
+  },
+  "parent": "echo",
+  "op": "cross",
+  "tier_guess": "rare",
+  "lift": 0.3666666666666667,
+  "use_rate": 0.6627806563039723,
+  "hurt": 0.08706166868198308
+ },
+ {
+  "id": "g1x6",
+  "name": "Leap ′6",
+  "kind": "morph",
+  "uses": 1,
+  "desc": "A tile moves 3 steps back.",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "shift": -3
+  },
+  "parent": "leap",
+  "op": "shift",
+  "tier_guess": "uncommon",
+  "lift": 0.28,
+  "use_rate": 0.6454662655779975,
+  "hurt": 0.13653136531365315
+ },
+ {
+  "id": "g1x3",
+  "name": "Whisper ′3",
+  "kind": "morph",
+  "uses": 2,
+  "desc": "A tile changes by its table (×2 a turn).",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "map": {
+    "q": "w",
+    "w": "e",
+    "e": "r",
+    "r": "t",
+    "t": "y",
+    "y": "u",
+    "u": "i",
+    "i": "o",
+    "o": "p",
+    "p": "q",
+    "a": "s",
+    "s": "d",
+    "d": "f",
+    "f": "g",
+    "g": "h",
+    "h": "j",
+    "j": "k",
+    "k": "l",
+    "l": "a",
+    "z": "x",
+    "x": "c",
+    "c": "v",
+    "v": "b",
+    "b": "n",
+    "n": "m",
+    "m": "z"
+   }
+  },
+  "parent": "whisper",
+  "op": "cross",
+  "tier_guess": "rare",
+  "lift": 0.36,
+  "use_rate": 0.6774334351811436,
+  "hurt": 0.18536585365853658
+ },
+ {
+  "id": "g1x2",
+  "name": "Respell ′2",
+  "kind": "choose",
+  "uses": 1,
+  "desc": "A consonant becomes any vowel.",
+  "target": {
+   "type": "consonant",
+   "msg": "Consonants only"
+  },
+  "effect": {
+   "options": {
+    "letters": "aeiou"
+   }
+  },
+  "parent": "respell",
+  "op": "letters",
+  "tier_guess": "common",
+  "lift": 0.2366666666666667,
+  "use_rate": 0.635089209855565,
+  "hurt": 0.20047732696897375
+ },
+ {
+  "id": "g1x4",
+  "name": "Upend ′4",
+  "kind": "choose",
+  "uses": 2,
+  "desc": "One of b d p q n u m w s z h y turns by shape, your pick (×2 a turn).",
+  "target": {
+   "type": "letters",
+   "letters": "bdpqnumwszhy",
+   "msg": "Only b d p q n u m w s z h y"
+  },
+  "effect": {
+   "options": {
+    "groups": [
+     "bdpq",
+     "nu",
+     "mw",
+     "sz",
+     "hy"
+    ]
+   }
+  },
+  "parent": "upend",
+  "op": "charges",
+  "tier_guess": "uncommon",
+  "lift": 0.31666666666666665,
+  "use_rate": 0.6208695652173913,
+  "hurt": 0.2335907335907336
+ },
+ {
+  "id": "g2x6",
+  "name": "Mimic ′′6",
+  "kind": "pair",
+  "uses": 2,
+  "desc": "A tile takes another tile's letter (×2 a turn).",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "copyFrom": true,
+   "sameKind": false
+  },
+  "parent": "mimic",
+  "op": "samekind",
+  "tier_guess": "rare",
+  "lift": 0.42000000000000004,
+  "use_rate": 0.7153024911032029,
+  "hurt": 0.1282051282051282
+ },
+ {
+  "id": "g2x3",
+  "name": "Leap ′6 ′′3",
+  "kind": "morph",
+  "uses": 1,
+  "desc": "A tile moves 3 steps on.",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "shift": 3
+  },
+  "parent": "g1x6",
+  "op": "shift",
+  "tier_guess": "uncommon",
+  "lift": 0.28,
+  "use_rate": 0.6602150537634408,
+  "hurt": 0.09471094710947109
+ },
+ {
+  "id": "g2x5",
+  "name": "Back ′′5",
+  "kind": "morph",
+  "uses": 1,
+  "desc": "A tile moves 1 step back.",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "shift": -1
+  },
+  "parent": "back",
+  "op": "charges",
+  "tier_guess": "common",
+  "lift": 0.20333333333333337,
+  "use_rate": 0.5927334178284749,
+  "hurt": 0.08131067961165049
+ },
+ {
+  "id": "g2x2",
+  "name": "Double ′′2",
+  "kind": "make",
+  "perFight": 1,
+  "desc": "A tile becomes itself + a copy + a copy, 1× a foe.",
+  "target": {
+   "type": "any"
+  },
+  "effect": {
+   "make": [
+    {
+     "self": true
+    },
+    {
+     "copy": true
+    },
+    {
+     "copy": true
+    }
+   ]
+  },
+  "parent": "double",
+  "op": "parts",
+  "tier_guess": "uncommon",
+  "lift": 0.3433333333333334,
+  "use_rate": 0.39565795303500223,
+  "hurt": 0.0
+ },
+ {
+  "id": "g2x4",
+  "name": "Whisper ′3 ′′4",
+  "kind": "morph",
+  "desc": "A tile changes by its table, 1× a foe.",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "map": {
+    "q": "w",
+    "w": "e",
+    "e": "r",
+    "r": "t",
+    "t": "y",
+    "y": "u",
+    "u": "i",
+    "i": "o",
+    "o": "p",
+    "p": "q",
+    "a": "s",
+    "s": "d",
+    "d": "f",
+    "f": "g",
+    "g": "h",
+    "h": "j",
+    "j": "k",
+    "k": "l",
+    "l": "a",
+    "z": "x",
+    "x": "c",
+    "c": "v",
+    "v": "b",
+    "b": "n",
+    "n": "m",
+    "m": "z"
+   }
+  },
+  "parent": "g1x3",
+  "op": "charges",
+  "tier_guess": "common",
+  "lift": 0.08666666666666667,
+  "use_rate": 0.34939254294093003,
+  "hurt": 0.18855218855218855,
+  "perFight": 1
+ },
+ {
+  "id": "g3x1",
+  "name": "Revowel ′′′1",
+  "kind": "choose",
+  "uses": 1,
+  "desc": "A vowel becomes any of AEIOUY.",
+  "target": {
+   "type": "vowel",
+   "msg": "Vowels only"
+  },
+  "effect": {
+   "options": {
+    "letters": "aeiouy"
+   }
+  },
+  "parent": "revowel",
+  "op": "letters",
+  "tier_guess": "common",
+  "lift": 0.18666666666666665,
+  "use_rate": 0.6204287515762925,
+  "hurt": 0.1185006045949214
+ },
+ {
+  "id": "g3x6",
+  "name": "Double ′′′6",
+  "kind": "make",
+  "perFight": 3,
+  "desc": "A tile becomes itself + a copy, 3× a foe.",
+  "target": {
+   "type": "any"
+  },
+  "effect": {
+   "make": [
+    {
+     "self": true
+    },
+    {
+     "copy": true
+    }
+   ]
+  },
+  "parent": "double",
+  "op": "charges",
+  "tier_guess": "rare",
+  "lift": 0.45666666666666667,
+  "use_rate": 0.4362060664419836,
+  "hurt": 0.0
+ },
+ {
+  "id": "g3x5",
+  "name": "Recast ′′′5",
+  "kind": "choose",
+  "perFight": 1,
+  "desc": "A tile becomes any of AEIOUY, 1× a foe.",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "options": {
+    "letters": "aeiouy"
+   }
+  },
+  "parent": "recast",
+  "op": "letters",
+  "tier_guess": "common",
+  "lift": 0.10666666666666669,
+  "use_rate": 0.3702928870292887,
+  "hurt": 0.050335570469798654
+ },
+ {
+  "id": "g3x3",
+  "name": "Nudge ′′′3",
+  "kind": "morph",
+  "uses": 3,
+  "desc": "A tile moves 1 step on (×3 a turn).",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "shift": 1
+  },
+  "parent": "nudge",
+  "op": "charges",
+  "tier_guess": "common",
+  "lift": 0.20999999999999996,
+  "use_rate": 0.5029436501261564,
+  "hurt": 0.21686746987951808
+ },
+ {
+  "id": "g3x2",
+  "name": "Mimic ′′6 ′′′2",
+  "kind": "pair",
+  "desc": "A tile takes another tile's letter, 1× a foe.",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "copyFrom": true,
+   "sameKind": false
+  },
+  "parent": "g2x6",
+  "op": "charges",
+  "tier_guess": "common",
+  "lift": 0.17333333333333334,
+  "use_rate": 0.3640552995391705,
+  "hurt": 0.09427609427609428,
+  "perFight": 1
+ }
+]

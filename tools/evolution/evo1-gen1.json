@@ -1,0 +1,139 @@
+[
+ {
+  "id": "g1x1",
+  "name": "Echo ′1",
+  "kind": "pair",
+  "uses": 1,
+  "desc": "A tile takes another tile's letter (same kind only).",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "copyFrom": true,
+   "sameKind": true
+  },
+  "parent": "echo",
+  "op": "cross"
+ },
+ {
+  "id": "g1x2",
+  "name": "Respell ′2",
+  "kind": "choose",
+  "uses": 1,
+  "desc": "A consonant becomes any vowel.",
+  "target": {
+   "type": "consonant",
+   "msg": "Consonants only"
+  },
+  "effect": {
+   "options": {
+    "letters": "aeiou"
+   }
+  },
+  "parent": "respell",
+  "op": "letters"
+ },
+ {
+  "id": "g1x3",
+  "name": "Whisper ′3",
+  "kind": "morph",
+  "uses": 2,
+  "desc": "A tile changes by its table (×2 a turn).",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "map": {
+    "q": "w",
+    "w": "e",
+    "e": "r",
+    "r": "t",
+    "t": "y",
+    "y": "u",
+    "u": "i",
+    "i": "o",
+    "o": "p",
+    "p": "q",
+    "a": "s",
+    "s": "d",
+    "d": "f",
+    "f": "g",
+    "g": "h",
+    "h": "j",
+    "j": "k",
+    "k": "l",
+    "l": "a",
+    "z": "x",
+    "x": "c",
+    "c": "v",
+    "v": "b",
+    "b": "n",
+    "n": "m",
+    "m": "z"
+   }
+  },
+  "parent": "whisper",
+  "op": "cross"
+ },
+ {
+  "id": "g1x4",
+  "name": "Upend ′4",
+  "kind": "choose",
+  "uses": 2,
+  "desc": "One of b d p q n u m w s z h y turns by shape, your pick (×2 a turn).",
+  "target": {
+   "type": "letters",
+   "letters": "bdpqnumwszhy",
+   "msg": "Only b d p q n u m w s z h y"
+  },
+  "effect": {
+   "options": {
+    "groups": [
+     "bdpq",
+     "nu",
+     "mw",
+     "sz",
+     "hy"
+    ]
+   }
+  },
+  "parent": "upend",
+  "op": "charges"
+ },
+ {
+  "id": "g1x5",
+  "name": "Respell ′5",
+  "kind": "choose",
+  "uses": 1,
+  "desc": "A consonant becomes any of ETAOINSRHL.",
+  "target": {
+   "type": "consonant",
+   "msg": "Consonants only"
+  },
+  "effect": {
+   "options": {
+    "letters": "etaoinsrhl"
+   }
+  },
+  "parent": "respell",
+  "op": "letters"
+ },
+ {
+  "id": "g1x6",
+  "name": "Leap ′6",
+  "kind": "morph",
+  "uses": 1,
+  "desc": "A tile moves 3 steps back.",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "shift": -3
+  },
+  "parent": "leap",
+  "op": "shift"
+ }
+]

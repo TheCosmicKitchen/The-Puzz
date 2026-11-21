@@ -1,7 +1,25 @@
 {
- "sim_version": "1.2.0",
- "built": "2026-11-20 13:04",
+ "sim_version": "1.5.0",
+ "built": "2026-11-20 20:36",
  "changelog": [
+  {
+   "version": "1.5.0",
+   "date": "2026-11-20",
+   "note": "Items as data: every trick is read from scrawl-items.js, the same file the page uses; trick behaviour fingerprinted identical to 1.4.0 on page and sim.",
+   "tag": "scrawl-sim-v1.5.0"
+  },
+  {
+   "version": "1.4.0",
+   "date": "2026-11-20",
+   "note": "Tiered equipment from the 21 Nov daily: 15-trick roster (common / uncommon / rare from the 1.2.0 trials), tiered Armoury offers; Swap, Rotate, Vowel Shift, Split and Ink Blot retired from offers.",
+   "tag": "scrawl-sim-v1.4.0"
+  },
+  {
+   "version": "1.3.0",
+   "date": "2026-11-20",
+   "note": "Endless descent (deep runs: foes keep coming, every third is The Editor, +10% attack per set of three); fair draws from the 21 Nov daily on (no consonant twice in a hand, one of JQXZ, one of FKVWY), matching the page; fixtures recaptured.",
+   "tag": "scrawl-sim-v1.3.0"
+  },
   {
    "version": "1.2.0",
    "date": "2026-11-20",
@@ -22,6 +40,54 @@
   }
  ],
  "reports": [
+  {
+   "id": "20261120-2036-evo1-gen3",
+   "kind": "trial",
+   "tag": "evo1-gen3",
+   "headline": "19 tricks at foe HP x2.5; baseline wins 47%. Best new: g3x6 +45.7 pts (keeper). Keepers: 8, traps: 1.",
+   "run": {
+    "sim_version": "1.5.0",
+    "tag": "scrawl-sim-v1.5.0",
+    "rules": "682064970763",
+    "commit": "edd5be0",
+    "dirty": true,
+    "command": "py tools/scrawl_sim.py evolve --gens 3 --pop 6 -n 300 --eager-n 100 --hard-scale 2.5 --tag evo1",
+    "date": "2026-11-20 20:36",
+    "python": "3.12.3"
+   }
+  },
+  {
+   "id": "20261120-2022-evo1-gen2",
+   "kind": "trial",
+   "tag": "evo1-gen2",
+   "headline": "19 tricks at foe HP x2.5; baseline wins 47%. Best new: g2x6 +42.0 pts (keeper). Keepers: 9, traps: 0.",
+   "run": {
+    "sim_version": "1.5.0",
+    "tag": "scrawl-sim-v1.5.0",
+    "rules": "682064970763",
+    "commit": "edd5be0",
+    "dirty": true,
+    "command": "py tools/scrawl_sim.py evolve --gens 3 --pop 6 -n 300 --eager-n 100 --hard-scale 2.5 --tag evo1",
+    "date": "2026-11-20 20:22",
+    "python": "3.12.3"
+   }
+  },
+  {
+   "id": "20261120-2012-evo1-gen1",
+   "kind": "trial",
+   "tag": "evo1-gen1",
+   "headline": "19 tricks at foe HP x2.5; baseline wins 47%. Best new: g1x1 +36.7 pts (keeper). Keepers: 10, traps: 0.",
+   "run": {
+    "sim_version": "1.5.0",
+    "tag": "scrawl-sim-v1.5.0",
+    "rules": "682064970763",
+    "commit": "edd5be0",
+    "dirty": true,
+    "command": "py tools/scrawl_sim.py evolve --gens 3 --pop 6 -n 300 --eager-n 100 --hard-scale 2.5 --tag evo1",
+    "date": "2026-11-20 20:12",
+    "python": "3.12.3"
+   }
+  },
   {
    "id": "20261120-1304-round3",
    "kind": "trial",
