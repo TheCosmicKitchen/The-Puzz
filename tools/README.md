@@ -14,7 +14,7 @@ Needs Python 3.10+, nothing else. Runs on every core but one (`-j` to change).
 | `py tools/scrawl_sim.py report -n 2000` | The whole health check: three bots, third-trick sweeps, a foe-HP scan, and findings written by rules → `sim-out/report.md` |
 | `py tools/scrawl_sim.py trial --round N` | One evolution round: tests the tricks in `ideas/rN.py` against the live ones and records the results in `evolution/history.json` |
 | `py tools/scrawl_sim.py publish` | Rebuilds the Lab (`../scrawl-lab/`, on the site at /scrawl-lab/): the report index and the evolution page. `trial` and `report` do this for you. |
-| `py tools/scrawl_sim.py compare -n 2000` | Notools vs smart vs eager on the same seeds |
+| `py tools/scrawl_sim.py compare -n 2000` | Notools vs smart vs eager on the same seeds (`--deep` for endless descents: how far each bot gets) |
 | `py tools/scrawl_sim.py replay scrawl-2026-11-20 --bot smart` | One run, turn by turn |
 
 ## The bots
@@ -50,6 +50,7 @@ Idea tricks only exist in the sim. Nothing reaches the game until it is ported t
 
 ## Changelog
 
+* **1.3.0** (2026-11-20): fair draws from the 21 Nov daily on (no consonant twice in a hand, one of JQXZ, one of FKVWY); the endless descent (`compare --deep`); fixtures recaptured, including a 13-floor descent.
 * **1.2.0** (2026-11-20): exactly reproducible (word ties break in sorted order, not Python's per-process set order); every trial includes all live tricks as controls, so the keeper bar is the same in every round.
 * **1.1.0** (2026-11-20): `trial`, `selftest`, evolution history and the Lab; idea files with lineage; the `choose` and `pair` trick kinds.
 * **1.0.0** (2026-11-20): port of the four-card kit rules (Spellblade up to 6, daily edge, foe HP ×1.22); notools, smart and eager bots; `compare`, `sweep`, `report`.
