@@ -39,6 +39,30 @@ stronger than people: read the results as *how much a trick is worth*, not *how 
 
 Idea tricks only exist in the sim. Nothing reaches the game until it is ported to `scrawl.html` by hand.
 
+## Items are data
+
+Every trick except Quill lives in `../scrawl-items.js`, which both the page and the sim read. Neither has trick code of its own, only one small interpreter each (`compileItem` in the page, `compile_item` here). Adding or changing an item means editing that file. The rules fingerprint covers it, so `selftest` notices.
+
+```json
+{ "id": "echo", "name": "Echo", "tier": "uncommon", "kind": "pair", "uses": 1,
+  "desc": "A tile takes another tile's letter. ...",
+  "target": {"type": "notBlank", "msg": "Not on a blank"},
+  "effect": {"copyFrom": true} }
+```
+
+| Field | Values |
+|---|---|
+| `kind` | `morph` (change the tile), `choose` (the player picks the new letter), `make` (one tile becomes several), `pair` (two tiles), `swap` |
+| `uses` / `perFight` | charges per turn / per foe |
+| `tier` | `common`, `uncommon`, `rare`. No tier means retired: never offered, kept for old dailies |
+| `target.type` | `any`, `notBlank`, `vowel`, `consonant`, `letters` (+ `letters`), `minValue` (+ `value`). `msg` is shown when refused |
+| morph `effect` | `{"shift": n}`, `{"mirror": true}`, `{"map": {"b": "d", ...}}`, `{"set": "?"}` |
+| choose `effect` | `{"options": {"letters": "aeiou"}}` or `{"options": {"groups": ["bdpq", "nu"]}}` (the tile's own group) |
+| make `effect` | `{"make": [{"self": true}, {"copy": true}, {"letter": "e"}]}`. `self` keeps the enchantment, `copy` and `letter` don't |
+| pair `effect` | `{"copyFrom": true, "sameKind": true}`: the first tile takes the second's letter |
+
+The file's order matters: it sets the roster order, which the seeded Armoury rolls depend on. Add new items at the end.
+
 ## Versioning
 
 * `SIM_VERSION` in `scrawl_sim.py`: bump it on any change to rules, bots or scoring, and note it below.
@@ -50,6 +74,7 @@ Idea tricks only exist in the sim. Nothing reaches the game until it is ported t
 
 ## Changelog
 
+* **1.5.0** (2026-11-20): items as data. Every trick is read from `scrawl-items.js`, the same file the page uses, and the rules fingerprint covers it. Behaviour is fingerprinted identical to 1.4.0 on both page and sim.
 * **1.4.0** (2026-11-20): tiered equipment from the 21 Nov daily: a 15-trick roster in common / uncommon / rare (from the 1.2.0 trials), tiered Armoury offers with rare odds rising every three floors; Swap, Rotate, Vowel Shift, Split and Ink Blot retired from offers. Offers checked against the page over 558 rolls.
 * **1.3.0** (2026-11-20): fair draws from the 21 Nov daily on (no consonant twice in a hand, one of JQXZ, one of FKVWY); the endless descent (`compare --deep`); fixtures recaptured, including a 13-floor descent.
 * **1.2.0** (2026-11-20): exactly reproducible (word ties break in sorted order, not Python's per-process set order); every trial includes all live tricks as controls, so the keeper bar is the same in every round.

@@ -1,0 +1,116 @@
+[
+ {
+  "id": "g3x1",
+  "name": "Revowel ′′′1",
+  "kind": "choose",
+  "uses": 1,
+  "desc": "A vowel becomes any of AEIOUY.",
+  "target": {
+   "type": "vowel",
+   "msg": "Vowels only"
+  },
+  "effect": {
+   "options": {
+    "letters": "aeiouy"
+   }
+  },
+  "parent": "revowel",
+  "op": "letters"
+ },
+ {
+  "id": "g3x2",
+  "name": "Mimic ′′6 ′′′2",
+  "kind": "pair",
+  "desc": "A tile takes another tile's letter, 1× a foe.",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "copyFrom": true,
+   "sameKind": false
+  },
+  "parent": "g2x6",
+  "op": "charges",
+  "tier_guess": "rare",
+  "lift": 0.42000000000000004,
+  "use_rate": 0.7153024911032029,
+  "hurt": 0.1282051282051282,
+  "perFight": 1
+ },
+ {
+  "id": "g3x3",
+  "name": "Nudge ′′′3",
+  "kind": "morph",
+  "uses": 3,
+  "desc": "A tile moves 1 step on (×3 a turn).",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "shift": 1
+  },
+  "parent": "nudge",
+  "op": "charges"
+ },
+ {
+  "id": "g3x4",
+  "name": "Revowel ′′′4",
+  "kind": "choose",
+  "uses": 1,
+  "desc": "One of b d p q n u m w s z h y becomes any vowel.",
+  "target": {
+   "type": "letters",
+   "letters": "bdpqnumwszhy",
+   "msg": "Only b d p q n u m w s z h y"
+  },
+  "effect": {
+   "options": {
+    "letters": "aeiou"
+   }
+  },
+  "parent": "revowel",
+  "op": "cross"
+ },
+ {
+  "id": "g3x5",
+  "name": "Recast ′′′5",
+  "kind": "choose",
+  "perFight": 1,
+  "desc": "A tile becomes any of AEIOUY, 1× a foe.",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "options": {
+    "letters": "aeiouy"
+   }
+  },
+  "parent": "recast",
+  "op": "letters"
+ },
+ {
+  "id": "g3x6",
+  "name": "Double ′′′6",
+  "kind": "make",
+  "perFight": 3,
+  "desc": "A tile becomes itself + a copy, 3× a foe.",
+  "target": {
+   "type": "any"
+  },
+  "effect": {
+   "make": [
+    {
+     "self": true
+    },
+    {
+     "copy": true
+    }
+   ]
+  },
+  "parent": "double",
+  "op": "charges"
+ }
+]
