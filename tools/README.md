@@ -50,6 +50,7 @@ Idea tricks only exist in the sim. Nothing reaches the game until it is ported t
 
 ## Changelog
 
+* **1.4.0** (2026-11-20): tiered equipment from the 21 Nov daily: a 15-trick roster in common / uncommon / rare (from the 1.2.0 trials), tiered Armoury offers with rare odds rising every three floors; Swap, Rotate, Vowel Shift, Split and Ink Blot retired from offers. Offers checked against the page over 558 rolls.
 * **1.3.0** (2026-11-20): fair draws from the 21 Nov daily on (no consonant twice in a hand, one of JQXZ, one of FKVWY); the endless descent (`compare --deep`); fixtures recaptured, including a 13-floor descent.
 * **1.2.0** (2026-11-20): exactly reproducible (word ties break in sorted order, not Python's per-process set order); every trial includes all live tricks as controls, so the keeper bar is the same in every round.
 * **1.1.0** (2026-11-20): `trial`, `selftest`, evolution history and the Lab; idea files with lineage; the `choose` and `pair` trick kinds.

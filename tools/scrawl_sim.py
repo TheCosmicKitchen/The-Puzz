@@ -26,7 +26,7 @@ from datetime import date, timedelta
 from itertools import combinations, product
 from multiprocessing import Pool
 
-SIM_VERSION = '1.3.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
+SIM_VERSION = '1.4.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 M = 0xFFFFFFFF
@@ -82,6 +82,11 @@ HAND, HP, MAXWORD = 6, 30, 6
 WORD_BONUS = [0, 0, 0, 0, 2, 4, 7]
 BLANK = '?'
 ROT = dict(b='d', d='p', p='q', q='b', n='u', u='n', m='w', w='m'); VSH = dict(a='e', e='i', i='o', o='u', u='a')
+VOICE = dict(b='p', p='b', d='t', t='d', g='k', k='g', v='f', f='v', z='s', s='z', m='n', n='m')
+_KEYROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm']
+def _right_key(c): r = next(r for r in _KEYROWS if c in r); return r[(r.index(c) + 1) % len(r)]
+def _shape(c): return next((g for g in ('bdpq', 'nu', 'mw', 'sz', 'hy') if c in g), None)
+def _step(c, d): return chr((ord(c) - 97 + d + 26) % 26 + 97)
 nudge = lambda c: chr((ord(c) - 97 + 1) % 26 + 97)
 flip = lambda c: chr(25 - (ord(c) - 97) + 97)
 # kind, uses per turn (or perFight), ok(tile), effect
@@ -95,13 +100,35 @@ TOOLS = {
     'twin':    dict(kind='make', uses=1, ok=lambda t: True, make=lambda t: [(t['ch'], t.get('fx')), (t['ch'], None)]),
     'split':   dict(kind='make', uses=1, ok=lambda t: t['ch'] != BLANK and VAL[t['ch']] >= 4, make=lambda t: [('e', None), ('a', None)]),
     'inkblot': dict(kind='morph', perFight=1, ok=lambda t: t['ch'] != BLANK, to=lambda t: BLANK),
+    # the tiered roster (page: same names). common
+    'leap':    dict(kind='morph', uses=1, ok=lambda t: t['ch'] != BLANK, to=lambda t: _step(t['ch'], 2)),
+    'slip':    dict(kind='morph', uses=1, ok=lambda t: t['ch'] != BLANK, to=lambda t: _right_key(t['ch'])),
+    'whisper': dict(kind='morph', uses=2, ok=lambda t: t['ch'] in VOICE, to=lambda t: VOICE[t['ch']]),
+    'upend':   dict(kind='choose', uses=1, ok=lambda t: _shape(t['ch']) is not None, options=lambda t: list(_shape(t['ch']))),
+    'revowel': dict(kind='choose', uses=1, ok=lambda t: t['ch'] in VOW, options=lambda t: list('aeiou')),
+    'recast':  dict(kind='choose', perFight=1, ok=lambda t: t['ch'] != BLANK, options=lambda t: list('abcdefghijklmnopqrstuvwxyz')),
+    # uncommon
+    'back':    dict(kind='morph', uses=2, ok=lambda t: t['ch'] != BLANK, to=lambda t: _step(t['ch'], -1)),
+    'echo':    dict(kind='pair', ordered=True, uses=1, ok=lambda t: t['ch'] != BLANK, pair=lambda a, b: (b['ch'], b['ch'])),
+    'sprout':  dict(kind='make', uses=1, ok=lambda t: True, make=lambda t: [(t['ch'], t.get('fx')), ('e', None)]),
+    'double':  dict(kind='make', perFight=2, ok=lambda t: True, make=lambda t: [(t['ch'], t.get('fx')), (t['ch'], None)]),
+    # rare
+    'respell': dict(kind='choose', uses=1, ok=lambda t: t['ch'] != BLANK and t['ch'] not in VOW, options=lambda t: list('bcdfghjklmnpqrstvwxyz')),
+    'mimic':   dict(kind='pair', ordered=True, uses=2, ok=lambda t: t['ch'] != BLANK,
+                    pair=lambda a, b: (b['ch'], b['ch']) if (a['ch'] in VOW) == (b['ch'] in VOW) else (a['ch'], b['ch'])),
 }
+TIER = dict(nudge='common', flip='common', leap='common', slip='common', whisper='common', upend='common', revowel='common', recast='common',
+            back='uncommon', echo='uncommon', sprout='uncommon', double='uncommon', twin='rare', respell='rare', mimic='rare')
+for _k, _t in TIER.items(): TOOLS[_k]['tier'] = _t
 for _k, _d in dict(quill='Flick one consonant for its points.', nudge='One step on: B→C (×2).', flip='Mirror: A↔Z, B↔Y.',
                    rotate='Turn by shape: b→d→p→q, n↔u, m↔w.', vshift='A→E→I→O→U→A (×2).', swap='Two tiles trade letters.',
                    twin='Copy a tile.', split='A 4+ tile breaks into E and A.', inkblot='Make a blank (once a foe).').items(): TOOLS[_k]['desc'] = _d
 KIT_MAX, START = 4, ['quill', 'nudge', 'flip']
 TRICKS = [k for k in TOOLS if k != 'quill']
-LIVE_TRICKS = TRICKS[:]          # what the page offers in drafts; ideas never change this
+LEGACY_OFFERS = ['nudge', 'flip', 'rotate', 'vshift', 'swap', 'twin', 'split', 'inkblot']   # dailies before 21 Nov
+ROSTER = [k for k in TOOLS if TOOLS[k].get('tier')]
+LIVE_TRICKS = ROSTER[:]          # what the page offers now; every trial uses these as controls
+TIERS_FROM = '2026-11-21'
 IDEAS_LOADED = []
 LINEAGE = {}      # idea -> the trick it evolved from
 ROUND_META = {}   # idea file -> its round, note and test list
@@ -176,7 +203,17 @@ class Game:
 
     # page: offers(d)
     def offers(self, d):
-        return [k for k in shuffle(mulberry(hseed(self.seed + '-draft-' + str(d))), LIVE_TRICKS) if k not in self.kit][:3]
+        """page: offers(d). Tiered from the 21 Nov daily: each offer rolls 65% common / 27% uncommon / 8% rare (rare +2 pts per 3 floors, max 25%)."""
+        if re.fullmatch(r'scrawl-\d{4}-\d{2}-\d{2}', self.seed) and self.seed[7:] < TIERS_FROM:
+            return [k for k in shuffle(mulberry(hseed(self.seed + '-draft-' + str(d))), LEGACY_OFFERS) if k not in self.kit][:3]
+        r = mulberry(hseed(f'{self.seed}-armoury-{d}')); rare = min(.25, .08 + .02 * (d // 3)); out = []
+        for _ in range(3):
+            x = r(); tier = 'rare' if x < rare else 'uncommon' if x < rare + .27 else 'common'
+            order = {'rare': ['rare', 'uncommon', 'common'], 'uncommon': ['uncommon', 'common', 'rare'], 'common': ['common', 'uncommon', 'rare']}[tier]
+            for tr in order:
+                pool = [k for k in ROSTER if TOOLS[k]['tier'] == tr and k not in self.kit and k not in out]
+                if pool: out.append(pool[math.floor(r() * len(pool))]); break
+        return out
     def grant(self, k):
         T = TOOLS[k]
         if 'perFight' in T: self.fight_uses[k] = T['perFight']
@@ -837,6 +874,7 @@ def selftest():
 
 LAB = os.path.join(ROOT, 'scrawl-lab')       # the analytics pages on the site
 CHANGELOG = [   # newest first; every version gets a git tag scrawl-sim-v<version> so old reports can be rerun
+    ('1.4.0', '2026-11-20', 'Tiered equipment from the 21 Nov daily: 15-trick roster (common / uncommon / rare from the 1.2.0 trials), tiered Armoury offers; Swap, Rotate, Vowel Shift, Split and Ink Blot retired from offers.'),
     ('1.3.0', '2026-11-20', 'Endless descent (deep runs: foes keep coming, every third is The Editor, +10% attack per set of three); fair draws from the 21 Nov daily on (no consonant twice in a hand, one of JQXZ, one of FKVWY), matching the page; fixtures recaptured.'),
     ('1.2.0', '2026-11-20', 'Exactly reproducible (ties between equal plays now break the same way in every process); every trial includes all live tricks as controls, so the keeper bar is the same in every round.'),
     ('1.1.0', '2026-11-20', 'Evolution rounds (trial, idea files with lineage, choose and pair trick kinds), selftest against the page, Lab snapshots.'),

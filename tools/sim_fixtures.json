@@ -1,7 +1,7 @@
 {
  "note": "Captured from scrawl.html in the browser. trail = a fixed script (strike the first 3-letter word found by a triple loop over the hand, then end the turn), recorded as [word, foe index, your hp, foe hps] after each turn. `py tools/scrawl_sim.py selftest` replays it in Python and must match exactly.",
  "captured": "2026-11-20 (fair draws; 21 Nov is the first fair daily)",
- "rules_hash": "98b2b0df1236",
+ "rules_hash": "585f5270c98b",
  "cases": [
   {
    "seed": "scrawl-2026-10-25",
@@ -235,9 +235,9 @@
    "edge": "letter",
    "letter": "g",
    "offers0": [
-    "vshift",
-    "rotate",
-    "swap"
+    "whisper",
+    "revowel",
+    "double"
    ],
    "hand0": [
     [
@@ -330,9 +330,9 @@
    "edge": "twins",
    "letter": "g",
    "offers0": [
-    "vshift",
-    "rotate",
-    "twin"
+    "revowel",
+    "slip",
+    "upend"
    ],
    "hand0": [
     [
@@ -445,9 +445,9 @@
    "edge": "twins",
    "letter": "k",
    "offers0": [
-    "split",
-    "swap",
-    "twin"
+    "leap",
+    "revowel",
+    "recast"
    ],
    "hand0": [
     [
@@ -540,9 +540,9 @@
    "edge": "mirror",
    "letter": "t",
    "offers0": [
-    "swap",
-    "inkblot",
-    "rotate"
+    "recast",
+    "revowel",
+    "slip"
    ],
    "hand0": [
     [
@@ -635,9 +635,9 @@
    "edge": "longsent",
    "letter": "b",
    "offers0": [
-    "rotate",
-    "inkblot",
-    "vshift"
+    "whisper",
+    "revowel",
+    "echo"
    ],
    "hand0": [
     [
@@ -730,9 +730,9 @@
    "edge": "longsent",
    "letter": "n",
    "offers0": [
-    "inkblot",
-    "twin",
-    "split"
+    "back",
+    "echo",
+    "revowel"
    ],
    "hand0": [
     [
@@ -825,9 +825,9 @@
    "edge": "haiku",
    "letter": "s",
    "offers0": [
-    "vshift",
-    "twin",
-    "swap"
+    "whisper",
+    "recast",
+    "back"
    ],
    "hand0": [
     [
@@ -1167,5 +1167,9 @@
    ]
   }
  ],
- "deep_note": "Endless descent, scripted the same way with foe attacks off and foe HP x0.5 so it goes deep; trail is [word, foe index, foe hp]. deep_foes = deepFoe(3,4,5,6,9) at the normal HP scale."
+ "deep_note": "Endless descent, scripted the same way with foe attacks off and foe HP x0.5 so it goes deep; trail is [word, foe index, foe hp]. deep_foes = deepFoe(3,4,5,6,9) at the normal HP scale.",
+ "offers_fingerprint": {
+  "note": "hseed of the offers table for 9 seeds x d 0..30 x two kits, page vs sim, 2026-11-20",
+  "value": 2169297970
+ }
 }
