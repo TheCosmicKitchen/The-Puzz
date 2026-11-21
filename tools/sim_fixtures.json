@@ -1,7 +1,7 @@
 {
  "note": "Captured from scrawl.html in the browser. trail = a fixed script (strike the first 3-letter word found by a triple loop over the hand, then end the turn), recorded as [word, foe index, your hp, foe hps] after each turn. `py tools/scrawl_sim.py selftest` replays it in Python and must match exactly.",
  "captured": "2026-11-20 (fair draws; 21 Nov is the first fair daily)",
- "rules_hash": "b7b5798aa30b",
+ "rules_hash": "98b2b0df1236",
  "cases": [
   {
    "seed": "scrawl-2026-10-25",
