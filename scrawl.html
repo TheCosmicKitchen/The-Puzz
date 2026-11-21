@@ -69,6 +69,11 @@ h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:v
 .wordrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .wordrow .slots{flex:1}
 .wordinfo{font-size:12.5px;color:var(--muted);min-height:1.3em}
+.wordinfo small{font-size:11.5px}.blkon{color:var(--block)}
+.coach{display:flex;gap:10px;align-items:center;background:color-mix(in srgb,var(--gold) 18%,var(--paper));border:1.5px solid color-mix(in srgb,var(--gold) 55%,transparent);border-radius:12px;padding:8px 10px 8px 12px;font-size:13.5px;line-height:1.35}
+.coach b{color:var(--ink)}.coach span{flex:1}
+.coach button{font:700 12px var(--body);background:none;border:0;color:var(--muted);cursor:pointer;padding:4px 6px;text-decoration:underline}
+.foot .acts{display:flex;gap:8px;align-items:center}
 .wordinfo b{color:var(--ink)}.wordinfo .bad{color:var(--hp)}
 .btn{font:700 14px var(--body);border:2px solid var(--ink);background:var(--card);color:var(--ink);padding:7px 14px;border-radius:12px;cursor:pointer}
 .btn.primary{background:var(--ink);color:var(--bg)}
@@ -186,14 +191,15 @@ details p{margin:8px 0;font-size:14px}
   <div class="status" id="status"></div>
   <section class="draft" id="draft" hidden></section>
   <section class="cards" id="cards"></section>
+  <div class="coach" id="coach" hidden role="status"><span id="coachText"></span><button type="button" id="coachOff">Got it</button></div>
   <div class="hand" id="hand" role="group" aria-label="Your tiles"></div>
   <div class="fxkey" id="fxkey" aria-live="polite"></div>
-  <div class="foot"><div class="log" id="log"></div><button class="btn primary" id="endBtn">End turn</button></div>
+  <div class="foot"><div class="log" id="log"></div><div class="acts"><button class="btn" id="undoBtn" disabled title="Take back your last trick, Quill or Strike this turn">Undo</button><button class="btn primary" id="endBtn">End turn</button></div></div>
   <section class="result" id="result" hidden></section>
   <details id="rules">
     <summary>How to play</summary>
     <p>Beat today's three foes. Everyone gets the same foes, the same tiles and the same tricks on offer.</p>
-    <p>Each turn you draw six letter tiles. Tap a tile, then a card, or drag the tile onto the card. While you hold a tile, every card shows what it would do with it. Changed tiles come back to your hand, so you can keep working on them. Unused tiles are lost when you end your turn.</p>
+    <p>Each turn you draw six letter tiles. Tap a tile, then a card, or drag the tile onto the card. While you hold a tile, every card shows what it would do with it. Changed tiles come back to your hand, so you can keep working on them. Misplaced one? <b>Undo</b> takes back your last trick, Quill or Strike this turn. Unused tiles are lost when you end your turn.</p>
     <p><b>Spellblade</b> is your main attack: a real word of 3 to 6 letters deals its points, plus a bonus for long words. Use it as often as your tiles allow. Each day it has an <b>edge</b>, a bonus for words that fit today's rule: rhymes, palindromes, five-letter words, double letters and so on.</p>
     <p>Your kit holds four cards: <b>Quill</b>, which flicks a single consonant for its points, and three letter tricks. You start with <b>Nudge</b> (B→C) and <b>Flip</b> (A↔Z) and pick a third before the first foe. After each win, a new trick is on offer: take it in place of one of yours, or keep your kit. Want to try every trick? <a href="#lab" onclick="setTimeout(()=>location.reload())">Open the tool lab</a>.</p>
     <p><b>Enchanted tiles</b> turn up now and then and keep their enchantment through every trick: 🔥 <b>Flaming</b> adds 4 damage, 🛡 <b>Steel</b> gives you 6 block when you use it, ✨ <b>Gilded</b> is worth double, and 🌿 <b>Leaf</b> heals you 3.</p>
@@ -467,13 +473,14 @@ function render(){
   const raw=spellRaw(),w=spellWord(),hit=w?wordHit(w):null,E=EDGES[S.edge];
   const card=(k,title,uses,desc,wide,can)=>`<div class="cardx ${wide?'wide':''} ${uses==='used'?'spent':''} ${can?'can':''}" data-card="${k}"><h3>${title}<small>${uses}</small></h3><p>${desc}</p>`;
   const edgeChip=`<div class="edges"><span class="edge ${hit&&hit.on?'on':''}" title="${E.desc}">Today's edge: <b>${E.name}</b>${S.edge==='letter'?` (<b>${S.dayLetter.toUpperCase()}</b>)`:''}${S.edge==='longsent'?` <i class="meter"><i style="width:${S.charged?100:S.charge/12*100}%"></i></i>${S.charged?' ready':''}`:''}${S.lastWord&&(S.edge==='rhyme'||S.edge==='allit')?` · last word ${S.lastWord.toUpperCase()}`:''}</span><span class="edgedesc">${E.desc.replace("today's letter",`<b>${S.dayLetter.toUpperCase()}</b>`)}</span></div>`;
-  let h=card('spell','Spellblade','any time',`A real word, 3 to ${MAXWORD} letters: its points, plus a bonus for length. Spell as many words as your tiles allow.`,true,!!T)+edgeChip+
+  let blade=card('spell','Spellblade','any time',`A real word, 3 to ${MAXWORD} letters: its points, plus a bonus for length. Spell as many words as your tiles allow.`,true,!!T)+edgeChip+
     `<div class="wordrow"><div class="slots">${[...Array(MAXWORD)].map((_,i)=>{const t=S.spell[i]&&byId(S.spell[i]);return `<button class="slot ${t?'full':''}" data-spell="${i}" aria-label="${t?'Letter '+(t.ch===BLANK?'blank':t.ch.toUpperCase())+', tap to take back':'Empty word slot'}">${t?tileHTML(t):''}</button>`}).join('')}</div>
     </div>
-    <div class="strikerow"><div class="wordinfo">${raw.length?(raw.length<3?'Three letters or more.':w?`<b>${w.toUpperCase()}</b>${raw.includes(BLANK)?' (blank filled)':''} · ${hit.dmg} damage${hit.fire?' (🔥 +'+hit.fire+')':''}${hit.on?` · <b class="edgeon">${E.name}!</b>`:''}${hit.blk?` · 🛡 +${hit.blk}`:''}`:`<span class="bad">${raw.replace(/\?/g,'_').toUpperCase()} isn't in the word list</span>`):'Tap tiles to spell into the blade.'}</div><button class="btn primary" id="strikeBtn" ${w?'':'disabled'}>Strike</button></div></div>`;
+    <div class="strikerow"><div class="wordinfo">${raw.length?(raw.length<3?'Three letters or more.':w?`<b>${w.toUpperCase()}</b>${raw.includes(BLANK)?' (blank filled)':''} · <b>${hit.dmg} damage</b>${hit.on?` · <b class="edgeon">${E.name}!</b>`:''}${hit.blk?` · <b class="blkon">🛡 +${hit.blk} block</b>`:''}<br><small>${breakdown(hit)}</small>`:`<span class="bad">${raw.replace(/\?/g,'_').toUpperCase()} isn't in the word list</span>`):'Tap tiles to spell into the blade.'}</div><button class="btn primary" id="strikeBtn" ${w?'':'disabled'}>Strike</button></div></div>`;
+  let h='';
   S.kit.forEach(k=>{const Tk=TOOLS[k],p=preview(k,T),pk=k==='swap'&&S.swapPick&&byId(S.swapPick);
     h+=card(k,Tk.name,usesLabel(k),Tk.desc,false,p&&p.ok)+`<div class="onerow"><button class="slot" data-use="${k}" aria-label="${Tk.name} slot${p?': '+p.html.replace(/<[^>]+>/g,''):''}">${pk?tileHTML(pk):p&&p.ghost?p.ghost:''}</button>${p?`<span class="pv ${p.ok?'ok':'no'}">${p.html}</span>`:pk?'<span class="pv ok">Now pick its partner</span>':''}</div></div>`});
-  $('cards').innerHTML=h;if(drag&&drag.over){const c=document.querySelector(`[data-card="${drag.over}"]`);if(c)c.classList.add('drop')}
+  h+=blade;$('cards').innerHTML=h;if(drag&&drag.over){const c=document.querySelector(`[data-card="${drag.over}"]`);if(c)c.classList.add('drop')}
   if($('strikeBtn'))$('strikeBtn').onclick=strike;
   const inSpell=new Set(S.spell);
   $('hand').innerHTML=drafting?'<span class="sub" style="align-self:center">Choose, then the fight begins.</span>':S.hand.filter(t=>!inSpell.has(t.id)).map((t,i)=>`<button data-t="${t.id}" class="${sel===t.id&&!(drag&&drag.started)?'sel':''} ${S.swapPick===t.id?'sel':''} ${drag&&drag.started&&drag.id===t.id?'lifted':''} ${dealNext?'deal':''}" style="--d:${dealNext?(0.25+i*0.07).toFixed(2)+'s':'0s'}" aria-label="${t.fx?FX[t.fx].name+' ':''}${t.ch===BLANK?'blank':t.ch.toUpperCase()}, ${pts(t)} points${t.crossed?', crossed out':''}" ${S.over?'disabled':''}>${tileHTML(t)}</button>`).join('')||'<span class="sub" style="align-self:center">No tiles left. End your turn.</span>';
@@ -507,7 +514,37 @@ document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||!S||S
   if(/^[a-z]$/i.test(e.key)){if(S.spell.length>=MAXWORD)return;const inSpell=new Set(S.spell),t=S.hand.find(t=>!inSpell.has(t.id)&&!t.crossed&&t.ch===e.key.toLowerCase())||S.hand.find(t=>!inSpell.has(t.id)&&!t.crossed&&t.ch===BLANK);if(t){S.spell.push(t.id);sel=null;render()}e.preventDefault()}
   else if(e.key==='Backspace'){S.spell.pop();render();e.preventDefault()}
   else if(e.key==='Enter'){strike();e.preventDefault()}});
-$('endBtn').onclick=endTurn;
+// where a word's damage comes from: letters + length bonus (+ fire), then today's edge
+function breakdown(hit){const ts=S.spell.map(byId),n=ts.length,E=EDGES[S.edge],letters=ts.reduce((a,t)=>a+pts(t),0),bits=[`letters ${letters}`];
+  if(WORD_BONUS[n])bits.push(`${n}-letter bonus ${WORD_BONUS[n]}`);if(hit.fire)bits.push(`🔥 ${hit.fire}`);
+  let txt=bits.join(' + ');if(hit.on&&E.mult)txt=`(${txt}) × ${E.mult} ${E.name}`;if(hit.on&&E.add)txt+=` + ${E.add} ${E.name}`;if(hit.stun)txt+=' · stuns';return txt}
+// Undo: take back the last trick, Quill or Strike this turn. Gone once the turn ends or a foe falls (no peeking at the next fight).
+let undoStack=[];
+function undoable(fn){return function(...a){if(!S||S.over||S.draft!=null)return fn.apply(this,a);
+  const before=JSON.stringify(S),fi=S.fi,r=fn.apply(this,a);
+  if(S.over||S.fi!==fi)undoStack=[];else if(JSON.stringify(S)!==before){undoStack.push(before);if(undoStack.length>30)undoStack.shift()}
+  refreshExtras();return r}}
+useOn=(f=>function(card){return card==='spell'?f(card):undoable(f)(card)})(useOn);
+strike=undoable(strike);
+endTurn=(f=>function(){undoStack=[];const r=f();refreshExtras();return r})(endTurn);
+load=(f=>function(...a){undoStack=[];const r=f(...a);refreshExtras();return r})(load);
+$('undoBtn').onclick=()=>{if(!undoStack.length)return;S=JSON.parse(undoStack.pop());sel=null;S.log='Undone.';persist();render();refreshExtras()};
+// first-time coach: one line saying what to do next, until you win a crawl or turn it off
+function coachLine(){
+  if(S.over||S.draft!=null)return S.draft===0?'Pick one more trick for your kit. Each one changes letters in its own way.':'';
+  const raw=spellRaw(),w=spellWord();
+  if(drag&&drag.started)return 'Let go over the <b>Spellblade</b> to add the letter, or over a trick to change it.';
+  if(sel)return 'Now tap an empty Spellblade slot, or a trick card to change this letter.';
+  if(!raw.length)return 'Make a word to attack: drag a letter up into the <b>Spellblade</b> slots, or tap a letter then a slot.';
+  if(raw.length<3)return 'Keep going: a real word needs at least 3 letters.';
+  if(!w)return 'That isn\'t a word yet. Tap a letter in the blade to send it back.';
+  return `Press <b>Strike</b> to hit for ${wordHit(w).dmg}. You can spell more words with the tiles you have left, then <b>End turn</b>.`}
+function refreshExtras(){if(!S)return;$('undoBtn').disabled=!undoStack.length||!!S.over||S.draft!=null;
+  const on=store.get('scrawl-coach')!=='off'&&!S.lab,line=on?coachLine():'';$('coach').hidden=!line;if(line)$('coachText').innerHTML=line;
+  if(S.over==='won')store.set('scrawl-coach','off')}
+render=(f=>function(...a){const r=f(...a);refreshExtras();return r})(render);
+$('coachOff').onclick=()=>{store.set('scrawl-coach','off');$('coach').hidden=true};
+$('endBtn').onclick=()=>endTurn();
 // drag: pick a tile up, carry it over a card (it previews what it'll do), let go to use it
 $('hand').addEventListener('pointerdown',e=>{const b=e.target.closest('[data-t]');if(!b||!S||S.over)return;drag={id:b.dataset.t,x:e.clientX,y:e.clientY,started:false,over:null}});
 document.addEventListener('pointermove',e=>{if(!drag)return;
