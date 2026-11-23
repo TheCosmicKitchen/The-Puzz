@@ -36,6 +36,7 @@
   // ---- Motion helpers. All use the Web Animations API on transform-style properties (scale, translate, rotate,
   // which compose with a game's own transform) and opacity. Each is a no-op with reduced motion and never holds
   // the final state: the element is already in its end state, the animation only plays the way there.
+  const buzz = () => !reduced && navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive);
   const EASE = 'cubic-bezier(.2,.8,.2,1)', SPRING = 'cubic-bezier(.3,1.5,.6,1)';
   const isSvg = el => el instanceof SVGElement && !(el instanceof SVGSVGElement);
   const prep = el => {
@@ -53,8 +54,9 @@
   window.Puzz = Object.assign(window.Puzz || {}, {
     reduced, EASE, SPRING, anim,
     // Haptics: tick for small confirmations (a letter placed), thud for big moments (a word strikes, a solve).
-    tick(){ if (!reduced && navigator.vibrate) try { navigator.vibrate(8) } catch (e) {} },
-    thud(){ if (!reduced && navigator.vibrate) try { navigator.vibrate([14, 40, 22]) } catch (e) {} },
+    // Chrome refuses (and logs an error) before the first tap, so wait for one.
+    tick(){ if (buzz()) try { navigator.vibrate(8) } catch (e) {} },
+    thud(){ if (buzz()) try { navigator.vibrate([14, 40, 22]) } catch (e) {} },
 
     // A number changed: pop it. With a value, sets the text first and only pops when it actually changed.
     pop(el, value){
