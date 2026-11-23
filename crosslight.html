@@ -56,9 +56,10 @@ details.rules{background:var(--surface);border-radius:14px;padding:12px 16px}
 details.rules summary{font:600 15px var(--display);cursor:pointer}
 details.rules p{margin:8px 0 0;max-width:62ch}
 .proto-tag{font:600 11px var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border:1.5px solid var(--line);border-radius:999px;padding:2px 8px;vertical-align:middle;margin-left:6px}
-.shake{animation:shake .35s}
-@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-@media (prefers-reduced-motion:reduce){.shake{animation:none}}
+/* a word that isn't in the list: the selected word's cells shake, 6 px, three cycles */
+.shake .c.sel{animation:shake .32s linear}
+@keyframes shake{0%,100%{translate:0}16%,50%,83%{translate:-6px 0}33%,66%{translate:6px 0}}
+@media (prefers-reduced-motion:reduce){.shake .c.sel{animation:none}}
 
 /* Layout: waffle grid on top, the selected word's guess history, then an on-screen keyboard. */
 :root{--accent:var(--cross)}
@@ -151,10 +152,10 @@ function render(){
     const k=key(r,c),got=st.got[k],inSel=cells.has(k),idx=inSel?slotCells(sel).findIndex(([a,b])=>a===r&&b===c):-1;
     const letter=got?answerAt(r,c):inSel&&fill[idx]?fill[idx]:'';
     h+=`<button class="c ${got?'got':''} ${inSel?'sel':''} ${inSel&&!got&&letter?'typed':''}" data-r="${r}" data-c="${c}" aria-label="Row ${r+1} column ${c+1}${got?', '+letter:''}">${letter}</button>`}
-  $('grid').innerHTML=h;
+  $('grid').innerHTML=h;feelGrid();
   $('slotname').textContent=(sel<3?`Across ${['top','middle','bottom'][sel]}`:`Down ${['left','middle','right'][sel-3]}`)+(slotSolved(sel)?' · solved':'');
   const mine=st.guesses.filter(g=>g.k===sel);
-  $('hist').innerHTML=mine.map(g=>`<div class="hrow">${g.w.split('').map((ch,i)=>`<i class="${g.s[i]}">${ch}</i>`).join('')}</div>`).join('');
+  $('hist').innerHTML=mine.map(g=>`<div class="hrow">${g.w.split('').map((ch,i)=>`<i class="${g.s[i]}">${ch}</i>`).join('')}</div>`).join('');feelHist();
   $('meter').innerHTML=Array.from({length:MAXG},(_,i)=>`<i class="${i<st.guesses.length?'used':''}"></i>`).join('');
   // keyboard: best knowledge for the selected word, blue/grey from anywhere
   const kst={};const rank={x:1,b:2,y:3,g:4};
@@ -162,6 +163,18 @@ function render(){
   const rows=['qwertyuiop','asdfghjkl','⏎zxcvbnm⌫'];
   $('kb').innerHTML=rows.map(r=>`<div class="kr">${[...r].map(ch=>ch==='⏎'?'<button class="k wide" data-k="enter">Enter</button>':ch==='⌫'?'<button class="k wide" data-k="back" aria-label="Delete">⌫</button>':`<button class="k ${kst[ch]||''}" data-k="${ch}">${ch}</button>`).join('')}</div>`).join('');
 }
+// ---- feel: typed letters drop in, a guess flips its colours in, solved squares flip in sequence (never part of the puzzle) ----
+let feel={key:null,typed:'',got:{},guesses:0};
+const cellEl=(r,c)=>$('grid').querySelector(`[data-r="${r}"][data-c="${c}"]`);
+function feelGrid(){const same=feel.key===Pz.label;
+  if(same&&typed.length>feel.typed.length){const open=slotCells(sel).filter(([r,c])=>!st.got[key(r,c)]),at=open[typed.length-1];if(at){Puzz.drop(cellEl(...at));Puzz.tick()}}
+  const fresh=same?Object.keys(st.got).filter(k=>!feel.got[k]):[];
+  if(fresh.length){const order=fresh.map(k=>k.split(',').map(Number)).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+    Puzz.flip(order.map(([r,c])=>cellEl(r,c)),{stagger:70,duration:240,delay:0});if(st.done&&!st.lost)setTimeout(()=>Puzz.thud(),Puzz.reduced?0:300)}
+  feel.typed=typed;feel.got={...st.got}}
+function feelHist(){const same=feel.key===Pz.label,g=st.guesses[st.guesses.length-1];
+  if(same&&st.guesses.length===feel.guesses+1&&g&&g.k===sel){const row=$('hist').lastElementChild;if(row)Puzz.flip(row.children,{stagger:60,duration:220});if(!st.done)Puzz.tick()}
+  feel.key=Pz.label;feel.guesses=st.guesses.length}
 // typed letters skip squares already revealed
 function typedFill(){const cells=slotCells(sel),out=[];let t=0;for(let i=0;i<5;i++){const[r,c]=cells[i];if(st.got[key(r,c)])out.push(answerAt(r,c));else out.push(typed[t++]||'')}return out}
 const openCount=()=>slotCells(sel).filter(([r,c])=>!st.got[key(r,c)]).length;
