@@ -350,6 +350,19 @@ function renderBook(sel){setMode('book');const met=Object.keys(deck).length,due=
   $('main').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>show(b.dataset.b));if(sel)show(sel)}
 
 // ---- wiring ----
+// ---- feel: watches what the rounds draw and reacts; no round's logic is touched ----
+// a stamp lands (thud), the hub is found (pop + thud), a part drops into a slot (settle + tick),
+// a wrong build or answer shakes (6 px, three cycles), a spoke that doesn't make a word flashes red once
+{let full=0;new MutationObserver(ms=>{
+  for(const m of ms){const t=m.target;
+    if(m.type==='attributes'){if(t.id==='slots'&&t.classList.contains('shake')){t.classList.remove('shake');Puzz.shake(t)}
+      else if(t.classList&&t.classList.contains('opt')&&t.classList.contains('wrong')&&m.oldValue&&!m.oldValue.includes('wrong'))Puzz.shake(t);continue}
+    for(const n of m.addedNodes){if(n.nodeType!==1)continue;
+      if(n.classList.contains('stamp')||n.querySelector('.stamp'))Puzz.thud();
+      const hc=n.querySelector('.hc.solved');if(hc){Puzz.pop(hc);Puzz.thud()}
+      n.querySelectorAll('.hk.no').forEach(x=>Puzz.flash(x));}}
+  const f=$('main').querySelectorAll('.slot.full');if(f.length>full){Puzz.settle(f[f.length-1]);Puzz.tick()}full=f.length;
+}).observe($('main'),{childList:true,subtree:true,attributes:true,attributeFilter:['class'],attributeOldValue:true})}
 $('tToday').onclick=loadToday;$('tPractice').onclick=()=>renderPractice();$('tBook').onclick=()=>renderBook();
 $('readBtn').setAttribute('aria-pressed',showReads);
 $('readBtn').onclick=()=>{showReads=!showReads;store.set('hanko-reads',showReads);$('readBtn').setAttribute('aria-pressed',showReads);if(mode==='book')renderBook();else if(mode==='today')renderToday();else renderPractice()};
