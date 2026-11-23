@@ -1,6 +1,6 @@
 /* The Puzz feel layer: shared by every page. Load after the page's own <style>:
    <link rel="stylesheet" href="puzz-feel.css?v=1">
-   Bump ?v= in every page when this file changes (pages cache it for 10 minutes). */
+   Pages load it with ?v=<hash of this file>, set by tools/stamp_assets.py, so changes are never served stale. */
 
 /* Page-to-page navigation cross-fades like one app (Chrome, Edge, Safari 18.2+; a plain load elsewhere). */
 @view-transition { navigation: auto; }

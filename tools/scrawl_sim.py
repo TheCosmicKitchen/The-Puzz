@@ -26,7 +26,7 @@ from datetime import date, timedelta
 from itertools import combinations, product
 from multiprocessing import Pool
 
-SIM_VERSION = '1.5.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
+SIM_VERSION = '1.6.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 M = 0xFFFFFFFF
@@ -78,6 +78,9 @@ VOW = set('aeiou')
 BAG_V = [c for c in BAG if c in VOW]; BAG_C = [c for c in BAG if c not in VOW]
 FXK = ['fire', 'steel', 'gold', 'leaf']
 HARD_L, AWK_L, FAIR_FROM = set('jqxz'), set('fkvwy'), '2026-11-21'   # fair draws start with this daily
+BONUS_FROM = '2026-11-23'   # blade bonus squares start with this daily
+HP_BOOST = 1.27   # page: HP_BOOST. Foes on bonus days get 27% more health (keeps the no-tricks win rate near 2 in 3)
+def hp_boost(seed): return HP_BOOST if not re.fullmatch(r'scrawl-\d{4}-\d{2}-\d{2}', seed) or seed[7:] >= BONUS_FROM else 1
 HAND, HP, MAXWORD = 6, 30, 6
 WORD_BONUS = [0, 0, 0, 0, 2, 4, 7]
 BLANK = '?'
@@ -108,7 +111,7 @@ def compile_item(r):
     elif ty == 'minValue': ok = lambda t, v=tg['value']: t['ch'] != BLANK and VAL[t['ch']] >= v
     else: raise ValueError(f"{r['id']}: unknown target {ty}")
     T = dict(kind=r['kind'], ok=ok, name=r['name'], desc=r['desc'])
-    for k in ('tier', 'uses', 'perFight'):
+    for k in ('tier', 'uses', 'perFight', 'from'):
         if r.get(k): T[k] = r[k]
     kd = r['kind']
     if kd == 'morph':
@@ -118,7 +121,9 @@ def compile_item(r):
         else: T['to'] = lambda t, c=e['set']: c
     elif kd == 'choose':
         o = e['options']
-        T['options'] = (lambda t, G=o['groups']: list(next(g for g in G if t['ch'] in g))) if 'groups' in o else (lambda t, L=o['letters']: list(L))
+        if 'groups' in o: T['options'] = lambda t, G=o['groups']: list(next(g for g in G if t['ch'] in g))
+        elif 'steps' in o: T['options'] = lambda t, D=o['steps']: [chr((ord(t['ch']) - 97 + d + 26) % 26 + 97) for d in D]
+        else: T['options'] = lambda t, L=o['letters']: list(L)
     elif kd == 'make':
         T['make'] = lambda t, M=e['make']: [(t['ch'], t.get('fx')) if m.get('self') else (t['ch'], None) if m.get('copy') else (m['letter'], None) for m in M]
     elif kd == 'pair':
@@ -205,7 +210,7 @@ class Game:
         self.seed = seed; self.deep = deep
         self.foes = []
         for i, k in enumerate(two + ['editor']):
-            hp = jsround((FOES[k]['hp'] + i * 2) * FOE_HP_SCALE)
+            hp = jsround((FOES[k]['hp'] + i * 2) * FOE_HP_SCALE * hp_boost(seed))
             self.foes.append(dict(k=k, hp=hp, max=hp, block=0, mi=math.floor(r() * len(FOES[k]['moves']))))
         self.edge = EDGE_KEYS[math.floor(er() * len(EDGE_KEYS))]
         self.letter = 'bcdfghklmnprstw'[math.floor(er() * 15)]
@@ -218,6 +223,21 @@ class Game:
         self.start_fight()
 
     # page: offers(d)
+    def roster(self):
+        """page: rosterNow(). A tool with a "from" date joins the dailies on that day; endless gets it straight away."""
+        m = re.fullmatch(r'scrawl-(\d{4}-\d{2}-\d{2})', self.seed)
+        return [k for k in ROSTER if not TOOLS[k].get('from') or not m or m.group(1) >= TOOLS[k]['from']]
+    def roll_bonus(self):
+        """page: rollBonus(). Bonus squares on the blade, from the 23 Nov daily: DL / TL double or triple a letter, DW doubles the word."""
+        b = [None] * 6
+        if re.fullmatch(r'scrawl-\d{4}-\d{2}-\d{2}', self.seed) and self.seed[7:] < BONUS_FROM: return b
+        r = mulberry(hseed(f'{self.seed}-bonus-{self.fi}-{self.turn}'))
+        x = r(); t = 'dl' if x < .6 else 'tl' if x < .75 else 'dw'
+        i = 2 + math.floor(r() * 4) if t == 'dw' else math.floor(r() * 6); b[i] = t
+        if r() < .35:
+            j = math.floor(r() * 6)
+            if not b[j]: b[j] = 'dl' if r() < .75 else 'tl'
+        return b
     def offers(self, d):
         """page: offers(d). Tiered from the 21 Nov daily: each offer rolls 65% common / 27% uncommon / 8% rare (rare +2 pts per 3 floors, max 25%)."""
         if re.fullmatch(r'scrawl-\d{4}-\d{2}-\d{2}', self.seed) and self.seed[7:] < TIERS_FROM:
@@ -227,7 +247,7 @@ class Game:
             x = r(); tier = 'rare' if x < rare else 'uncommon' if x < rare + .27 else 'common'
             order = {'rare': ['rare', 'uncommon', 'common'], 'uncommon': ['uncommon', 'common', 'rare'], 'common': ['common', 'uncommon', 'rare']}[tier]
             for tr in order:
-                pool = [k for k in ROSTER if TOOLS[k]['tier'] == tr and k not in self.kit and k not in out]
+                pool = [k for k in self.roster() if TOOLS[k]['tier'] == tr and k not in self.kit and k not in out]
                 if pool: out.append(pool[math.floor(r() * len(pool))]); break
         return out
     def grant(self, k):
@@ -260,7 +280,7 @@ class Game:
         self.turn += 1; self.turns += 1
         self.uses = {k: TOOLS[k]['uses'] for k in self.kit if 'uses' in TOOLS[k]}
         self.block = 0; p = self.pending; self.muffle = bool(p.get('muffle'))
-        self.hand = self.draw(HAND - (p.get('nibble') or 0))
+        self.hand = self.draw(HAND - (p.get('nibble') or 0)); self.bonus = self.roll_bonus()
         r = mulberry(hseed(f'{self.seed}-trick-{self.fi}-{self.turn}'))
         if p.get('jumble'):
             t = self.hand[math.floor(r() * len(self.hand))]; t['ch'] = 'qxzjkvwy'[math.floor(r() * 8)]
@@ -317,7 +337,7 @@ class Game:
         assert len(ids) <= MAXWORD and not self.over and self.draft is None
         ts = [self.tile(i) for i in ids]; assert not any(t['crossed'] for t in ts)
         w = fill_word(''.join(t['ch'] for t in ts)); assert w, ''.join(t['ch'] for t in ts)
-        dmg = sum(pts(t, self.muffle) for t in ts) + WORD_BONUS[len(ts)] + 4 * sum(t['fx'] == 'fire' for t in ts)
+        dmg = word_damage(ts, self.muffle, self.bonus)
         on = edge_on(self.edge, w, dict(last=self.last, letter=self.letter, charged=self.charged))
         if on: dmg = dmg * EDGE_MULT.get(self.edge, 1) + EDGE_ADD.get(self.edge, 0)
         self.use_up(ts)
@@ -342,7 +362,7 @@ class Game:
         """page: deepFoe(i), the endless descent. Every third foe is The Editor; each set of three hits 10% harder."""
         r = mulberry(hseed(f'{self.seed}-deep-{i}'))
         k = 'editor' if i % 3 == 2 else DEEP_KINDS[math.floor(r() * len(DEEP_KINDS))]
-        hp = jsround((FOES[k]['hp'] + i * 2) * FOE_HP_SCALE)
+        hp = jsround((FOES[k]['hp'] + i * 2) * FOE_HP_SCALE * hp_boost(self.seed))
         return dict(k=k, hp=hp, max=hp, block=0, mi=math.floor(r() * len(FOES[k]['moves'])), ax=round(1 + 0.1 * (i // 3), 2))
     def end_turn(self):
         assert not self.over and self.draft is None
@@ -368,7 +388,13 @@ KILL = 1000.0
 def incoming(g):
     m = g.next_move(); a = jsround(m.get('atk', 0) * FOE_ATK_SCALE * g.foe.get('ax', 1)); return a * (2 if m.get('twice') else 1)
 
-def words_for(hand, muffle):
+def word_damage(ts, muffle, bonus):
+    """page: wordHit before the edge. Letters (with DL / TL squares) + length bonus + fire, then x2 if a DW square is used."""
+    bonus = bonus or [None] * 6; mul = {'dl': 2, 'tl': 3}
+    d = sum(pts(t, muffle) * mul.get(bonus[i], 1) for i, t in enumerate(ts)) + WORD_BONUS[len(ts)] + 4 * sum(t['fx'] == 'fire' for t in ts)
+    return d * 2 if any(bonus[i] == 'dw' for i in range(len(ts))) else d
+
+def words_for(hand, muffle, bonus=None):
     """Every word the hand can spell: list of (mask, ordered tile ids, actual word, base damage, steel, leaf)."""
     idx = [i for i, t in enumerate(hand) if not t['crossed']]
     out = []
@@ -383,7 +409,6 @@ def words_for(hand, muffle):
                 for fill in combinations_with_rep(nb):
                     cands.update(ANAG.get(''.join(sorted(letters + list(fill))), ()))
             if not cands: continue
-            base = sum(pts(t, muffle) for t in ts) + WORD_BONUS[n] + 4 * sum(t['fx'] == 'fire' for t in ts)
             steel = 6 * sum(t['fx'] == 'steel' for t in ts); leaf = 3 * sum(t['fx'] == 'leaf' for t in ts)
             mask = 0
             for i in combo: mask |= 1 << i
@@ -393,7 +418,7 @@ def words_for(hand, muffle):
                 if order is None: continue
                 actual = fill_word(''.join(t['ch'] for t in order))
                 if not actual or actual in seen: continue
-                seen.add(actual); out.append((mask, [t['id'] for t in order], actual, base, steel, leaf))
+                seen.add(actual); out.append((mask, [t['id'] for t in order], actual, word_damage(order, muffle, bonus), steel, leaf))
     return out
 _CWR = {}
 def combinations_with_rep(n):
@@ -414,7 +439,7 @@ def arrange(w, ts):
 def best_play(g, hand, uses_quill):
     """Best words (in order) and Quill for this hand, scored for this foe. Returns (value, plan, info)."""
     f = g.foe; need = f['hp'] + f['block']; inc = incoming(g); missing = HP - g.hp
-    ws = words_for(hand, g.muffle)
+    ws = words_for(hand, g.muffle, getattr(g, 'bonus', None))
     quills = [t for t in hand if not t['crossed'] and TOOLS['quill']['ok'](t)] if uses_quill else []
     best = [-1.0, None, None]
     def score(dmg, steel, leaf, stun, plan, words_on, charge):
@@ -891,6 +916,7 @@ def selftest():
 
 LAB = os.path.join(ROOT, 'scrawl-lab')       # the analytics pages on the site
 CHANGELOG = [   # newest first; every version gets a git tag scrawl-sim-v<version> so old reports can be rerun
+    ('1.6.0', '2026-11-22', 'Blade bonus squares (DL / TL / DW) from the 23 Nov daily; five new tools (Soften, Scribble, Lunge, Recoil, Triplicate) join the roster that day; planner scores each word by its letter order.'),
     ('1.5.0', '2026-11-20', 'Items as data: every trick is read from scrawl-items.js, the same file the page uses; trick behaviour fingerprinted identical to 1.4.0 on page and sim.'),
     ('1.4.0', '2026-11-20', 'Tiered equipment from the 21 Nov daily: 15-trick roster (common / uncommon / rare from the 1.2.0 trials), tiered Armoury offers; Swap, Rotate, Vowel Shift, Split and Ink Blot retired from offers.'),
     ('1.3.0', '2026-11-20', 'Endless descent (deep runs: foes keep coming, every third is The Editor, +10% attack per set of three); fair draws from the 21 Nov daily on (no consonant twice in a hand, one of JQXZ, one of FKVWY), matching the page; fixtures recaptured.'),
