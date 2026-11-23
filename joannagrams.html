@@ -104,7 +104,10 @@ h1 span{color:var(--y0)}
 .ball .gl{fill:var(--shine)}
 .ball text{font:600 25px var(--display);fill:#fff;text-anchor:middle;dominant-baseline:central;text-transform:uppercase;pointer-events:none;paint-order:stroke;stroke:var(--wrap);stroke-width:2.5}
 .ball.on .core{stroke:var(--ink);stroke-width:3.2}
-.yarn{fill:none;stroke:var(--y3);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+.yarn{fill:none;stroke:var(--y3);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;opacity:.9;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--y3) 70%,transparent))}
+/* feel: the trail glows brighter while you're connecting letters; sparkles for a bonus word */
+#ring.live .yarn{filter:drop-shadow(0 0 9px var(--y3)) drop-shadow(0 0 3px var(--shine))}
+.spark{position:fixed;pointer-events:none;z-index:60;font:600 14px/1 var(--display);color:var(--y2);translate:-50% -50%}
 .yarn2{fill:none;stroke:var(--shine);stroke-width:2;stroke-dasharray:3 5;stroke-linecap:round}
 .hook{fill:none;stroke:var(--line);stroke-width:3;stroke-linecap:round}
 .ctrls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
@@ -443,6 +446,7 @@ function granny(){
 }
 
 function render(){
+  feelBefore();
   granny();
   const T=G.answers.length,n=st.found.length;
   const nb=st.bonus.length;
@@ -464,8 +468,32 @@ function render(){
   $('chain').innerHTML=chain.map(i=>`<span class="lk">${letters[i]}</span>`).join('')||'<span style="color:var(--muted);font-size:15px;font-family:var(--body);letter-spacing:0;text-transform:none">Chain letters from the ring</span>';
   $('bonus').textContent=st.bonus.length?`Bonus stitches: ${st.bonus.join(', ')}`:'';
   $('thread').disabled=st.done;$('revealBtn').disabled=st.metaDone&&st.done;$('stitch').disabled=st.done||chain.length<3;
-  ring();
+  ring();feelAfter();feelRing();
 }
+// ---- feel: only what changed since the last draw animates; none of this touches the puzzle ----
+let feel={root:null,letters:'',chain:[],n:0};
+function sparkle(el){if(Puzz.reduced||!el)return;const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+  for(let i=0;i<8;i++){const a=i/8*Math.PI*2+.3,s=document.createElement('span');s.className='spark';s.textContent=i%2?'✦':'✧';s.style.left=cx+'px';s.style.top=cy+'px';document.body.append(s);
+    s.animate([{transform:'translate(0,0) scale(.4)',opacity:1},{transform:`translate(${Math.cos(a)*38}px,${Math.sin(a)*26}px) scale(1.1)`,opacity:0}],{duration:520,easing:'ease-out'}).onfinish=()=>s.remove()}}
+function feelBefore(){feel.chainRect=G.justFound?$('chain').getBoundingClientRect():null;feel.chainGhost=G.justFound?$('chain').cloneNode(true):null;feel.justBonus=G.justBonus;feel.justFound=G.justFound}
+function feelAfter(){
+  const same=feel.root===G.root,n=st.found.length;
+  // a found word lifts out of the chain and into its slot in the list
+  const w=feel.justFound&&$('slots').querySelector('.w.new');
+  if(same&&w&&feel.chainGhost){feel.chainGhost.style.justifyContent='center';Puzz.fly(feel.chainGhost,w,{from:feel.chainRect,duration:260,arc:24}).then(()=>Puzz.settle(w))}
+  if(same&&n!==feel.n)Puzz.pop($('count'));
+  if(same&&feel.justBonus)sparkle($('count').querySelector('.bon'));
+  if(same&&(feel.justFound&&feel.justFound.length===G.root.length||n===G.answers.length&&n!==feel.n))Puzz.thud();else if(same&&(feel.justFound||feel.justBonus))Puzz.tick();
+  feel.n=n;feel.justFound=feel.justBonus=null}
+function feelRing(){
+  const L=letters.join(''),same=feel.root===G.root;
+  // a shuffle: same skein, letters in a new order. The ring spins into place with a spring.
+  if(same&&L!==feel.letters)Puzz.anim($('ring'),[{rotate:'-140deg',scale:.9},{rotate:'8deg',scale:1.02,offset:.7},{rotate:'0deg',scale:1}],{duration:360,easing:'cubic-bezier(.3,1.2,.6,1)'});
+  // a letter joined the chain: its ball lifts
+  else if(same&&chain.length>feel.chain.length&&feel.chain.every((b,i)=>chain[i]===b)){
+    Puzz.anim($('ring').querySelector(`[data-b="${chain[chain.length-1]}"]`),[{scale:1},{scale:1.16,offset:.4},{scale:1}],{duration:200,easing:Puzz.SPRING});Puzz.tick()}
+  $('ring').classList.toggle('live',chain.length>1);
+  feel.root=G.root;feel.letters=L;feel.chain=chain.slice()}
 const ballPos=i=>{const a=-Math.PI/2+i*2*Math.PI/letters.length;return{x:Math.cos(a)*102,y:Math.sin(a)*102}};
 function ring(){
   let s='';
@@ -482,7 +510,7 @@ function ring(){
   $('ring').innerHTML=s;
 }
 let toastT;
-function toast(msg,kind=''){const t=$('toast');t.textContent=msg;t.className='toast '+kind;clearTimeout(toastT);if(msg)toastT=setTimeout(()=>{t.textContent='';t.className='toast'},2200)}
+function toast(msg,kind=''){if(kind==='bad')requestAnimationFrame(()=>Puzz.shake($('chain')));const t=$('toast');t.textContent=msg;t.className='toast '+kind;clearTimeout(toastT);if(msg)toastT=setTimeout(()=>{t.textContent='';t.className='toast'},2200)}
 
 function submit(){
   if(st.done)return;
