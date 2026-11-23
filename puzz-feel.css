@@ -1,0 +1,28 @@
+/* The Puzz feel layer: shared by every page. Load after the page's own <style>:
+   <link rel="stylesheet" href="puzz-feel.css?v=1">
+   Bump ?v= in every page when this file changes (pages cache it for 10 minutes). */
+
+/* Page-to-page navigation cross-fades like one app (Chrome, Edge, Safari 18.2+; a plain load elsewhere). */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: puzz-out .16s ease-in both; }
+::view-transition-new(root) { animation: puzz-in .22s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes puzz-out { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes puzz-in { from { opacity: 0; transform: translateY(8px); } }
+
+/* Taps respond at once: no double-tap-zoom delay, no grey flash on phones. */
+html { -webkit-tap-highlight-color: transparent; }
+:where(button, a, [role="button"], input, label, select) { touch-action: manipulation; }
+
+/* Press feedback. `scale` is its own property, so it never fights a game's transform animations;
+   :where() keeps it at zero specificity so any game style wins. */
+:where(button, [role="button"], a.card, a.btn, .btn):not(:disabled) { transition: scale .12s cubic-bezier(.2,.8,.2,1); }
+:where(button, [role="button"], a.card, a.btn, .btn):not(:disabled):active { scale: .96; transition-duration: .04s; }
+
+/* Smooth in-page jumps (How to play, results). */
+html { scroll-behavior: smooth; }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+  :where(button, [role="button"], a.card, a.btn, .btn):active { scale: none; }
+  html { scroll-behavior: auto; }
+}
