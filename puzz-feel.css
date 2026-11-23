@@ -21,7 +21,17 @@ html { -webkit-tap-highlight-color: transparent; }
 /* Smooth in-page jumps (How to play, results). */
 html { scroll-behavior: smooth; }
 
+/* Win / lose panels: every game's result slides up and fades in the same way when it's unhidden.
+   @starting-style runs the transition from display:none; older browsers just show the panel. */
+.puzz-panel { transition: opacity .32s cubic-bezier(.2,.8,.2,1), translate .32s cubic-bezier(.2,.8,.2,1); }
+@starting-style { .puzz-panel { opacity: 0; translate: 0 14px; } }
+
+/* A lifted piece: a selected number, a held tile. `scale` composes with the game's own transform. */
+.puzz-lift { scale: 1.08; box-shadow: 0 6px 16px rgba(0,0,0,.22); transition: scale .12s cubic-bezier(.3,1.5,.6,1), box-shadow .12s ease-out; }
+:where(.puzz-liftable) { transition: scale .12s cubic-bezier(.2,.8,.2,1), box-shadow .12s ease-out; }
+
 @media (prefers-reduced-motion: reduce) {
+  .puzz-panel, .puzz-lift, :where(.puzz-liftable) { transition: none; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
   :where(button, [role="button"], a.card, a.btn, .btn):active { scale: none; }
   html { scroll-behavior: auto; }

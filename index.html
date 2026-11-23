@@ -45,6 +45,7 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
 .streak .eb{font:600 11px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .streak .big{display:flex;align-items:baseline;gap:8px;margin-top:2px}
 .streak .n{font:600 44px/1 var(--display);color:var(--f0);font-variant-numeric:tabular-nums}
+.streak .flame{width:26px;height:34px;align-self:center;flex:none}
 .streak .lab{font:600 20px var(--display)}
 .streak .note{color:var(--muted);font-size:14px;margin:0}
 .streak .best{color:var(--muted);font-size:13px;white-space:nowrap}
@@ -54,8 +55,8 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
 .streak .day.today{color:var(--f1);font-weight:700}
 @media (max-width:420px){a.card,.soon{grid-template-columns:56px 1fr}.card svg,.soon svg{width:56px;height:56px}.pill{grid-column:2;justify-self:start}}
 </style>
-<link rel="stylesheet" href="puzz-feel.css?v=afefd904">
-<script src="puzz-feel.js?v=091fdaf9"></script>
+<link rel="stylesheet" href="puzz-feel.css?v=ff9fa738">
+<script src="puzz-feel.js?v=a3b73927"></script>
 </head>
 <body>
 <div class="wrap">
@@ -211,10 +212,20 @@ if(window.Kitchen){
   const n=S.current,note=n===0?'Finish any puzzle today to start a streak.':S.doneToday?'Done for today. See you tomorrow.':'Finish one today to keep it going.';
   const el=document.getElementById('streak');
   el.innerHTML=`<div class="top"><div><div class="eb">Your streak</div>
-      <div class="big"><span class="n">${n}</span><span class="lab">${n===1?'day in a row':'days in a row'}</span></div>
+      <div class="big">${n?`<svg class="flame" viewBox="0 0 26 34" aria-hidden="true"><path d="M13,1 C20,10 25,15 25,22 A12,12 0 0 1 1,22 C1,16 5,13 7,8 C9,12 10,13 12,13 C11,9 11,5 13,1Z" fill="var(--f0)"/><path d="M13,15 C17,19 19,22 19,25 A6,6 0 0 1 7,25 C7,22 10,19 13,15Z" fill="var(--f2)"/></svg>`:''}<span class="n">${n}</span><span class="lab">${n===1?'day in a row':'days in a row'}</span></div>
       <p class="note">${note}</p></div>${S.best>1?`<span class="best">Best ${S.best}</span>`:''}</div>
     <div class="days">${W.map((d,i)=>`<div class="day ${d.today?'today':''}" aria-label="${d.date.toLocaleDateString(undefined,{weekday:'long'})}: ${d.done?'done':d.future?'still to come':d.today?'not yet':'missed'}">${hex(d,i)}<span>${d.today?'today':d.date.toLocaleDateString(undefined,{weekday:'short'})}</span></div>`).join('')}</div>`;
-  el.hidden=false}
+  el.hidden=false;
+  // A day was added since you last looked: the flame flickers once and the number pops.
+  let seen=null;try{seen=JSON.parse(localStorage.getItem('puzz-streak-seen'))}catch(e){}
+  try{localStorage.setItem('puzz-streak-seen',JSON.stringify(n))}catch(e){}
+  if(window.Puzz&&seen!==null&&n>seen){const f=el.querySelector('.flame');
+    Puzz.anim(f,[{scale:1,rotate:'0deg',opacity:1},{scale:1.25,rotate:'-6deg',opacity:.75,offset:.25},{scale:.92,rotate:'5deg',opacity:1,offset:.5},{scale:1.1,rotate:'-2deg',offset:.75},{scale:1,rotate:'0deg'}],{duration:600,delay:250,easing:'ease-in-out'});
+    setTimeout(()=>Puzz.pop(el.querySelector('.n')),300)}}
+// Cards stagger in on the first visit of a session (under 300 ms in all), not on every return.
+{let first=true;try{first=!sessionStorage.getItem('puzz-home-seen');sessionStorage.setItem('puzz-home-seen','1')}catch(e){}
+  if(first&&window.Puzz&&!document.hidden){const cs=document.querySelectorAll('.streak:not([hidden]), .cards > a.card');
+    Puzz.stagger(cs,{stagger:Math.min(16,140/Math.max(1,cs.length)),duration:140,from:{translate:'0 8px',opacity:0}})}}
 </script>
 </body>
 </html>

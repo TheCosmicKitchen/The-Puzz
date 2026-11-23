@@ -125,8 +125,8 @@ h1 .seal{flex:none;width:34px;height:34px;display:inline-flex;align-items:center
 @media (max-width:400px){.tile,.slot{width:64px}.hub{grid-template-columns:repeat(3,58px)}}
 </style>
 
-<link rel="stylesheet" href="puzz-feel.css?v=afefd904">
-<script src="puzz-feel.js?v=091fdaf9"></script>
+<link rel="stylesheet" href="puzz-feel.css?v=ff9fa738">
+<script src="puzz-feel.js?v=a3b73927"></script>
 </head>
 <body>
 <div class="wrap">
@@ -321,7 +321,7 @@ function renderRound(R,done){cur=R;
 function shareText(){const m=T.marks.map(x=>x==='r'?'🟥':'🟧').join('');
   return `The Puzz · Hanko #${T.day} 判\nToday: ${T.c} (${kw(T.c)})\n${m}\nStamp book: ${Object.keys(deck).length} kanji`}
 function renderSheet(){if(mode==="today"&&window.Kitchen)Kitchen.mark("hk");const n=T.marks.filter(x=>x==='r').length;$('steps').innerHTML='';
-  $('main').innerHTML=`<section class="sheet"><h2>Today's sheet is stamped</h2>${revealHTML(T.c)}<pre id="shareTxt">${esc(shareText())}</pre>
+  $('main').innerHTML=`<section class="sheet puzz-panel"><h2>Today's sheet is stamped</h2>${revealHTML(T.c)}<pre id="shareTxt">${esc(shareText())}</pre>
     <div class="row"><button class="btn primary" id="copyBtn">Copy result</button><button class="btn" id="bookBtn">Open stamp book</button><button class="btn" id="moreBtn">Practise more</button></div>
     <div class="sub">${n} of ${T.marks.length} stamped first time. A new kanji arrives at midnight.</div></section>`;
   $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected · copy it'};
