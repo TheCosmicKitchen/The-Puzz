@@ -42,6 +42,7 @@ h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:v
 .picker{display:flex;flex-wrap:wrap;gap:4px}
 .picker button{font:800 15px var(--display);width:30px;height:32px;border-radius:7px;border:0;background:var(--tile);color:var(--tile-ink);box-shadow:inset 0 -2px 0 var(--tile-edge);cursor:pointer}
 .picker button.x{background:none;box-shadow:none;color:var(--muted)}
+.picker button:not(.x):active{scale:1.28;transition-duration:.06s}
 .picker button:focus-visible{outline:3px solid var(--foe);outline-offset:1px}
 .kitrow{display:flex;flex-wrap:wrap;gap:6px}.kitchip{font:700 12px var(--body);padding:3px 10px;border-radius:99px;background:color-mix(in srgb,var(--gold) 22%,transparent);color:var(--ink)}
 .trail i{width:12px;height:12px;border-radius:50%;border:2px solid var(--muted);display:block}
@@ -52,7 +53,9 @@ h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:v
 .foe h2{font:800 20px/1.1 var(--display);margin:0}
 .foe .about{font-size:12.5px;color:var(--muted);margin:2px 0 6px}
 .bar{position:relative;height:16px;border-radius:99px;background:color-mix(in srgb,var(--hp) 18%,transparent);overflow:hidden}
-.bar i{position:absolute;inset:0 auto 0 0;background:var(--hp);border-radius:99px;transition:width .3s}
+.bar i,.bar s{position:absolute;inset:0;border-radius:99px;background:var(--hp);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.bar s{background:color-mix(in srgb,var(--hp) 40%,#fff);transition:transform .45s ease-in .4s}
+@media (prefers-reduced-motion:reduce){.bar i,.bar s{transition:none}}
 .bar b{position:relative;display:block;text-align:center;font:700 11px/16px var(--body);color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.35)}
 .intent{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font:700 13px var(--body);padding:4px 10px;border-radius:99px;background:color-mix(in srgb,var(--foe) 16%,transparent);color:var(--ink)}
 .intent .k{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
@@ -93,6 +96,7 @@ h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:v
 .btn{font:700 14px var(--body);border:2px solid var(--ink);background:var(--card);color:var(--ink);padding:7px 14px;border-radius:12px;cursor:pointer}
 .btn.primary{background:var(--ink);color:var(--bg)}
 .btn:disabled{opacity:.35;cursor:default}
+@media (prefers-reduced-motion:no-preference){.btn.breathe{animation:breathe .36s ease-in-out}@keyframes breathe{50%{scale:1.09}}}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 /* tiles */
 /* Tiles: chunky bone-and-wood blocks. Ivory face, a darker bevel underneath, a big serif letter, points in the corner. */
@@ -130,7 +134,7 @@ h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:v
 .hand button.sel .tile{transform:translateY(-9px) rotate(-3deg);box-shadow:inset 0 -4px 0 var(--tile-edge),inset 0 0 0 1.5px var(--tile-edge),0 0 0 3px var(--gold),0 10px 14px rgba(40,25,10,.35)}
 .hand button:disabled{cursor:default}
 @media (max-width:380px){.hand .tile{--ts:44px}}
-@media (prefers-reduced-motion:no-preference){.tile.new{animation:morph .45s cubic-bezier(.3,1.4,.6,1)}@keyframes morph{0%{transform:rotateY(90deg) scale(.9)}100%{transform:none}}}
+@media (prefers-reduced-motion:no-preference){.tile.new{animation:morph .32s ease-out}@keyframes morph{0%{transform:perspective(320px) rotateY(90deg) scale(.92)}60%{transform:perspective(320px) rotateY(-14deg) scale(1.07)}100%{transform:none}}}
 .brand{display:flex;align-items:center;gap:10px}
 .logo{width:54px;height:54px;flex:none}
 @media (prefers-reduced-motion:no-preference){.logo .flame{transform-origin:36px 22px;animation:candle 1.8s ease-in-out infinite}@keyframes candle{0%,100%{transform:scale(1) rotate(0)}30%{transform:scale(1.08,.95) rotate(-3deg)}60%{transform:scale(.96,1.06) rotate(2deg)}}}
@@ -147,14 +151,23 @@ h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:v
 /* animation layer */
 #fx{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
 .flyer,.dragghost{position:fixed;display:grid;place-items:center}
-.dragghost{transform:translate(-50%,-60%) rotate(-4deg);filter:drop-shadow(0 10px 12px rgba(0,0,0,.35))}
+.dragghost{transform:translate(-50%,-60%) rotate(-4deg) scale(1.08);filter:drop-shadow(0 14px 14px rgba(0,0,0,.38))}
+body.dragging .cardx.can{box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 70%,transparent),0 0 18px color-mix(in srgb,var(--gold) 45%,transparent)}
+@media (prefers-reduced-motion:no-preference){body.dragging .cardx.can{animation:glow 1s ease-in-out infinite}@keyframes glow{50%{box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 80%,transparent),0 0 26px color-mix(in srgb,var(--gold) 60%,transparent)}}}
 .dragghost .tile{--ts:54px}
 .float{position:fixed;font:800 26px/1 var(--display);white-space:nowrap;text-shadow:0 2px 0 rgba(0,0,0,.25),0 0 10px rgba(255,255,255,.4)}
 .float.big{font-size:34px}
 .float.dmg{color:#E23B2E}.float.heal{color:#2EA35B}.float.blk{color:#3E6FB8;font-size:22px}
-.hand button.deal .tile{animation:deal .5s cubic-bezier(.3,1.5,.6,1) both;animation-delay:var(--d,0s)}
-@keyframes deal{from{transform:translateY(46px) rotate(-14deg) scale(.6);opacity:0}to{transform:none;opacity:1}}
+.hand button.deal .tile{animation:deal .42s cubic-bezier(.25,.7,.4,1) both;animation-delay:var(--d,0s)}
+@keyframes deal{0%{transform:translate(-90px,50px) rotate(-26deg) scale(.55);opacity:0}45%{transform:translate(-26px,-22px) rotate(-8deg) scale(1);opacity:1}78%{transform:translate(0,3px) rotate(2deg) scale(1.05)}100%{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.hand button.deal .tile{animation:none}}
+#fx .vign{position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(200,30,30,.5) 100%);opacity:0}
+#fx .dim{position:fixed;inset:0;background:#000;opacity:0}
+#fx .ring{position:fixed;border-radius:50%;translate:-50% -50%;opacity:0}
+#fx .puff{position:fixed;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:color-mix(in srgb,var(--muted) 70%,var(--paper));opacity:0}
+#fx .conf{position:fixed;top:0;left:0}#fx .conf .tile{--ts:30px;border-radius:7px}
+.result.fell{transition-duration:.9s;transition-timing-function:ease}
+@starting-style{.result.fell{translate:0 0}}
 /* draft: pick 1 of 3 */
 .draft{background:var(--paper);border:2px solid var(--gold);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:8px}
 .draft h3{font:800 20px var(--display);margin:0}
@@ -162,8 +175,11 @@ h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:v
 .offer{display:flex;flex-direction:column;gap:3px;text-align:left;background:var(--card);border:2px solid var(--rule);border-radius:14px;padding:10px 12px;color:var(--ink);font:14px/1.35 var(--body);cursor:pointer}
 .offer:hover,.offer:focus-visible{border-color:var(--ink);transform:translateY(-1px)}
 .offer b{font:800 18px var(--display)}.offer .tag{font:700 11px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--gold)}
-@media (prefers-reduced-motion:no-preference){.offer{animation:offerin .4s cubic-bezier(.3,1.4,.6,1) both}.offer:nth-child(2){animation-delay:.07s}.offer:nth-child(3){animation-delay:.14s}
-  @keyframes offerin{from{transform:translateY(16px) scale(.96);opacity:0}to{transform:none;opacity:1}}}
+@media (prefers-reduced-motion:no-preference){.offer{--r:-6deg;--x:-26px;animation:offerin .34s cubic-bezier(.3,1.35,.6,1) both}.offer:nth-child(2){--r:0deg;--x:0px;animation-delay:.07s}.offer:nth-child(3){--r:6deg;--x:26px;animation-delay:.14s}
+  @keyframes offerin{from{transform:translate(var(--x),46px) rotate(var(--r)) scale(.9);opacity:0}to{transform:none;opacity:1}}
+  .offer.t-rare{position:relative;overflow:hidden}
+  .offer.t-rare::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 30%,rgba(255,226,140,.6) 50%,transparent 70%);transform:translateX(-110%);animation:shimmer .6s .42s ease-out both}
+  @keyframes shimmer{to{transform:translateX(110%)}}}
 .edges{display:flex;flex-wrap:wrap;gap:5px}
 .edge{font:700 11.5px var(--body);padding:3px 9px;border-radius:99px;background:color-mix(in srgb,var(--gold) 25%,transparent);color:var(--ink);display:inline-flex;align-items:center;gap:5px}
 .edges{flex-direction:column;align-items:flex-start;gap:3px}
@@ -204,7 +220,7 @@ details p{margin:8px 0;font-size:14px}
     <div class="trail" id="trail" aria-label="Foes"></div>
   </header>
   <section class="foe" id="foe" aria-live="polite"></section>
-  <div class="you"><span>You</span><div class="bar" id="youBar"><i></i><b></b></div><span id="youBlock" class="blk"></span></div>
+  <div class="you"><span>You</span><div class="bar" id="youBar"><s></s><i></i><b></b></div><span id="youBlock" class="blk"></span></div>
   <div class="status" id="status"></div>
   <section class="draft" id="draft" hidden></section>
   <section class="cards" id="cards"></section>
@@ -424,26 +440,43 @@ function fly(items,k,delay=0){if(!MOTION||!items.length)return delay;const c=cen
     Object.assign(el.style,{left:it.r.left+'px',top:it.r.top+'px',width:it.r.width+'px',height:it.r.height+'px'});fxLayer.append(el);
     const dx=c.x-(it.r.left+it.r.width/2),dy=c.y-(it.r.top+it.r.height/2),sp=(i%2?1:-1)*(18+i*6);
     el.animate([{transform:'none'},{transform:`translate(${dx*.45}px,${dy*.45-50}px) rotate(${sp}deg) scale(1.15)`,offset:.55},{transform:`translate(${dx}px,${dy}px) rotate(${sp*2}deg) scale(.35)`,opacity:.15}],
-      {duration:430,delay:delay+i*60,easing:'cubic-bezier(.45,0,.7,.2)',fill:'forwards'}).onfinish=()=>el.remove()});
-  return delay+(items.length-1)*60+430}
+      {duration:430,delay:delay+i*40,easing:'cubic-bezier(.45,0,.7,.2)',fill:'forwards'}).onfinish=()=>el.remove()});
+  return delay+(items.length-1)*40+430}
+// one-shot shapes on the fx layer: a gold burst, a dust puff, a red edge vignette, a short dim, a ring
+function fxEl(cls,style){const el=document.createElement('div');el.className=cls;Object.assign(el.style,style||{});fxLayer.append(el);return el}
+function burst(k,color,delay=0){if(!MOTION)return;const c=centerOf(anchor(k));
+  const ring=fxEl('ring',{left:c.x+'px',top:c.y+'px',width:'90px',height:'90px',border:`5px solid ${color}`,boxShadow:`0 0 18px ${color}`});
+  ring.animate([{scale:.3,opacity:1},{scale:2.1,opacity:0}],{duration:480,delay,easing:'cubic-bezier(.2,.8,.2,1)'}).onfinish=()=>ring.remove();
+  for(let i=0;i<8;i++){const a=i/8*Math.PI*2,sp=fxEl('ring',{left:c.x+'px',top:c.y+'px',width:'8px',height:'8px',background:color});
+    sp.animate([{translate:'-50% -50%',opacity:1,scale:1},{translate:`calc(-50% + ${Math.cos(a)*70}px) calc(-50% + ${Math.sin(a)*70}px)`,opacity:0,scale:.4}],{duration:460,delay:delay+40,easing:'ease-out'}).onfinish=()=>sp.remove()}}
+function dust(r,delay=0){if(!MOTION||!r)return;const cx=r.left+r.width/2,cy=r.top+r.height*.75;
+  for(let i=0;i<9;i++){const a=Math.PI*(1+i/8),d=30+(i%3)*12,p=fxEl('puff',{left:cx+'px',top:cy+'px'});
+    p.animate([{translate:'0 0',scale:.6,opacity:.85},{translate:`${Math.cos(a)*d}px ${Math.sin(a)*d*.55-10}px`,scale:2.2,opacity:0}],{duration:520,delay:delay+i*12,easing:'ease-out'}).onfinish=()=>p.remove()}}
+function vignette(delay=0){if(!MOTION)return;const v=fxEl('vign');
+  v.animate([{opacity:0},{opacity:1,offset:.3},{opacity:0}],{duration:520,delay,easing:'ease-out'}).onfinish=()=>v.remove()}
+function dimPage(){if(!MOTION)return;const d=fxEl('dim');d.animate([{opacity:0},{opacity:.45,offset:.3},{opacity:.45,offset:.6},{opacity:0}],{duration:300}).onfinish=()=>d.remove()}
+const later=(ms,fn)=>ms>0?setTimeout(fn,ms):fn();
 function shake(el,amt=7,delay=0){if(MOTION&&el)el.animate([{transform:'none'},{transform:`translateX(${-amt}px)`},{transform:`translateX(${amt}px)`},{transform:`translateX(${-amt/2}px)`},{transform:'none'}],{duration:340,delay})}
 function playFx(list){for(const e of list){
   if(e.t==='hit'){const at=fly(e.from||[],'foe');const sv=$('foe').querySelector('svg');
     if(MOTION&&sv)sv.animate([{filter:'none'},{filter:'brightness(2.4) saturate(.2)'},{filter:'none'}],{duration:260,delay:at});shake($('foe'),e.n>=15?11:7,at);
+    if(MOTION&&sv)sv.animate([{translate:'0 0',rotate:'0deg',scale:1},{translate:'12px -5px',rotate:'9deg',scale:.92,offset:.3},{translate:'0 0',rotate:'0deg',scale:1}],{duration:320,delay:at,easing:'ease-out'});
+    later(MOTION?at:0,()=>(e.from||[]).length>1?Puzz.thud():Puzz.tick());
     if(e.n)floatText('foe','−'+e.n,'dmg'+(e.n>=15?' big':''),at);if(e.blocked)floatText('foe','🛡 '+e.blocked,'blk',at+140);if(e.fire&&MOTION)floatText('foe','🔥','dmg',at+60)}
   else if(e.t==='ward'){const at=fly(e.from||[],'you');floatText('you','+'+e.n+' 🛡','blk',at);if(MOTION)$('youBlock').animate([{transform:'scale(2)'},{transform:'none'}],{duration:420,delay:at,easing:'ease-out'})}
   else if(e.t==='heal')floatText('you','+'+e.n+' ❤','heal',e.delay||0);
-  else if(e.t==='edge')floatText('foe',e.name+'!','edgefx',300);
-  else if(e.t==='spark'){const card=document.querySelector(`[data-card="${e.card}"]`);if(card&&MOTION)card.animate([{boxShadow:'0 0 0 0 rgba(224,165,38,.95)'},{boxShadow:'0 0 0 16px rgba(224,165,38,0)'}],{duration:520,easing:'ease-out'})}
+  else if(e.t==='edge'){floatText('foe',e.name+'!','edgefx',300);burst('foe','#F0B84A',300)}
+  else if(e.t==='spark'){const card=document.querySelector(`[data-card="${e.card}"]`);if(card&&MOTION)card.animate([{boxShadow:'0 0 0 0 rgba(224,165,38,.95)'},{boxShadow:'0 0 0 16px rgba(224,165,38,0)'}],{duration:520,easing:'ease-out'});Puzz.tick()}
   else if(e.t==='foeTurn'){const sv=$('foe').querySelector('svg');
     if(MOTION&&sv&&e.atk)sv.animate([{transform:'none'},{transform:'translateY(20px) scale(1.14)',offset:.35},{transform:'none'}],{duration:440,easing:'ease-in-out'});
     if(e.dmg){shake(document.querySelector('.you'),9,200);floatText('you','−'+e.dmg,'dmg big',200);
-      if(MOTION)document.querySelector('.wrap').animate([{boxShadow:'inset 0 0 0 0 rgba(210,40,40,0)'},{boxShadow:'inset 0 0 80px 10px rgba(210,40,40,.4)'},{boxShadow:'inset 0 0 0 0 rgba(210,40,40,0)'}],{duration:520,delay:200})}
+      vignette(200);later(MOTION?200:0,()=>Puzz.thud())}
     if(e.blocked)floatText('you','🛡 '+e.blocked,'blk',260);if(e.armor)floatText('foe','+'+e.armor+' 🛡','blk',120)}
   else if(e.t==='poof'){if(!MOTION)continue;const el=document.createElement('div');el.className='flyer';el.innerHTML=e.html;
     Object.assign(el.style,{left:e.r.left+'px',top:e.r.top+'px',width:e.r.width+'px',height:e.r.height+'px'});fxLayer.append(el);
-    el.animate([{transform:'none',opacity:1},{transform:'scale(1.3) rotate(-10deg)',filter:'brightness(2.5)',opacity:1,offset:.3},{transform:'translateY(-60px) scale(.15) rotate(50deg)',opacity:0}],{duration:700,delay:e.delay||0,easing:'ease-in',fill:'forwards'}).onfinish=()=>el.remove();
-    if(e.next)$('foe').animate([{opacity:0,transform:'translateX(60px)'},{opacity:0,transform:'translateX(60px)',offset:.55},{opacity:1,transform:'none'}],{duration:1100,easing:'cubic-bezier(.3,1.3,.6,1)'})}}}
+    el.animate([{transform:'none',opacity:1},{transform:'scale(1.25) rotate(-8deg)',filter:'brightness(2.5)',opacity:1,offset:.3},{transform:'translateY(30px) scale(.6,.1)',opacity:0}],{duration:560,delay:e.delay||0,easing:'ease-in',fill:'forwards'}).onfinish=()=>el.remove();
+    dust(e.r,(e.delay||0)+300);later((e.delay||0)+200,()=>Puzz.thud());
+    if(e.next)$('foe').animate([{opacity:0,translate:'0 -70px'},{opacity:0,translate:'0 -70px',offset:.5},{opacity:1,translate:'0 6px',offset:.82},{opacity:1,translate:'0 0'}],{duration:1150,easing:'ease-in'})}}}
 // where a tile is now, so it can fly from there
 const srcOf=t=>{if(dragSrc)return dragSrc;const el=document.querySelector(`#hand [data-t="${t.id}"] .tile`);return el?{r:el.getBoundingClientRect(),html:el.outerHTML}:null};
 function foeSnap(){const sv=$('foe').querySelector('svg');return sv?{html:sv.outerHTML,r:sv.getBoundingClientRect()}:null}
@@ -538,15 +571,19 @@ function endTurn(){
 // ---- drawing ----
 function render(){
   const f=foe(),fd=F(),m=nextMove();
-  if(S.deep){const best=+store.get('scrawl-deep-best')||0;$('trail').innerHTML=`<span class="depth">Depth <b>${S.fi+1}</b>${best?` · best ${best}`:''}</span>`}
+  const key=S.seed+'/'+S.fi,fv={was:seen.foeKey===key?seen.foeP:f.hp/f.max,now:f.hp/f.max};
+  if(S.deep){const best=+store.get('scrawl-deep-best')||0;$('trail').innerHTML=`<span class="depth">Depth <b>${S.fi+1}</b>${best?` · best ${best}`:''}</span>`;
+    if(seen.depthSeed===S.seed&&seen.depth!==S.fi){Puzz.pop($('trail').querySelector('b'));if(f.k==='editor')dimPage()}seen.depthSeed=S.seed;seen.depth=S.fi}
   else $('trail').innerHTML=S.foes.map((_,i)=>`<i class="${i<S.fi||S.over==='won'?'done':i===S.fi?'now':''}" title="${FOES[S.foes[i].k].name}"></i>`).join('');
   const about=S.deep&&f.k==='editor'?'Crosses out what you write. Waits at every third floor.':fd.about;
   $('foe').innerHTML=`${foeSVG(fd)}<div><h2>${fd.name}</h2><div class="about">${about}${S.deep&&f.ax>1?` · hits ${Math.round((f.ax-1)*100)}% harder down here`:''}</div>
-    <div class="bar"><i style="width:${f.hp/f.max*100}%"></i><b>${f.hp} / ${f.max}</b></div>
+    <div class="bar"><s style="transform:${barX(fv.was)}"></s><i style="transform:${barX(fv.was)}"></i><b>${f.hp} / ${f.max}</b></div>
     ${f.block?`<span class="blk">🛡 ${f.block}</span>`:''}<div class="intent"><span class="k">Next</span>${S.stun?'Stunned: skips its move':moveText(m)}</div></div>`;
   flash='';
-  $('youBar').querySelector('i').style.width=(S.hp/HP*100)+'%';$('youBar').querySelector('b').textContent=`${S.hp} / ${HP}`;
-  $('youBlock').textContent=S.block?`🛡 ${S.block}`:'';
+  {const bar=$('foe').querySelector('.bar');if(fv.was!==fv.now){void bar.offsetWidth;setBar(bar,fv.now)}
+    if(seen.foeKey===key&&seen.foeHp!==f.hp)Puzz.pop(bar.querySelector('b'));seen.foeKey=key;seen.foeP=fv.now;seen.foeHp=f.hp}
+  setBar($('youBar'),S.hp/HP);Puzz.pop($('youBar').querySelector('b'),`${S.hp} / ${HP}`);
+  Puzz.pop($('youBlock'),S.block?`🛡 ${S.block}`:'');
   const st=[];if(S.muffle)st.push('Muffled: vowels worth 0');if(S.hand.some(t=>t.crossed))st.push('Red pen: crossed tiles can\'t be used');
   $('status').innerHTML=st.map(x=>`<span>${x}</span>`).join('');
   // draft: a third trick before the first foe; after a win, a new trick in place of an old one, or keep your kit
@@ -567,7 +604,7 @@ function render(){
   let blade=card('spell','Spellblade','any time',`A real word, 3 to ${MAXWORD} letters: its points, plus a bonus for length. Spell as many words as your tiles allow.`,true,!!T)+edgeChip+
     `<div class="wordrow"><div class="slots">${[...Array(MAXWORD)].map((_,i)=>{const t=S.spell[i]&&byId(S.spell[i]);const bq=S.bonus&&S.bonus[i],BQ={dl:'double letter',tl:'triple letter',dw:'double word'};return `<button class="slot ${t?'full':''} ${bq?'b-'+bq:''}" data-spell="${i}" aria-label="${t?'Letter '+(t.ch===BLANK?'blank':t.ch.toUpperCase())+', tap to take back':'Empty word slot'}${bq?', '+BQ[bq]:''}">${t?tileHTML(t):bq?`<span class="blab">${bq.toUpperCase()}</span>`:''}</button>`}).join('')}</div>
     </div>
-    <div class="strikerow"><div class="wordinfo">${raw.length?(raw.length<3?'Three letters or more.':w?`<b>${w.toUpperCase()}</b>${raw.includes(BLANK)?' (blank filled)':''} · <b>${hit.dmg} damage</b>${hit.on?` · <b class="edgeon">${E.name}!</b>`:''}${hit.blk?` · <b class="blkon">🛡 +${hit.blk} block</b>`:''}<br><small>${breakdown(hit)}</small>`:`<span class="bad">${raw.replace(/\?/g,'_').toUpperCase()} isn't in the word list</span>`):'Tap tiles to spell into the blade.'}</div><button class="btn primary" id="strikeBtn" ${w?'':'disabled'}>Strike</button></div></div>`;
+    <div class="strikerow"><div class="wordinfo">${raw.length?(raw.length<3?'Three letters or more.':w?`<b>${w.toUpperCase()}</b>${raw.includes(BLANK)?' (blank filled)':''} · <b><span class="dmgn">${hit.dmg}</span> damage</b>${hit.on?` · <b class="edgeon">${E.name}!</b>`:''}${hit.blk?` · <b class="blkon">🛡 +${hit.blk} block</b>`:''}<br><small>${breakdown(hit)}</small>`:`<span class="bad">${raw.replace(/\?/g,'_').toUpperCase()} isn't in the word list</span>`):'Tap tiles to spell into the blade.'}</div><button class="btn primary" id="strikeBtn" ${w?'':'disabled'}>Strike</button></div></div>`;
   let h='';
   S.kit.forEach(k=>{const Tk=TOOLS[k],p=preview(k,T),pk=(k==='swap'&&!S.pairCard||S.pairCard===k)&&S.swapPick&&byId(S.swapPick),ch=S.choosing&&S.choosing.k===k&&byId(S.choosing.id);
     const tierTag=Tk.tier&&Tk.tier!=='common'?`<span class="tiertag ${Tk.tier}">${TIER_NAME[Tk.tier]}</span>`:'';
@@ -582,7 +619,31 @@ function render(){
   $('fxkey').innerHTML=drafting?'':fxs.map(k=>`<span><b>${FX[k].icon} ${FX[k].name}</b> ${FX[k].say}</span>`).join('')+(S.hand.some(t=>t.ch===BLANK)?'<span><b>Blank</b> any letter in a word, worth 0</span>':'');
   S.hand.forEach(t=>t.fresh=false);
   $('endBtn').disabled=!!S.over||drafting;$('log').innerHTML=S.log||'';
+  const dealt=dealNext&&!drafting;
   if(!drafting)dealNext=false;if(fxq.length)playFx(fxq.splice(0));
+  feelAfter(w,hit,dealt);
+}
+// ---- feel: what changed since the last draw, so only real changes animate ----
+const barX=p=>`translateX(${(Math.max(0,Math.min(1,p))*100-100).toFixed(2)}%)`;
+let seen={};
+function setBar(bar,p){bar.querySelectorAll('i,s').forEach(x=>x.style.transform=barX(p))}
+const BQ_COL={dl:'#5f9fd4',tl:'#2f6fbf',dw:'#d16882'};
+function feelAfter(w,hit,dealt){
+  const turn=S.seed+'/'+S.fi+'/'+S.turn,sameTurn=seen.turn===turn,prev=sameTurn?seen.spell||[]:[];
+  // a letter landed in the blade: a short spring, and a bonus square flashes its colour
+  if(sameTurn&&S.spell.length>prev.length&&prev.every((id,i)=>S.spell[i]===id)){
+    for(let i=prev.length;i<S.spell.length;i++){const slot=document.querySelector(`[data-spell="${i}"]`),tile=slot&&slot.querySelector('.tile');
+      Puzz.anim(tile,[{scale:1.18,translate:'0 -6px'},{scale:.94,translate:'0 0',offset:.55},{scale:1}],{duration:220,easing:Puzz.SPRING});
+      const bq=S.bonus&&S.bonus[i];if(bq&&slot&&MOTION){const r=slot.getBoundingClientRect(),ring=fxEl('ring',{left:r.left+r.width/2+'px',top:r.top+r.height/2+'px',width:r.width+'px',height:r.height+'px',borderRadius:'12px',background:BQ_COL[bq]});
+        ring.animate([{scale:.9,opacity:.75},{scale:1.5,opacity:0}],{duration:360,easing:'ease-out'}).onfinish=()=>ring.remove()}}
+    Puzz.tick()}
+  // the word turned valid (or changed): Strike breathes once, the damage counts up to the preview
+  const n=document.querySelector('.wordinfo .dmgn');
+  if(w&&n&&(!sameTurn||seen.w!==w||seen.dmg!==hit.dmg)){Puzz.count(n,hit.dmg,{from:sameTurn&&seen.w?seen.dmg:0,duration:300});
+    if(!seen.w||!sameTurn){const b=$('strikeBtn');if(b&&MOTION){b.classList.remove('breathe');void b.offsetWidth;b.classList.add('breathe')}}}
+  seen.turn=turn;seen.spell=S.spell.slice();seen.w=w||null;seen.dmg=hit?hit.dmg:0;
+  // the last tile of a fresh hand lands
+  if(dealt&&S.hand.length&&!S.over)setTimeout(()=>Puzz.tick(),MOTION?(250+(S.hand.length-1)*70+380):0);
 }
 function shareText(){if(S.deep)return `The Puzz · Dungeon Scrawl ${mode==='descent'?`#${D.num} endless`:`endless ${S.seed.slice(8)}`}\n⬇️ Depth ${S.fi+1}: beat ${S.fi} foe${S.fi===1?'':'s'} in ${S.turns} turns, fell to ${FOES[foe().k].name}\n${S.best?`Best word: ${S.best.w.toUpperCase()} (${S.best.dmg})`:'No words struck'} · Edge: ${EDGES[S.edge].name}\nKit: ${S.kit.filter(k=>k!=='quill').map(k=>TOOLS[k].name).join(' · ')}\nthecosmickitchen.github.io/The-Puzz/scrawl.html${mode==='descent'?'':'#'+S.seed.slice(8)}`;
   const head=mode==='daily'||mode==='day'?`Dungeon Scrawl #${D.num} · ${D.label}`:mode==='lab'?'Dungeon Scrawl tool lab':`Dungeon Scrawl endless ${S.seed.slice(8)}`;
@@ -593,7 +654,16 @@ const randomBtn='<button class="btn" id="randomBtn">Random descent</button>';
 function descendButton(){if(S.over!=='won')return randomBtn+'<span class="sub">A new crawl tomorrow.</span>';const d=todaysDescent();
   if(d&&d.over)return randomBtn+`<span class="sub">You fell at depth ${d.fi+1} in today's descent.</span>`;
   return `<button class="btn" id="descendBtn">${d?`Continue your descent (depth ${d.fi+1})`:'Keep descending ⬇'}</button>`+randomBtn}
-function showResult(){const R=$('result');R.hidden=false;
+// a cleared daily rains letter tiles; a fall fades slowly to the result. Only for a run that just ended in front of you.
+let played=false;const celebrated=new Set();['pointerdown','keydown'].forEach(t=>addEventListener(t,()=>played=true,{capture:true,passive:true}));
+function confetti(){if(!MOTION)return;const W=innerWidth,L='SCRAWLWORDHIT'.toLowerCase();
+  for(let i=0;i<26;i++){const x=W*(.1+.8*Math.random()),el=fxEl('conf',{left:x+'px'});el.innerHTML=tileHTML({ch:L[i%L.length],fx:i%7===0?'gold':null});
+    const dx=(Math.random()-.5)*160,rot=(Math.random()-.5)*540,h=innerHeight*(.55+.4*Math.random());
+    el.animate([{translate:`0 -50px`,rotate:'0deg',opacity:1},{translate:`${dx}px ${h}px`,rotate:rot+'deg',opacity:1,offset:.85},{translate:`${dx*1.1}px ${h+30}px`,rotate:rot*1.1+'deg',opacity:0}],
+      {duration:900+Math.random()*500,delay:i*18,easing:'cubic-bezier(.3,.1,.6,1)'}).onfinish=()=>el.remove()}}
+function showResult(){const R=$('result');const fresh=played&&!celebrated.has(S.seed+S.over+S.fi);celebrated.add(S.seed+S.over+S.fi);
+  R.classList.toggle('fell',S.over==='lost'&&fresh);R.hidden=false;
+  if(fresh&&S.over==='won'&&!S.deep&&(mode==='daily'||mode==='day')){confetti();Puzz.thud()}
   if(mode==='daily'&&S.over==='won'&&window.Kitchen)Kitchen.mark('tc');
   let deepNote='';
   if(S.deep){const best=+store.get('scrawl-deep-best')||0,d=S.fi+1;if(d>best){store.set('scrawl-deep-best',d);deepNote=best?`<p class="sub">New best: depth ${d} (was ${best}).</p>`:''}else deepNote=`<p class="sub">Your best is depth ${best}.</p>`}
@@ -608,7 +678,11 @@ function showResult(){const R=$('result');R.hidden=false;
 
 // ---- input ----
 $('draft').addEventListener('click',e=>{const b=e.target.closest('[data-pick],[data-replace],[data-keep],[data-back]');if(!b)return;
-  if(b.dataset.pick)pick(b.dataset.pick);else if(b.dataset.replace)replace(b.dataset.replace);else if(b.dataset.keep)keepKit();else{S.swapIn=null;render()}});
+  const k=b.dataset.pick||(S.swapIn&&b.dataset.replace?S.swapIn:null),ghost=k&&b.cloneNode(true),from=k&&b.getBoundingClientRect();
+  if(b.dataset.pick)pick(b.dataset.pick);else if(b.dataset.replace)replace(b.dataset.replace);else if(b.dataset.keep)keepKit();else{S.swapIn=null;render()}
+  const card=k&&S.draft==null&&document.querySelector(`[data-card="${k}"]`);
+  if(card){Puzz.tick();ghost.style.animation='none';Puzz.fly(ghost,card,{from,duration:300,arc:40}).then(()=>Puzz.settle(card))}});
+$('cards').addEventListener('pointerdown',e=>{if(e.target.closest('[data-choose]:not(.x)'))Puzz.tick()},{passive:true});
 $('hand').addEventListener('click',e=>{if(suppress)return;const b=e.target.closest('[data-t]');if(!b)return;sel=sel===b.dataset.t?null:b.dataset.t;render()});
 $('cards').addEventListener('click',e=>{const pc=e.target.closest('[data-choose]');if(pc){chooseLetter(pc.dataset.choose);return}
   const sp=e.target.closest('[data-spell]');if(sp){const i=+sp.dataset.spell;if(S.spell[i]&&!sel){S.spell.splice(i,1);render();return}useOn('spell');return}
@@ -654,11 +728,15 @@ $('endBtn').onclick=()=>endTurn();
 $('hand').addEventListener('pointerdown',e=>{const b=e.target.closest('[data-t]');if(!b||!S||S.over)return;drag={id:b.dataset.t,x:e.clientX,y:e.clientY,started:false,over:null}});
 document.addEventListener('pointermove',e=>{if(!drag)return;
   if(!drag.started){if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<8)return;const t=byId(drag.id);if(!t||t.crossed){drag=null;return}
-    drag.started=true;drag.ghost=document.createElement('div');drag.ghost.className='dragghost';drag.ghost.innerHTML=tileHTML(t);fxLayer.append(drag.ghost);render()}
-  e.preventDefault();drag.ghost.style.left=e.clientX+'px';drag.ghost.style.top=e.clientY+'px';
+    drag.started=true;drag.ghost=document.createElement('div');drag.ghost.className='dragghost';drag.ghost.innerHTML=tileHTML(t);fxLayer.append(drag.ghost);
+    drag.gx=e.clientX;drag.gy=e.clientY;document.body.classList.add('dragging');followGhost(drag);Puzz.tick();render()}
+  e.preventDefault();drag.tx=e.clientX;drag.ty=e.clientY;if(!MOTION){drag.gx=drag.tx;drag.gy=drag.ty}
   const el=document.elementFromPoint(e.clientX,e.clientY),c=el&&el.closest('[data-card]'),k=c?c.dataset.card:null;
   if(k!==drag.over){drag.over=k;document.querySelectorAll('.cardx.drop').forEach(x=>x.classList.remove('drop'));if(c)c.classList.add('drop')}},{passive:false});
-function endDrag(e,cancel){if(!drag)return;const d=drag;drag=null;if(!d.started)return;
+// the held tile trails the finger slightly, so it feels carried
+function followGhost(d){d.tx??=d.gx;d.ty??=d.gy;const step=()=>{if(drag!==d)return;d.gx+=(d.tx-d.gx)*.45;d.gy+=(d.ty-d.gy)*.45;
+  d.ghost.style.left=d.gx+'px';d.ghost.style.top=d.gy+'px';requestAnimationFrame(step)};step()}
+function endDrag(e,cancel){if(!drag)return;const d=drag;drag=null;document.body.classList.remove('dragging');if(!d.started)return;
   suppress=true;setTimeout(()=>suppress=false,0);const g=d.ghost.querySelector('.tile');dragSrc=g?{r:g.getBoundingClientRect(),html:g.outerHTML}:null;d.ghost.remove();
   if(!cancel&&d.over){sel=d.id;useOn(d.over)}else{sel=null;render()}dragSrc=null}
 document.addEventListener('pointerup',e=>endDrag(e,false));document.addEventListener('pointercancel',e=>endDrag(e,true));
