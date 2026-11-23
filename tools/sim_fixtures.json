@@ -1,7 +1,7 @@
 {
  "note": "Captured from scrawl.html in the browser. trail = a fixed script (strike the first 3-letter word found by a triple loop over the hand, then end the turn), recorded as [word, foe index, your hp, foe hps] after each turn. `py tools/scrawl_sim.py selftest` replays it in Python and must match exactly.",
  "captured": "2026-11-22 (bonus squares and new tools from the 23 Nov daily; 22 Nov is the last day without)",
- "rules_hash": "d50ee2d697f5",
+ "rules_hash": "0bc6dfb10440",
  "cases": [
   {
    "seed": "scrawl-2026-10-25",
@@ -313,17 +313,17 @@
    "foes": [
     [
      "worm",
-     27,
+     34,
      0
     ],
     [
      "jacket",
-     31,
+     39,
      0
     ],
     [
      "editor",
-     44,
+     56,
      0
     ]
    ],
@@ -332,7 +332,7 @@
    "offers0": [
     "slip",
     "twin",
-    "mimic"
+    "kin"
    ],
    "hand0": [
     [
@@ -366,9 +366,9 @@
      0,
      24,
      [
-      15,
-      31,
-      44
+      22,
+      39,
+      56
      ]
     ],
     [
@@ -376,9 +376,9 @@
      0,
      14,
      [
-      8,
-      31,
-      44
+      9,
+      39,
+      56
      ]
     ],
     [
@@ -386,9 +386,9 @@
      0,
      8,
      [
-      4,
-      31,
-      44
+      5,
+      39,
+      56
      ]
     ],
     [
@@ -397,8 +397,8 @@
      9,
      [
       0,
-      31,
-      44
+      39,
+      56
      ]
     ],
     [
@@ -407,8 +407,8 @@
      0,
      [
       0,
-      31,
-      44
+      39,
+      56
      ]
     ]
    ]

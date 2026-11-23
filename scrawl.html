@@ -226,7 +226,7 @@ details p{margin:8px 0;font-size:14px}
   </details>
 </div>
 <script src="puzz-core.js?v=42c25c62"></script>
-<script src="scrawl-items.js?v=56c947e8"></script>
+<script src="scrawl-items.js?v=524dcb55"></script>
 <script src="typeset-words.js?v=4cb3d273"></script>
 <script src="streak.js?v=b548c2ec"></script>
 <script>
@@ -303,9 +303,9 @@ const FOES={
   splice:{name:'Comma Splice',about:'Hits twice, joined together badly.',hp:22,col:'#C24F7A',eye:'#fff',glyph:',',moves:[{atk:6,twice:1},{atk:9},{atk:6,twice:1}]},
   editor:{name:'The Editor',about:'Crosses out what you write. Last foe of the day.',hp:32,col:'#B33A3A',eye:'#fff',glyph:'✎',moves:[{atk:12},{redpen:2,atk:6},{atk:14},{armor:8,atk:6}]}};
 let FOE_HP_SCALE=1.22,FOE_ATK_SCALE=1;   // tuned so a greedy bot with only Quill, Nudge and Flip (unused) wins about half its runs
-// Bonus squares hit harder, so foes on bonus days (from 23 Nov, and all endless runs) get 27% more health:
+// Bonus squares hit harder, so foes on bonus days (from 22 Nov, and all endless runs) get 27% more health:
 // tuned so a bot that never uses tricks still wins about two runs in three, as before.
-const HP_BOOST=1.27,hpBoost=seed=>!/^scrawl-\d{4}-\d{2}-\d{2}$/.test(seed)||seed.slice(7)>='2026-11-23'?HP_BOOST:1;
+const HP_BOOST=1.27,hpBoost=seed=>!/^scrawl-\d{4}-\d{2}-\d{2}$/.test(seed)||seed.slice(7)>='2026-11-22'?HP_BOOST:1;
 const atkOf=m=>Math.round((m.atk||0)*FOE_ATK_SCALE*((S&&S.foes&&foe().ax)||1));
 // Endless descent: after the first three foes, more keep coming. Every third is The Editor; each set of three hits 10% harder.
 const DEEP_KINDS=['gremlin','worm','hush','jacket','splice'];
@@ -359,9 +359,9 @@ function drawTiles(n){const r=mulberry(hseed(S.seed+'-hand-'+S.fi+'-'+S.turn)),n
   const nfx=r()<.35?0:r()<.7?1:2,kinds=Object.keys(FX);
   shuffle(r,out.map((_,i)=>i)).slice(0,nfx).forEach(i=>out[i].fx=kinds[Math.floor(r()*kinds.length)]);
   return shuffle(r,out)}
-// Bonus squares on the Spellblade (from the 23 Nov daily). Each turn one slot doubles or triples the letter that lands
+// Bonus squares on the Spellblade (from the 22 Nov daily). Each turn one slot doubles or triples the letter that lands
 // there (DL, TL) or doubles the whole word (DW, only in slots 3 to 6); sometimes a second letter bonus. Seeded per turn.
-const BONUS_FROM='2026-11-23',bonusOn=()=>!/^scrawl-\d{4}-\d{2}-\d{2}$/.test(S.seed)||S.seed.slice(7)>=BONUS_FROM;
+const BONUS_FROM='2026-11-22',bonusOn=()=>!/^scrawl-\d{4}-\d{2}-\d{2}$/.test(S.seed)||S.seed.slice(7)>=BONUS_FROM;
 function rollBonus(){const b=[null,null,null,null,null,null];if(!bonusOn())return b;const r=mulberry(hseed(S.seed+'-bonus-'+S.fi+'-'+S.turn));
   const x=r(),t=x<.6?'dl':x<.75?'tl':'dw',i=t==='dw'?2+Math.floor(r()*4):Math.floor(r()*6);b[i]=t;
   if(r()<.35){const j=Math.floor(r()*6);if(!b[j])b[j]=r()<.75?'dl':'tl'}

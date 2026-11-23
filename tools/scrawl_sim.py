@@ -78,7 +78,7 @@ VOW = set('aeiou')
 BAG_V = [c for c in BAG if c in VOW]; BAG_C = [c for c in BAG if c not in VOW]
 FXK = ['fire', 'steel', 'gold', 'leaf']
 HARD_L, AWK_L, FAIR_FROM = set('jqxz'), set('fkvwy'), '2026-11-21'   # fair draws start with this daily
-BONUS_FROM = '2026-11-23'   # blade bonus squares start with this daily
+BONUS_FROM = '2026-11-22'   # blade bonus squares start with this daily
 HP_BOOST = 1.27   # page: HP_BOOST. Foes on bonus days get 27% more health (keeps the no-tricks win rate near 2 in 3)
 def hp_boost(seed): return HP_BOOST if not re.fullmatch(r'scrawl-\d{4}-\d{2}-\d{2}', seed) or seed[7:] >= BONUS_FROM else 1
 HAND, HP, MAXWORD = 6, 30, 6
@@ -228,7 +228,7 @@ class Game:
         m = re.fullmatch(r'scrawl-(\d{4}-\d{2}-\d{2})', self.seed)
         return [k for k in ROSTER if not TOOLS[k].get('from') or not m or m.group(1) >= TOOLS[k]['from']]
     def roll_bonus(self):
-        """page: rollBonus(). Bonus squares on the blade, from the 23 Nov daily: DL / TL double or triple a letter, DW doubles the word."""
+        """page: rollBonus(). Bonus squares on the blade, from the 22 Nov daily: DL / TL double or triple a letter, DW doubles the word."""
         b = [None] * 6
         if re.fullmatch(r'scrawl-\d{4}-\d{2}-\d{2}', self.seed) and self.seed[7:] < BONUS_FROM: return b
         r = mulberry(hseed(f'{self.seed}-bonus-{self.fi}-{self.turn}'))
@@ -916,7 +916,7 @@ def selftest():
 
 LAB = os.path.join(ROOT, 'scrawl-lab')       # the analytics pages on the site
 CHANGELOG = [   # newest first; every version gets a git tag scrawl-sim-v<version> so old reports can be rerun
-    ('1.6.0', '2026-11-22', 'Blade bonus squares (DL / TL / DW) from the 23 Nov daily; five new tools (Soften, Scribble, Lunge, Recoil, Triplicate) join the roster that day; planner scores each word by its letter order.'),
+    ('1.6.0', '2026-11-22', 'Blade bonus squares (DL / TL / DW) from the 22 Nov daily; five new tools (Soften, Scribble, Lunge, Recoil, Triplicate) join the roster that day; planner scores each word by its letter order.'),
     ('1.5.0', '2026-11-20', 'Items as data: every trick is read from scrawl-items.js, the same file the page uses; trick behaviour fingerprinted identical to 1.4.0 on page and sim.'),
     ('1.4.0', '2026-11-20', 'Tiered equipment from the 21 Nov daily: 15-trick roster (common / uncommon / rare from the 1.2.0 trials), tiered Armoury offers; Swap, Rotate, Vowel Shift, Split and Ink Blot retired from offers.'),
     ('1.3.0', '2026-11-20', 'Endless descent (deep runs: foes keep coming, every third is The Editor, +10% attack per set of three); fair draws from the 21 Nov daily on (no consonant twice in a hand, one of JQXZ, one of FKVWY), matching the page; fixtures recaptured.'),
