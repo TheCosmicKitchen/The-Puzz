@@ -130,10 +130,17 @@ function render(){let h=rungHTML(Pz.start,'start'),p=Pz.start;
     h+=`<div class="rung input">${[0,1,2,3].map(i=>`<i class="${i===typed.length?'on':''}">${typed[i]||''}</i>`).join('')}</div>`;
     const {d}=bfs(Pz.end,CS);const left=d.get(cur);h+=`<div class="gap">${left!=null?`${left} step${left===1?'':'s'} away at best`:'No common-word route from here. Step back?'}</div>`;
     h+=rungHTML(Pz.end,'end')}
-  $('ladder').innerHTML=h;
+  $('ladder').innerHTML=h;feelLadder();
   const rows=['qwertyuiop','asdfghjkl','⏎zxcvbnm⌫'];
   $('kb').innerHTML=rows.map(r=>`<div class="kr">${[...r].map(ch=>ch==='⏎'?'<button class="k wide" data-k="enter">Enter</button>':ch==='⌫'?'<button class="k wide" data-k="back" aria-label="Delete">⌫</button>':`<button class="k" data-k="${ch}">${ch}</button>`).join('')}</div>`).join('');
   $('kb').hidden=st.done}
+// ---- feel: typed letters drop in, an accepted rung flips in sequence (never part of the puzzle) ----
+let feel={key:null,typed:'',rungs:0};
+function feelLadder(){const same=feel.key===Pz.label,rs=$('ladder').children;
+  if(same&&typed.length>feel.typed.length&&!st.done){const inp=$('ladder').querySelector('.rung.input');Puzz.drop(inp&&inp.children[typed.length-1]);Puzz.tick()}
+  if(same&&st.rungs.length===feel.rungs+1){const row=rs[st.rungs.length];
+    if(row)Puzz.flip(row.children,{stagger:70,duration:240});if(st.done)setTimeout(()=>Puzz.thud(),Puzz.reduced?0:300);else Puzz.tick()}
+  feel.key=Pz.label;feel.typed=typed;feel.rungs=st.rungs.length}
 function hint(t,c=''){$('hint').textContent=t;$('hint').className='hint '+c}
 function press(k){if(st.done)return;if(k==='back'){typed=typed.slice(0,-1);render();return}if(k==='enter'){submit();return}if(/^[a-z]$/.test(k)&&typed.length<4){typed+=k;render()}}
 function submit(){const w=typed,prev=last();if(w.length<4){hint('Four letters, please.');return}
@@ -142,7 +149,7 @@ function submit(){const w=typed,prev=last();if(w.length<4){hint('Four letters, p
   st.rungs.push(w);typed='';st.shown=null;
   if(w===Pz.end){st.done=true;persist();render();showWin();return}
   if(oneOff(w,Pz.end)){hint('One more step. You can see the bottom word from here.','good')}else hint('');persist();render()}
-function shake(){$('ladder').classList.add('shake');setTimeout(()=>$('ladder').classList.remove('shake'),400)}
+function shake(){Puzz.shake($('ladder').querySelector('.rung.input')||$('ladder'))}
 $('hintBtn').onclick=()=>{if(st.done)return;const cur=last(),{d}=bfs(Pz.end,CS);const next=nbrs(cur,CS).filter(x=>d.has(x)).sort((a,b)=>d.get(a)-d.get(b))[0];
   if(!next){hint('No route onward from here. Step back first.','bad');return}st.hints++;st.shown={from:cur,w:next};persist();render();hint('A faint rung shows one way down.')};
 $('undoBtn').onclick=()=>{if(st.done)return;st.rungs.pop();st.shown=null;typed='';persist();render()};
