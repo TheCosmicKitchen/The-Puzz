@@ -114,11 +114,11 @@
       return Promise.all(list(els).map((el, i) => done(anim(el, [from, {}],
         {duration, delay: i * stagger, fill: 'backwards'}))));
     },
-    // Fly a copy of `el` from where it is to `target` (an element or a DOMRect), then remove the copy.
-    // The real element is left alone, so the game's state never depends on the flight.
-    fly(el, target, {duration = 240, delay = 0, scale, easing = EASE, arc = 0, keep = false} = {}){
+    // Fly a copy of `el` from where it is (or from `from`, a DOMRect, when el has already left the page) to `target`
+    // (an element or a DOMRect), then remove the copy. The real element is left alone, so the game never waits on it.
+    fly(el, target, {from, duration = 240, delay = 0, scale, easing = EASE, arc = 0, keep = false} = {}){
       if (reduced || !el || !target || !document.body.animate) return Promise.resolve();
-      const a = el.getBoundingClientRect(), b = target.getBoundingClientRect ? target.getBoundingClientRect() : target;
+      const a = from || el.getBoundingClientRect(), b = target.getBoundingClientRect ? target.getBoundingClientRect() : target;
       if (!a.width || !b.width) return Promise.resolve();
       const g = el.cloneNode(true); g.removeAttribute('id'); g.setAttribute('aria-hidden', 'true');
       Object.assign(g.style, {position: 'fixed', left: a.left + 'px', top: a.top + 'px', width: a.width + 'px', height: a.height + 'px',
