@@ -10,16 +10,19 @@ function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1
 
 // ---- days: puzzle #1 was 25 Oct 2026, local midnight
 const PUZZ_START=[2026,9,25];
-function dayInfo(on){const d=on?new Date(on+'T12:00'):new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(...PUZZ_START);
+function puzzDay(on){const d=on?new Date(on+'T12:00'):new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(...PUZZ_START);
   const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`,wk=t.getDay();
   return{num:Math.round((t-s)/864e5)+1,iso,wk,weekend:wk===0||wk===6,label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
+
+// games that need extra day fields (puzzle size, theme) define their own dayInfo built on puzzDay
+function dayInfo(on){return puzzDay(on)}
 
 // ---- small text helpers
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
 const newCode=()=>Math.random().toString(36).slice(2,7);
 
-if(typeof module!=='undefined'&&module.exports){module.exports={hseed,mulberry,dayInfo,esc,fmt,newCode}}
+if(typeof module!=='undefined'&&module.exports){module.exports={hseed,mulberry,puzzDay,dayInfo,esc,fmt,newCode}}
 else{
   // ---- browser only
   var $=id=>document.getElementById(id);
