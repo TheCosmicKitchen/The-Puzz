@@ -138,7 +138,17 @@ function render(){const N=Pz.N,{rs,cs}=sums(),size=N<=5?58:N===6?50:44;
     return cls==='ok'&&!st.done?`<button class="t ok" style="aspect-ratio:1" data-line="${line}" aria-label="${name} adds up to ${target}. Tap to circle its numbers">${inner}</button>`:`<div class="t ${cls}" style="aspect-ratio:1">${inner}</div>`};
   for(let r=0;r<N;r++){for(let c=0;c<N;c++){const i=r*N+c,m=st.mark[i];h+=`<button class="n ${m===1?'struck':m===2?'kept':''}" data-i="${i}" aria-label="${Pz.g[i]}${m===1?', struck':m===2?', kept':''}">${Pz.g[i]}</button>`}h+=tcell(rs[r],Pz.rt[r],'r'+r,`Row ${r+1}`)}
   for(let c=0;c<N;c++)h+=tcell(cs[c],Pz.ct[c],'c'+c,`Column ${c+1}`);h+='<div class="corner"></div>';
-  b.innerHTML=h;$('undoBtn').disabled=st.done||!st.hist.length}
+  b.innerHTML=h;$('undoBtn').disabled=st.done||!st.hist.length;feelBoard(rs,cs)}
+// ---- feel: only what changed since the last draw animates (never part of the puzzle) ----
+// a struck or circled number settles; a target that adds up pops; one that goes short flashes red; a solved board sweeps
+let feel={key:null,mark:'',lines:''};
+function feelBoard(rs,cs){const N=Pz.N,b=$('board'),same=feel.key===Pz.label,mark=st.mark.join('');
+  const lines=[...rs.map((s,r)=>s===Pz.rt[r]?'o':s<Pz.rt[r]?'x':'-'),...cs.map((s,c)=>s===Pz.ct[c]?'o':s<Pz.ct[c]?'x':'-')].join(''),tEl=k=>b.querySelectorAll('.t')[k];
+  if(same&&mark!==feel.mark){let n=0;for(let i=0;i<mark.length;i++)if(mark[i]!==feel.mark[i]&&n++<N){Puzz.settle(b.querySelector(`[data-i="${i}"]`))}Puzz.tick()}
+  if(same)for(let k=0;k<lines.length;k++){if(lines[k]===feel.lines[k])continue;if(lines[k]==='o')Puzz.pop(tEl(k));else if(lines[k]==='x')Puzz.flash(tEl(k))}
+  const solved=!lines.includes('x')&&!lines.includes('-');
+  if(same&&solved&&feel.lines&&(feel.lines.includes('x')||feel.lines.includes('-'))){Puzz.sweep([...b.querySelectorAll('.n:not(.struck)')],{stagger:28});Puzz.thud()}
+  feel={key:Pz.label,mark,lines}}
 // undo history: the board as it was before each change, newest last (kept in the save, so it survives a reload)
 function snap(){st.hist.push(st.mark.join(''));if(st.hist.length>300)st.hist.shift()}
 function undo(){if(st.done||!st.hist.length)return;st.mark=st.hist.pop().split('').map(Number);st.undos=(st.undos||0)+1;render();persist()}
