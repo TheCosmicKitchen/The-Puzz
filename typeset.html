@@ -68,7 +68,7 @@ h1 span{color:var(--accent)}
 .tile.new{background:var(--new);box-shadow:inset 0 -2px 0 var(--new-edge),inset 0 0 0 1.5px var(--new-edge);cursor:grab}
 .tile.mine{background:var(--mine);box-shadow:inset 0 -2px 0 var(--mine-edge),inset 0 0 0 1.5px var(--mine-edge)}
 .tile.bad{box-shadow:inset 0 -2px 0 var(--new-edge),inset 0 0 0 2.5px var(--bad)}
-@media (prefers-reduced-motion:no-preference){.tile.new.pop{animation:pop .16s ease-out}@keyframes pop{from{transform:scale(.7)}to{transform:none}}}
+@media (prefers-reduced-motion:no-preference){.tile.new.pop{animation:pop .12s cubic-bezier(.3,1.5,.6,1)}@keyframes pop{from{transform:translateY(-10px) scale(1.06);opacity:.2}to{transform:none;opacity:1}}}
 
 /* what your tiles spell */
 .preview{min-height:46px;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;text-align:center;font-size:14px;color:var(--muted);padding-inline:4px}
@@ -350,7 +350,7 @@ function render(){
     else if(ch){inner=`<span class="tile ${mineSet.has(i)?'mine':''}">${ch}<sub>${VAL[ch]}</sub></span>`;label=ch.toUpperCase()}
     else{inner=PREM[p]+(cursor&&cursor.i===i?`<span class="arrow">${cursor.d?'↓':'→'}</span>`:'');label=p?['','double letter','triple letter','double word','triple word'][p]:'empty'}
     h+=`<button class="${cls}" data-i="${i}" role="gridcell" aria-label="Row ${r+1}, column ${c+1}: ${label}">${inner}</button>`}
-  $('grid').innerHTML=h;lastPop=-1;
+  $('grid').innerHTML=h;feelGrid(badCells);lastPop=-1;
   // the rack
   const used=usedSlots();let rk='';
   st.order.forEach(t=>{const L=G.rack[t],u=used.has(t)||st.done;
@@ -367,6 +367,17 @@ function render(){
   if(!st.done){if(armed){lb.textContent=`Tap again to lock in ${armed.total}`;lb.classList.add('arm');lb.disabled=false}
     else{lb.classList.remove('arm');lb.disabled=!(ev&&ev.ok);lb.textContent=ev&&ev.ok?`Lock in ${ev.total} points`:'Place tiles to make a word'}}
 }
+// ---- feel: a placed tile drops in (CSS .pop) with a tick, tiles that make a bad word shake once,
+// a locked-in play flips its tiles in sequence (never part of the puzzle) ----
+let feel={key:null,bad:new Set(),done:false,total:null};
+const sqTile=i=>$('grid').querySelector(`[data-i="${i}"] .tile`);
+function feelGrid(bad){const key=G.iso||G.code,same=feel.key===key;
+  if(same&&lastPop>=0)Puzz.tick();
+  if(same){const fresh=[...bad].filter(i=>!feel.bad.has(i));if(fresh.length)fresh.forEach(i=>Puzz.shake(sqTile(i)))}
+  if(same&&st.done&&!feel.done&&st.final){Puzz.flip(st.final.placed.map(p=>sqTile(p.i)),{stagger:80,duration:260});setTimeout(()=>Puzz.thud(),Puzz.reduced?0:250)}
+  const ev=!st.done&&current(),tot=ev&&ev.ok?ev.total:null;
+  if(same&&tot!=null&&tot!==feel.total)requestAnimationFrame(()=>Puzz.pop($('lockBtn')));
+  feel={key,bad:new Set(bad),done:st.done,total:tot}}
 function disarm(){if(armed){clearTimeout(armed.tm);armed=null}}
 
 // ---- moves ----
