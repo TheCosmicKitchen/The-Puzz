@@ -76,6 +76,7 @@ details.rules p{margin:8px 0 0;max-width:62ch}
 .work{display:flex;flex-direction:column;gap:4px;font:500 16px var(--mono);font-variant-numeric:tabular-nums;min-height:24px;align-items:center}
 .work div{background:var(--bg);border-radius:8px;padding:3px 12px}
 .close{font:600 14px var(--display);color:var(--muted)}
+.tile.sel{scale:1.08;translate:0 -3px;box-shadow:0 6px 14px rgba(0,0,0,.2)}
 </style>
 <link rel="stylesheet" href="puzz-feel.css?v=ff9fa738">
 <script src="puzz-feel.js?v=cc8f5fec"></script>
@@ -133,12 +134,29 @@ function load(m,code){mode=m;setTabs(m);$('endCtl').hidden=m!=='endless';$('win'
 function persist(){if(mode==='daily')store.set('tally-daily',{iso:Pz.iso,st})}
 // replay the steps to get the current tiles
 function tiles(){let t=Pz.nums.map((v,i)=>({v,id:'n'+i,big:v>=25}));for(const s of st.steps){const a=t.find(x=>x.id===s.a),b=t.find(x=>x.id===s.b);t=t.filter(x=>x!==a&&x!==b);t.push({v:s.v,id:s.id,made:1})}return t}
-function render(){const t=tiles();
-  $('tiles').innerHTML=t.map(x=>`<button class="tile ${x.big?'big':''} ${x.made?'made':''} ${pick===x.id?'sel':''} ${x.v===Pz.target?'hitme':''}" data-id="${x.id}">${x.v}</button>`).join('');
+// ---- feel: animate only what changed since the last draw (never part of the puzzle) ----
+let feel={key:null,steps:0,pick:null};
+function feelRender(t,draw){
+  const key=Pz.label,same=feel.key===key,rects={};
+  if(same)$('tiles').querySelectorAll('[data-id]').forEach(b=>rects[b.dataset.id]={r:b.getBoundingClientRect(),el:b.cloneNode(true)});
+  draw();
+  const n=st.steps.length,el=id=>$('tiles').querySelector(`[data-id="${id}"]`);
+  // a selected number lifts
+  if(same&&pick&&pick!==feel.pick)Puzz.anim(el(pick),[{scale:1,translate:'0 0'},{}],{duration:120,easing:Puzz.SPRING});
+  // two numbers merge into their result with a squash
+  if(same&&n===feel.steps+1){const s=st.steps[n-1],to=el(s.id);
+    [s.a,s.b].forEach(id=>{const o=rects[id];if(o&&to)Puzz.fly(o.el,to,{from:o.r,duration:200,scale:.8})});
+    setTimeout(()=>Puzz.anim(el(s.id),[{scale:'1.3 .7'},{scale:'.88 1.14',offset:.45},{scale:'1.04 .97',offset:.75},{scale:1}],{duration:260,easing:'ease-out'}),Puzz.reduced?0:190);
+    if(s.v===Pz.target){Puzz.anim($('target'),[{scale:1},{scale:1.22,offset:.3},{scale:.96,offset:.65},{scale:1}],{duration:480,delay:220,easing:'ease-in-out'});setTimeout(()=>Puzz.thud(),Puzz.reduced?0:220)}
+    else Puzz.tick()}
+  else if(same&&n<feel.steps)Puzz.tick();
+  feel.key=key;feel.steps=n;feel.pick=pick}
+function render(){const t=tiles();feelRender(t,()=>{
+  $('tiles').innerHTML=t.map(x=>`<button class="tile ${x.big?'big':''} ${x.made?'made':''} ${pick===x.id?'sel':''} ${x.v===Pz.target?'hitme':''}" data-id="${x.id}">${x.v}</button>`).join('')});
   document.querySelectorAll('[data-op]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.op===op));
   $('work').innerHTML=st.steps.map(s=>`<div>${s.txt}</div>`).join('');
   const near=t.reduce((b,x)=>Math.abs(x.v-Pz.target)<Math.abs(b-Pz.target)?x.v:b,t[0].v);$('close').textContent=st.steps.length?`Closest so far: ${near} (${Math.abs(near-Pz.target)===0?'exact':'off by '+Math.abs(near-Pz.target)}) · par ${Pz.par}`:`Par: ${Pz.par} steps`}
-function hint(t,c=''){$('hint').textContent=t;$('hint').className='hint '+c}
+function hint(t,c=''){$('hint').textContent=t;$('hint').className='hint '+c;if(c==='bad')Puzz.shake($('tiles').querySelector('.sel')||$('tiles'))}
 $('tiles').addEventListener('click',e=>{const b=e.target.closest('[data-id]');if(!b||st.done)return;const id=b.dataset.id;
   if(!st.started){st.started=true;Timer.start(st,$('timer'))}
   if(!pick||!op){pick=pick===id?null:id;render();return}
