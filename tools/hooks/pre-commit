@@ -1,0 +1,5 @@
+#!/bin/sh
+# Stamp shared scripts and styles with a hash of their contents, so pages never load a stale copy.
+# Turn it on once per clone:  git config core.hooksPath tools/hooks
+py tools/stamp_assets.py 2>/dev/null || python3 tools/stamp_assets.py || exit 1
+git diff --name-only -- '*.html' '*/index.html' | xargs -r git add

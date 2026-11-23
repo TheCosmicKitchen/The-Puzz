@@ -405,6 +405,243 @@ window.SCRAWL_ITEMS={
     "copyFrom": true,
     "sameKind": true
    }
+  },
+  {
+   "id": "soften",
+   "name": "Soften",
+   "tier": "common",
+   "kind": "choose",
+   "uses": 1,
+   "desc": "A consonant becomes any vowel you like.",
+   "target": {
+    "type": "consonant",
+    "msg": "Consonants only"
+   },
+   "effect": {
+    "options": {
+     "letters": "aeiou"
+    }
+   },
+   "from": "2026-11-23"
+  },
+  {
+   "id": "scribble",
+   "name": "Scribble",
+   "tier": "uncommon",
+   "kind": "choose",
+   "uses": 1,
+   "desc": "A consonant becomes any of E T A O I N S R H L.",
+   "target": {
+    "type": "consonant",
+    "msg": "Consonants only"
+   },
+   "effect": {
+    "options": {
+     "letters": "etaoinsrhl"
+    }
+   },
+   "from": "2026-11-23"
+  },
+  {
+   "id": "lunge",
+   "name": "Lunge",
+   "tier": "uncommon",
+   "kind": "morph",
+   "uses": 1,
+   "desc": "Three steps on: B→E, X→A.",
+   "target": {
+    "type": "notBlank",
+    "msg": "Not on a blank"
+   },
+   "effect": {
+    "shift": 3
+   },
+   "from": "2026-11-23"
+  },
+  {
+   "id": "recoil",
+   "name": "Recoil",
+   "tier": "uncommon",
+   "kind": "morph",
+   "uses": 1,
+   "desc": "Three steps back: E→B, A→X.",
+   "target": {
+    "type": "notBlank",
+    "msg": "Not on a blank"
+   },
+   "effect": {
+    "shift": -3
+   },
+   "from": "2026-11-23"
+  },
+  {
+   "id": "triplicate",
+   "name": "Triplicate",
+   "tier": "uncommon",
+   "kind": "make",
+   "perFight": 1,
+   "desc": "A tile becomes three: itself and two copies, once a foe.",
+   "target": {
+    "type": "any"
+   },
+   "effect": {
+    "make": [
+     {
+      "self": true
+     },
+     {
+      "copy": true
+     },
+     {
+      "copy": true
+     }
+    ]
+   },
+   "from": "2026-11-23"
+  },
+  {
+   "id": "kin",
+   "name": "Kin",
+   "tier": "rare",
+   "kind": "pair",
+   "uses": 1,
+   "desc": "A tile takes the letter of another of its kind, vowel to vowel or consonant to consonant.",
+   "target": {
+    "type": "notBlank",
+    "msg": "Not on a blank"
+   },
+   "effect": {
+    "copyFrom": true,
+    "sameKind": true
+   },
+   "from": "2026-11-23"
+  },
+  {
+   "id": "bloom",
+   "name": "Bloom",
+   "tier": "uncommon",
+   "kind": "make",
+   "uses": 1,
+   "desc": "A vowel becomes two of itself.",
+   "target": {
+    "type": "vowel",
+    "msg": "Vowels only"
+   },
+   "effect": {
+    "make": [
+     {
+      "self": true
+     },
+     {
+      "copy": true
+     }
+    ]
+   },
+   "from": "2026-11-23"
+  },
+  {
+   "id": "dial",
+   "name": "Dial",
+   "tier": "uncommon",
+   "kind": "choose",
+   "uses": 2,
+   "desc": "One step either way, your pick: C→B or C→D (×2).",
+   "target": {
+    "type": "notBlank",
+    "msg": "Not on a blank"
+   },
+   "effect": {
+    "options": {
+     "steps": [
+      -1,
+      1
+     ]
+    }
+   },
+   "from": "2026-11-23"
+  },
+  {
+   "id": "spin",
+   "name": "Spin",
+   "tier": "uncommon",
+   "kind": "choose",
+   "uses": 2,
+   "desc": "Turn or flip it by shape, your pick, twice a turn: b d p q · n u · m w · s z · h y.",
+   "target": {
+    "type": "letters",
+    "letters": "bdpqnumwszhy",
+    "msg": "Only b d p q n u m w s z h y"
+   },
+   "effect": {
+    "options": {
+     "groups": [
+      "bdpq",
+      "nu",
+      "mw",
+      "sz",
+      "hy"
+     ]
+    }
+   },
+   "from": "2026-11-23"
+  },
+  {
+   "id": "plural",
+   "name": "Plural",
+   "tier": "common",
+   "kind": "make",
+   "uses": 1,
+   "desc": "A tile sprouts an S beside it.",
+   "target": {
+    "type": "any"
+   },
+   "effect": {
+    "make": [
+     {
+      "self": true
+     },
+     {
+      "letter": "s"
+     }
+    ]
+   },
+   "from": "2026-11-23"
+  },
+  {
+   "id": "wye",
+   "name": "Wye",
+   "tier": "common",
+   "kind": "choose",
+   "uses": 1,
+   "desc": "A vowel becomes any of A E I O U Y.",
+   "target": {
+    "type": "vowel",
+    "msg": "Vowels only"
+   },
+   "effect": {
+    "options": {
+     "letters": "aeiouy"
+    }
+   },
+   "from": "2026-11-23"
+  },
+  {
+   "id": "resound",
+   "name": "Resound",
+   "tier": "common",
+   "kind": "choose",
+   "uses": 2,
+   "desc": "A vowel becomes any vowel you like, twice a turn.",
+   "target": {
+    "type": "vowel",
+    "msg": "Vowels only"
+   },
+   "effect": {
+    "options": {
+     "letters": "aeiou"
+    }
+   },
+   "from": "2026-11-23"
   }
  ]
 };

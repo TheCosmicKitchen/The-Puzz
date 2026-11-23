@@ -1,5 +1,5 @@
-// The Puzz feel layer: shared by every page.  <script src="puzz-feel.js?v=1" defer></script>
-// Bump ?v= in every page when this file changes (pages cache it for 10 minutes).
+// The Puzz feel layer: shared by every page.  <script src="puzz-feel.js"></script> (in <head>, not deferred, so it can catch the first page reveal)
+// Pages load it with ?v=<hash of this file>, set by tools/stamp_assets.py, so changes are never served stale.
 (function(){
   if (window.__puzzFeel) return; window.__puzzFeel = true;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -18,6 +18,11 @@
       done.add(a.href); const l = document.createElement('link'); l.rel = 'prefetch'; l.href = a.href; document.head.append(l) };
     addEventListener('pointerover', warm, {passive: true}); addEventListener('touchstart', warm, {passive: true});
   }
+
+  // A page transition the browser has to skip (a fast double navigation, a resize mid-load) rejects its promises;
+  // that's harmless, so don't let it surface as an uncaught error.
+  const quiet = e => { const vt = e.viewTransition; if (vt) { vt.ready.catch(() => {}); vt.finished.catch(() => {}); vt.updateCallbackDone && vt.updateCallbackDone.catch(() => {}) } };
+  addEventListener('pagereveal', quiet); addEventListener('pageswap', quiet);
 
   // A tiny haptic tick on presses, on phones that support it (Android). Off with reduced motion.
   if (!reduced && navigator.vibrate && matchMedia('(pointer: coarse)').matches) {

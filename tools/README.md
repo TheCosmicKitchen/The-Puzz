@@ -55,13 +55,18 @@ Every trick except Quill lives in `../scrawl-items.js`, which both the page and 
 | `kind` | `morph` (change the tile), `choose` (the player picks the new letter), `make` (one tile becomes several), `pair` (two tiles), `swap` |
 | `uses` / `perFight` | charges per turn / per foe |
 | `tier` | `common`, `uncommon`, `rare`. No tier means retired: never offered, kept for old dailies |
+| `from` | optional date: the tool joins dailies from that day (endless and lab runs get it straight away) |
 | `target.type` | `any`, `notBlank`, `vowel`, `consonant`, `letters` (+ `letters`), `minValue` (+ `value`). `msg` is shown when refused |
 | morph `effect` | `{"shift": n}`, `{"mirror": true}`, `{"map": {"b": "d", ...}}`, `{"set": "?"}` |
-| choose `effect` | `{"options": {"letters": "aeiou"}}` or `{"options": {"groups": ["bdpq", "nu"]}}` (the tile's own group) |
+| choose `effect` | `{"options": {"letters": "aeiou"}}`, `{"options": {"groups": ["bdpq", "nu"]}}` (the tile's own group) or `{"options": {"steps": [-1, 1]}}` (steps from the tile) |
 | make `effect` | `{"make": [{"self": true}, {"copy": true}, {"letter": "e"}]}`. `self` keeps the enchantment, `copy` and `letter` don't |
 | pair `effect` | `{"copyFrom": true, "sameKind": true}`: the first tile takes the second's letter |
 
 The file's order matters: it sets the roster order, which the seeded Armoury rolls depend on. Add new items at the end.
+
+## Asset stamps
+
+Pages load every local script and stylesheet as `file.js?v=<hash of the file>`. Run `py tools/stamp_assets.py` before committing, or turn on the hook once with `git config core.hooksPath tools/hooks` and it runs on every commit. `--check` exits 1 if any stamp is stale. Nobody bumps version numbers by hand.
 
 ## Versioning
 
@@ -74,6 +79,7 @@ The file's order matters: it sets the roster order, which the seeded Armoury rol
 
 ## Changelog
 
+* **1.6.0** (2026-11-22): from the 23 Nov daily: blade bonus squares (DL / TL / DW), foes get 27% more health on bonus days (no-tricks win rate 67.6%, as before), and 12 new tools join the roster (Soften, Scribble, Lunge, Recoil, Triplicate, Kin, Bloom, Dial, Spin, Plural, Wye, Resound; 27 in all). New grammar: choose options by `steps`. The planner scores each word by its letter order.
 * **1.5.0** (2026-11-20): items as data. Every trick is read from `scrawl-items.js`, the same file the page uses, and the rules fingerprint covers it. Behaviour is fingerprinted identical to 1.4.0 on both page and sim.
 * **1.4.0** (2026-11-20): tiered equipment from the 21 Nov daily: a 15-trick roster in common / uncommon / rare (from the 1.2.0 trials), tiered Armoury offers with rare odds rising every three floors; Swap, Rotate, Vowel Shift, Split and Ink Blot retired from offers. Offers checked against the page over 558 rolls.
 * **1.3.0** (2026-11-20): fair draws from the 21 Nov daily on (no consonant twice in a hand, one of JQXZ, one of FKVWY); the endless descent (`compare --deep`); fixtures recaptured, including a 13-floor descent.
