@@ -547,7 +547,7 @@ function render(){
     s+=`<g class="${isBad(c)?'bad':''}" transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)})" pointer-events="none">${svg}</g>`});
   const sp=np(P.start);if(route.length<2&&!st.solved&&!partial)s+=`<g transform="translate(${sp.x},${sp.y})" pointer-events="none"><circle class="depart-halo" r="14"/></g>`;
   s+=`<g id="train">${trainSVG(pts)}</g>`;
-  $('svg').innerHTML=s;
+  $('svg').innerHTML=s;feelTrack();
 }
 function along(pts,back){let rem=back;for(let k=pts.length-1;k>0;k--){const a=pts[k-1],b=pts[k],L=Math.hypot(b.x-a.x,b.y-a.y);if(L>=rem){const t=rem/L;return{x:b.x+(a.x-b.x)*t,y:b.y+(a.y-b.y)*t,ang:Math.atan2(b.y-a.y,b.x-a.x)}}rem-=L}
   const a=pts[0],b=pts[1]||{x:a.x+1,y:a.y};return{x:a.x,y:a.y,ang:Math.atan2(b.y-a.y,b.x-a.x)}}
@@ -631,13 +631,18 @@ function arrive(){
 function reveal(){if(!P||st.solved||mode==='journey'||!P.sol)return;
   if(!confirm('Reveal a route that works? That ends this line'+(mode==='daily'?', and today won\'t count toward your streak.':'.')))return;
   route=[...(Array.isArray(P.sol)?P.sol:P.sol.nodes),EX];badClues=[];st.revealed=true;st.solved=true;stopTimer();persist();hint('');showWin(false)}
+// ---- feel: a tick for each length of track laid while you drive (never part of the puzzle) ----
+let feel={P:null,n:0};
+function feelTrack(){const n=route.length;if(feel.P===P&&drawing&&n>feel.n)Puzz.tick();feel={P,n}}
 function hint(t,cls=''){$('hint').textContent=t;$('hint').className='hint '+cls}
 
 // ---- win ----
 function runTrain(){const pts=route.map(np),total=pts.slice(1).reduce((s,p,k)=>s+Math.hypot(p.x-pts[k].x,p.y-pts[k].y),0);
   if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-  const t0=performance.now(),dur=Math.min(4200,total*7);
-  const step=now=>{const f=Math.min(1,(now-t0)/dur),dist=total*(1-f);
+  const t0=performance.now(),dur=Math.min(4200,total*7);Puzz.thud();
+  // the train pulls away, cruises and eases into the buffer stop
+  const ease=f=>f<.5?2*f*f:1-Math.pow(-2*f+2,2)/2;
+  const step=now=>{const f=Math.min(1,(now-t0)/dur),dist=total*(1-ease(f));
     const sub=[];let acc=0;sub.push(pts[0]);
     for(let k=1;k<pts.length;k++){const L=Math.hypot(pts[k].x-pts[k-1].x,pts[k].y-pts[k-1].y);if(acc+L>=total-dist){const t=(total-dist-acc)/L;sub.push({x:pts[k-1].x+(pts[k].x-pts[k-1].x)*t,y:pts[k-1].y+(pts[k].y-pts[k-1].y)*t});break}sub.push(pts[k]);acc+=L}
     const g=$('train');if(g)g.innerHTML=trainSVG(sub.length>1?sub:pts.slice(0,2));
