@@ -219,6 +219,7 @@ details p{margin:8px 0;font-size:14px}
     <p>Watch what the foe will do next: attacks, and tricks like <b>Jumble</b> (one of your next tiles changes), <b>Nibble</b> (one fewer tile) and <b>Muffle</b> (vowels worth nothing).</p>
   </details>
 </div>
+<script src="scrawl-items.js"></script>
 <script src="typeset-words.js"></script>
 <script src="streak.js"></script>
 <script>
@@ -248,39 +249,30 @@ const HAND=6,HP=30,MAXWORD=6,WORD_BONUS=[0,0,0,0,2,4,7];
 // kind 'morph' changes a tile and gives it back, 'choose' lets you pick the new letter, 'make' turns one tile into others,
 // 'swap' and 'pair' take two tiles, 'quill' throws a tile. uses = per turn, perFight = per foe.
 // tier: common / uncommon / rare, set from the Scrawl Lab trials (win lift over Quill + Nudge + Flip). No tier = retired.
-const ROT={b:'d',d:'p',p:'q',q:'b',n:'u',u:'n',m:'w',w:'m'},VSH={a:'e',e:'i',i:'o',o:'u',u:'a'};
 const BLANK='?';
-const VOICE={b:'p',p:'b',d:'t',t:'d',g:'k',k:'g',v:'f',f:'v',z:'s',s:'z',m:'n',n:'m'},KEYROWS=['qwertyuiop','asdfghjkl','zxcvbnm'];
-const rightKey=c=>{const r=KEYROWS.find(r=>r.includes(c));return r[(r.indexOf(c)+1)%r.length]};
-const SHAPES=['bdpq','nu','mw','sz','hy'],shapeOf=c=>SHAPES.find(g=>g.includes(c));
-const step=(c,d)=>String.fromCharCode((c.charCodeAt(0)-97+d+26)%26+97),notBlank=t=>t.ch!==BLANK||'Not on a blank';
+const step=(c,d)=>String.fromCharCode((c.charCodeAt(0)-97+d+26)%26+97);
+// Every trick except Quill is data in scrawl-items.js (the simulator reads the same file). compileItem turns a record
+// into what the engine calls: ok(tile) says yes or why not; to / options / make / pair do the work for each kind.
+function compileItem(r){const tg=r.target||{type:'any'},e=r.effect||{},msg=tg.msg||'Not this tile';
+  const T={name:r.name,kind:r.kind,desc:r.desc,ok:t=>{switch(tg.type){
+    case 'any':return true;
+    case 'notBlank':return t.ch!==BLANK||msg;
+    case 'vowel':return VOW.has(t.ch)||msg;
+    case 'consonant':return(t.ch!==BLANK&&!VOW.has(t.ch))||msg;
+    case 'letters':return(t.ch!==BLANK&&tg.letters.includes(t.ch))||msg;
+    case 'minValue':return(t.ch!==BLANK&&VAL[t.ch]>=tg.value)||msg}
+    return msg}};
+  if(r.tier)T.tier=r.tier;if(r.uses)T.uses=r.uses;if(r.perFight)T.perFight=r.perFight;
+  if(r.kind==='morph')T.to=t=>({ch:e.shift!=null?step(t.ch,e.shift):e.mirror?flip(t.ch):e.map?e.map[t.ch]:e.set});
+  if(r.kind==='choose')T.options=t=>e.options.groups?[...e.options.groups.find(g=>g.includes(t.ch))]:[...e.options.letters];
+  if(r.kind==='make')T.make=t=>e.make.map(m=>m.self?{ch:t.ch,fx:t.fx}:m.copy?{ch:t.ch}:{ch:m.letter});
+  if(r.kind==='pair')T.pair=(a,b)=>!e.sameKind||VOW.has(a.ch)===VOW.has(b.ch)?[b.ch,b.ch]:null;
+  return T}
 const TOOLS={
   quill:{name:'Quill',kind:'quill',uses:1,desc:'Flick one consonant at the foe for its points.',ok:t=>(!VOW.has(t.ch)&&t.ch!==BLANK)||'Consonants only'},
-  nudge:{name:'Nudge',tier:'common',kind:'morph',uses:2,desc:'One step on: B→C, Z→A.',ok:t=>t.ch!==BLANK||'Not on a blank',to:t=>({ch:nudge(t.ch)})},
-  flip:{name:'Flip',tier:'common',kind:'morph',uses:1,desc:'Mirror it: A↔Z, B↔Y, M↔N.',ok:t=>t.ch!==BLANK||'Not on a blank',to:t=>({ch:flip(t.ch)})},
-  rotate:{name:'Rotate',kind:'morph',uses:1,desc:'Turn it by its shape: b→d→p→q, n↔u, m↔w.',ok:t=>!!ROT[t.ch]||'Only b d p q n u m w',to:t=>({ch:ROT[t.ch]})},
-  vshift:{name:'Vowel Shift',kind:'morph',uses:2,desc:'A→E→I→O→U→A.',ok:t=>!!VSH[t.ch]||'Vowels only',to:t=>({ch:VSH[t.ch]})},
-  swap:{name:'Swap',kind:'swap',uses:1,desc:'Two tiles trade letters. Enchantments stay put.',ok:t=>true},
-  twin:{name:'Twin',tier:'rare',kind:'make',uses:1,desc:'Copy a tile (the copy has no enchantment).',ok:t=>true,make:t=>[{ch:t.ch,fx:t.fx},{ch:t.ch}]},
-  split:{name:'Split',kind:'make',uses:1,desc:'A tile worth 4+ breaks into an E and an A.',ok:t=>(t.ch!==BLANK&&VAL[t.ch]>=4)||'Only tiles worth 4+',make:t=>[{ch:'e'},{ch:'a'}]},
-  inkblot:{name:'Ink Blot',kind:'morph',perFight:1,desc:'Make a blank: any letter in a word, worth 0.',ok:t=>t.ch!==BLANK||'Already blank',to:t=>({ch:BLANK})},
-  // common
-  leap:{name:'Leap',tier:'common',kind:'morph',uses:1,desc:'Two steps on: B→D, Y→A.',ok:notBlank,to:t=>({ch:step(t.ch,2)})},
-  slip:{name:'Slip',tier:'common',kind:'morph',uses:1,desc:'One key right on a keyboard: Q→W, L→A, M→Z.',ok:notBlank,to:t=>({ch:rightKey(t.ch)})},
-  whisper:{name:'Whisper',tier:'common',kind:'morph',uses:2,desc:'Voice swap: B↔P, D↔T, G↔K, F↔V, S↔Z, M↔N.',ok:t=>!!VOICE[t.ch]||'Only b p d t g k f v s z m n',to:t=>({ch:VOICE[t.ch]})},
-  upend:{name:'Upend',tier:'common',kind:'choose',uses:1,desc:'Turn or flip it by shape, your pick: b d p q · n u · m w · s z · h y.',ok:t=>!!shapeOf(t.ch)||'Only b d p q n u m w s z h y',options:t=>[...shapeOf(t.ch)]},
-  revowel:{name:'Revowel',tier:'common',kind:'choose',uses:1,desc:'A vowel becomes any vowel you like.',ok:t=>VOW.has(t.ch)||'Vowels only',options:t=>[...'aeiou']},
-  recast:{name:'Recast',tier:'common',kind:'choose',perFight:1,desc:'A tile becomes any letter you like, once a foe.',ok:notBlank,options:t=>[...'abcdefghijklmnopqrstuvwxyz']},
-  // uncommon
-  back:{name:'Back',tier:'uncommon',kind:'morph',uses:2,desc:'One step back: C→B, A→Z.',ok:notBlank,to:t=>({ch:step(t.ch,-1)})},
-  echo:{name:'Echo',tier:'uncommon',kind:'pair',uses:1,desc:'A tile takes another tile\'s letter. Pick the tile to change, then the one to copy.',ok:notBlank,pair:(a,b)=>[b.ch,b.ch]},
-  sprout:{name:'Sprout',tier:'uncommon',kind:'make',uses:1,desc:'A tile sprouts an E beside it.',ok:t=>true,make:t=>[{ch:t.ch,fx:t.fx},{ch:'e'}]},
-  double:{name:'Double',tier:'uncommon',kind:'make',perFight:2,desc:'Copy a tile, twice a foe (the copy has no enchantment).',ok:t=>true,make:t=>[{ch:t.ch,fx:t.fx},{ch:t.ch}]},
-  // rare
-  respell:{name:'Respell',tier:'rare',kind:'choose',uses:1,desc:'A consonant becomes any consonant you like.',ok:t=>(t.ch!==BLANK&&!VOW.has(t.ch))||'Consonants only',options:t=>[...'bcdfghjklmnpqrstvwxyz']},
-  mimic:{name:'Mimic',tier:'rare',kind:'pair',uses:2,desc:'A tile takes the letter of another of its kind, vowel to vowel or consonant to consonant (×2).',ok:notBlank,pair:(a,b)=>VOW.has(a.ch)===VOW.has(b.ch)?[b.ch,b.ch]:null}};
+  ...Object.fromEntries(SCRAWL_ITEMS.items.map(r=>[r.id,compileItem(r)]))};
 const KIT_MAX=4,START=['quill','nudge','flip'];
-const TRICKS=['nudge','flip','rotate','vshift','swap','twin','split','inkblot'];   // the offers before tiers (dailies up to 20 Nov)
+const TRICKS=SCRAWL_ITEMS.legacyOffers;   // the offers before tiers (dailies up to 20 Nov)
 const ROSTER=Object.keys(TOOLS).filter(k=>TOOLS[k].tier),TIER_NAME={common:'Common',uncommon:'Uncommon',rare:'Rare'};
 const TIERS_FROM='2026-11-21',tiered=()=>!/^scrawl-\d{4}-\d{2}-\d{2}$/.test(S.seed)||S.seed.slice(7)>=TIERS_FROM;
 const usesLeft=k=>TOOLS[k].perFight?(S.fightUses[k]??0):(S.uses[k]??0);

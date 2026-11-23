@@ -1,0 +1,145 @@
+[
+ {
+  "id": "g2x1",
+  "name": "Recast ′′1",
+  "kind": "choose",
+  "perFight": 1,
+  "desc": "A vowel becomes any vowel, 1× a foe.",
+  "target": {
+   "type": "vowel",
+   "msg": "Vowels only"
+  },
+  "effect": {
+   "options": {
+    "letters": "aeiou"
+   }
+  },
+  "parent": "recast",
+  "op": "cross"
+ },
+ {
+  "id": "g2x2",
+  "name": "Double ′′2",
+  "kind": "make",
+  "perFight": 1,
+  "desc": "A tile becomes itself + a copy + a copy, 1× a foe.",
+  "target": {
+   "type": "any"
+  },
+  "effect": {
+   "make": [
+    {
+     "self": true
+    },
+    {
+     "copy": true
+    },
+    {
+     "copy": true
+    }
+   ]
+  },
+  "parent": "double",
+  "op": "parts"
+ },
+ {
+  "id": "g2x3",
+  "name": "Leap ′6 ′′3",
+  "kind": "morph",
+  "uses": 1,
+  "desc": "A tile moves 3 steps on.",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "shift": 3
+  },
+  "parent": "g1x6",
+  "op": "shift",
+  "tier_guess": "uncommon",
+  "lift": 0.28,
+  "use_rate": 0.6454662655779975,
+  "hurt": 0.13653136531365315
+ },
+ {
+  "id": "g2x4",
+  "name": "Whisper ′3 ′′4",
+  "kind": "morph",
+  "desc": "A tile changes by its table, 1× a foe.",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "map": {
+    "q": "w",
+    "w": "e",
+    "e": "r",
+    "r": "t",
+    "t": "y",
+    "y": "u",
+    "u": "i",
+    "i": "o",
+    "o": "p",
+    "p": "q",
+    "a": "s",
+    "s": "d",
+    "d": "f",
+    "f": "g",
+    "g": "h",
+    "h": "j",
+    "j": "k",
+    "k": "l",
+    "l": "a",
+    "z": "x",
+    "x": "c",
+    "c": "v",
+    "v": "b",
+    "b": "n",
+    "n": "m",
+    "m": "z"
+   }
+  },
+  "parent": "g1x3",
+  "op": "charges",
+  "tier_guess": "rare",
+  "lift": 0.36,
+  "use_rate": 0.6774334351811436,
+  "hurt": 0.18536585365853658,
+  "perFight": 1
+ },
+ {
+  "id": "g2x5",
+  "name": "Back ′′5",
+  "kind": "morph",
+  "uses": 1,
+  "desc": "A tile moves 1 step back.",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "shift": -1
+  },
+  "parent": "back",
+  "op": "charges"
+ },
+ {
+  "id": "g2x6",
+  "name": "Mimic ′′6",
+  "kind": "pair",
+  "uses": 2,
+  "desc": "A tile takes another tile's letter (×2 a turn).",
+  "target": {
+   "type": "notBlank",
+   "msg": "Not on a blank"
+  },
+  "effect": {
+   "copyFrom": true,
+   "sameKind": false
+  },
+  "parent": "mimic",
+  "op": "samekind"
+ }
+]
