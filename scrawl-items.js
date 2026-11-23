@@ -422,7 +422,7 @@ window.SCRAWL_ITEMS={
      "letters": "aeiou"
     }
    },
-   "from": "2026-11-23"
+   "from": "2026-11-22"
   },
   {
    "id": "scribble",
@@ -440,7 +440,7 @@ window.SCRAWL_ITEMS={
      "letters": "etaoinsrhl"
     }
    },
-   "from": "2026-11-23"
+   "from": "2026-11-22"
   },
   {
    "id": "lunge",
@@ -456,7 +456,7 @@ window.SCRAWL_ITEMS={
    "effect": {
     "shift": 3
    },
-   "from": "2026-11-23"
+   "from": "2026-11-22"
   },
   {
    "id": "recoil",
@@ -472,7 +472,7 @@ window.SCRAWL_ITEMS={
    "effect": {
     "shift": -3
    },
-   "from": "2026-11-23"
+   "from": "2026-11-22"
   },
   {
    "id": "triplicate",
@@ -497,7 +497,7 @@ window.SCRAWL_ITEMS={
      }
     ]
    },
-   "from": "2026-11-23"
+   "from": "2026-11-22"
   },
   {
    "id": "kin",
@@ -514,7 +514,7 @@ window.SCRAWL_ITEMS={
     "copyFrom": true,
     "sameKind": true
    },
-   "from": "2026-11-23"
+   "from": "2026-11-22"
   },
   {
    "id": "bloom",
@@ -537,7 +537,7 @@ window.SCRAWL_ITEMS={
      }
     ]
    },
-   "from": "2026-11-23"
+   "from": "2026-11-22"
   },
   {
    "id": "dial",
@@ -558,7 +558,7 @@ window.SCRAWL_ITEMS={
      ]
     }
    },
-   "from": "2026-11-23"
+   "from": "2026-11-22"
   },
   {
    "id": "spin",
@@ -583,7 +583,7 @@ window.SCRAWL_ITEMS={
      ]
     }
    },
-   "from": "2026-11-23"
+   "from": "2026-11-22"
   },
   {
    "id": "plural",
@@ -605,7 +605,7 @@ window.SCRAWL_ITEMS={
      }
     ]
    },
-   "from": "2026-11-23"
+   "from": "2026-11-22"
   },
   {
    "id": "wye",
@@ -623,7 +623,7 @@ window.SCRAWL_ITEMS={
      "letters": "aeiouy"
     }
    },
-   "from": "2026-11-23"
+   "from": "2026-11-22"
   },
   {
    "id": "resound",
@@ -641,7 +641,7 @@ window.SCRAWL_ITEMS={
      "letters": "aeiou"
     }
    },
-   "from": "2026-11-23"
+   "from": "2026-11-22"
   }
  ]
 };
