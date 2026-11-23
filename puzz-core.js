@@ -1,5 +1,6 @@
 // The Puzz core: the helpers every game shares, written once.
-// Load it before a game's own script:  <script src="puzz-core.js"></script>
+// Load it before a game's own script:  <script src="puzz-core.js?v=2"></script>
+// WHEN YOU CHANGE THIS FILE, bump ?v= in every page that loads it. Pages cache it for 10 minutes, and a new page with an old core breaks.
 // It defines plain globals (same names the games already use), so a game moves onto it by deleting its own copies.
 // The pure parts (seeded random numbers, dates) also work in Node: require('./puzz-core.js'), for sims and tests.
 // Careful: shuffle is NOT here yet. Games disagree on its argument order, and a swap would change dailies.
