@@ -155,7 +155,19 @@ function render(){const N=Pz.N,maxR=Math.max(...Pz.rc.map(c=>c.length||1)),maxC=
   let h='<div></div>';for(let c=0;c<N;c++)h+=`<div class="cl col ${same(clues(colLine(c)),Pz.cc[c])?'done':''}" style="min-height:${maxC*14+6}px">${(Pz.cc[c].length?Pz.cc[c]:[0]).map(v=>`<span>${v}</span>`).join('')}</div>`;
   for(let r=0;r<N;r++){h+=`<div class="cl row ${same(clues(rowLine(r)),Pz.rc[r])?'done':''}">${(Pz.rc[r].length?Pz.rc[r]:[0]).map(v=>`<span>${v}</span>`).join('')}</div>`;
     for(let c=0;c<N;c++){const i=r*N+c,v=g[i];h+=`<div class="cell ${(c+1)%5===0&&c<N-1?'b5r':''} ${(r+1)%5===0&&r<N-1?'b5b':''}" data-i="${i}" role="button" aria-label="Row ${r+1} column ${c+1}${v===1?', stitched':v===2?', bare':''}">${v===1?xsvg('var(--a1)'):v===2?'<svg viewBox="0 0 10 10"><circle class="dot" cx="5" cy="5" r="1.4"/></svg>':''}</div>`}}
-  pz.innerHTML=h}
+  pz.innerHTML=h;feelGrid()}
+// ---- feel: a new stitch settles, a clue pops when its line is right, a line with more stitches than its clues
+// allow flashes red once, a finished sampler sweeps in reading order (never part of the puzzle) ----
+let feel={key:null,g:'',lines:''};
+function feelGrid(){const N=Pz.N,pz=$('pz'),g=st.g.join(''),same=feel.key===Pz.label,sum=a=>a.reduce((x,y)=>x+y,0);
+  const lineOf=(k)=>k<N?st.g.slice(k*N,k*N+N):[...Array(N).keys()].map(r=>st.g[r*N+(k-N)]),clueOf=k=>k<N?Pz.rc[k]:Pz.cc[k-N];
+  const lines=[...Array(2*N).keys()].map(k=>{const l=lineOf(k).map(v=>v===1?1:0),cl=clueOf(k);return String(clues(l))===String(cl)?'o':sum(l)>sum(cl)?'x':'-'}).join('');
+  const clueEl=k=>k<N?pz.querySelectorAll('.cl.row')[k]:pz.querySelectorAll('.cl.col')[k-N];
+  if(same&&g!==feel.g){for(let i=0;i<g.length;i++)if(g[i]!==feel.g[i]&&g[i]!=='0'){Puzz.settle(pz.querySelector(`[data-i="${i}"] svg`))}Puzz.tick()}
+  if(same)for(let k=0;k<lines.length;k++){if(lines[k]===feel.lines[k])continue;if(lines[k]==='o')Puzz.pop(clueEl(k));else if(lines[k]==='x')Puzz.flash(clueEl(k))}
+  feel={key:Pz.label,g,lines,done:feel.key===Pz.label?feel.done:st.done}}
+function feelSolved(){if(!st.done||feel.done)return;feel.done=true;
+  Puzz.sweep([...$('pz').querySelectorAll('.cell')].filter(c=>c.querySelector('svg:not(:has(.dot))')),{stagger:14});Puzz.thud()}
 function setCell(i,v){if(st.g[i]===v)return false;st.g[i]=v;return true}
 function check(){if(st.g.every((v,i)=>(v===1)===!!Pz.pic[i])){st.done=true;Timer.stop();persist();showWin()}}
 {let rz=0;addEventListener('resize',()=>{if(!Pz)return;cancelAnimationFrame(rz);rz=requestAnimationFrame(render)})}
@@ -164,7 +176,7 @@ $('pz').addEventListener('pointerdown',e=>{const c=e.target.closest('[data-i]');
   const val=st.g[i]===tapMode?0:tapMode;drag={val,r:Math.floor(i/Pz.N),c:i%Pz.N,axis:null};setCell(i,val);render();try{$('pz').setPointerCapture(e.pointerId)}catch(err){}});
 $('pz').addEventListener('pointermove',e=>{if(!drag)return;const el=document.elementFromPoint(e.clientX,e.clientY),c=el&&el.closest&&el.closest('[data-i]');if(!c)return;const i=+c.dataset.i,r=Math.floor(i/Pz.N),cc=i%Pz.N;
   if(!drag.axis&&(r!==drag.r||cc!==drag.c))drag.axis=r===drag.r?'r':'c';if(drag.axis==='r'&&r!==drag.r)return;if(drag.axis==='c'&&cc!==drag.c)return;if(setCell(i,drag.val))render()});
-const end=()=>{if(!drag)return;drag=null;persist();check()};$('pz').addEventListener('pointerup',end);$('pz').addEventListener('pointercancel',end);
+const end=()=>{if(!drag)return;drag=null;persist();check();feelSolved()};$('pz').addEventListener('pointerup',end);$('pz').addEventListener('pointercancel',end);
 function hoopSVG(){const N=Pz.N,ids=threadMap(Pz.pic,N);let s='';for(let i=0;i<N*N;i++)if(Pz.pic[i]){const x=i%N,y=Math.floor(i/N);s+=`<g transform="translate(${x*10},${y*10})">${xsvg(THREAD[ids[i]%4]).replace('<svg viewBox="0 0 10 10" class="x">','<g class="x">').replace('</svg>','</g>')}</g>`}
   return `<svg viewBox="-2 -2 ${N*10+4} ${N*10+4}">${s}</svg>`}
 function shareText(){const N=Pz.N;return `The Puzz · Sampler ${Pz.label}\n🧵 ${N}×${N} stitched · ⏱ ${fmt(st.elapsed)}\n${'🪡'.repeat(Math.max(1,Math.min(5,Math.round(st.elapsed/60)||1)))}`}
