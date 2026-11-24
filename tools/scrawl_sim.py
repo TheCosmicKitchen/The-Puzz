@@ -26,7 +26,7 @@ from datetime import date, timedelta
 from itertools import combinations, product
 from multiprocessing import Pool
 
-SIM_VERSION = '1.6.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
+SIM_VERSION = '1.7.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 M = 0xFFFFFFFF
@@ -60,11 +60,14 @@ def jsround(x): return math.floor(x + 0.5)
 def load_words():
     src = open(os.path.join(ROOT, 'typeset-words.js'), encoding='utf8').read()
     out = set()
-    for key in ('common', 'extra'):
+    for key in ('common', 'extra', 'more'):   # the permissive list Scrawl uses (see build_words.py)
         prev = ''
         for m in re.findall(r'[A-K][a-z]*', re.search(key + r':"([^"]*)"', src).group(1)):
             w = prev[:ord(m[0]) - 65] + m[1:]; out.add(w); prev = w
-    return {w for w in out if len(w) >= 3}
+    prev, never = '', set()
+    for m in re.findall(r'[A-K][a-z]*', re.search(r'never:"([^"]*)"', src).group(1)):
+        w = prev[:ord(m[0]) - 65] + m[1:]; never.add(w); prev = w
+    return {w for w in out if len(w) >= 3} - never
 WORDS = load_words()
 ANAG = defaultdict(list)
 for w in WORDS:
@@ -916,6 +919,7 @@ def selftest():
 
 LAB = os.path.join(ROOT, 'scrawl-lab')       # the analytics pages on the site
 CHANGELOG = [   # newest first; every version gets a git tag scrawl-sim-v<version> so old reports can be rerun
+    ('1.7.0', '2026-11-24', 'Permissive word list, the same as the page: rude words (never slurs), accented words without their accents (cafe), and tools/words-allow.txt (zen and others); the 21 Nov fixture recaptured.'),
     ('1.6.0', '2026-11-22', 'Blade bonus squares (DL / TL / DW) from the 22 Nov daily; five new tools (Soften, Scribble, Lunge, Recoil, Triplicate) join the roster that day; planner scores each word by its letter order.'),
     ('1.5.0', '2026-11-20', 'Items as data: every trick is read from scrawl-items.js, the same file the page uses; trick behaviour fingerprinted identical to 1.4.0 on page and sim.'),
     ('1.4.0', '2026-11-20', 'Tiered equipment from the 21 Nov daily: 15-trick roster (common / uncommon / rare from the 1.2.0 trials), tiered Armoury offers; Swap, Rotate, Vowel Shift, Split and Ink Blot retired from offers.'),

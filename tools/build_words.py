@@ -1,0 +1,110 @@
+"""Build typeset-words.js, the word list shared by Typeset, Dungeon Scrawl and Joannagrams.
+
+    py tools/build_words.py <path to node_modules/wordlist-english>      (npm i wordlist-english; SCOWL by Kevin Atkinson)
+
+Fields in the output:
+  common   SCOWL sizes 10-35 (english + american), a-z only, 2-11 letters, less the words Typeset has always left out
+  extra    SCOWL sizes 40-60, same rules
+  never    slurs: PuzzWords never accepts these, and Joannagrams drops them from its own bonus list
+  more     words Typeset doesn't use but Scrawl and Joannagrams accept: the rude words Typeset leaves out (never
+           slurs), accented words spelled without their accents (cafe for café), and tools/words-allow.txt
+  accents  plain spelling -> accented spelling, so a game can show CAFÉ when you spell CAFE
+
+Typeset reads only common and extra, which this script reproduces exactly as they were first built, so its sheets and
+records never change. Scrawl and Joannagrams use window.PuzzWords (has, shown, all), which covers all three lists.
+"""
+import json, os, re, sys, unicodedata
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT = os.path.join(ROOT, 'typeset-words.js')
+ALLOW = os.path.join(ROOT, 'tools', 'words-allow.txt')
+
+# Left out of Typeset's lists (common and extra) since it launched. Kept exactly so Typeset never changes.
+TYPESET_SKIPS = set('''
+anal anus ass asses asshole assholes bastard bastards bitch bitches bitchy bollocks boner boob boobs brr butt butts
+cock cocks coon coons crap crappy cs cunt cunts damn dick dicks dildo dyke dykes fag faggot faggots fags fuck fucked
+fucker fuckers fucking fucks gook gooks gs hmm homo homos kike kikes ks ls ms nigga nigger niggers nth om penis
+penises piss pissed porn porno prick pricks psst pubes pussy pwn pwns queer queers rape raped rapes raping rapist
+retard retards rs semen sex sexy sh shh shit shits shitty slut sluts spic spics ssh ts tit tits titty turd turds twat
+twats vagina wank wanker whore whores wop wops
+'''.split())
+# Never accepted by Scrawl or Joannagrams (PuzzWords leaves them out even where Typeset's own lists have them):
+# slurs, and letter names that aren't words. Words that are slurs only in one sense (chink, cracker, gimp) stay.
+SLURS = set('''
+coon coons dago dagos darkie darkies fag faggot faggots fags gook gooks honkies honky kike kikes kraut krauts
+negro negroes nigga nigger niggers redskin redskins spic spics squaw squaws wetback wetbacks wog wogs wop wops yid yids
+'''.split())
+NEVER = SLURS | set('cs gs ks ls ms rs ts'.split())
+
+def scowl(src, sizes):
+    out = set()
+    for dialect in ('english', 'american'):
+        for n in sizes:
+            out.update(json.load(open(os.path.join(src, f'{dialect}-words-{n}.json'), encoding='utf8')))
+    return out
+
+def plain(w):
+    return ''.join(c for c in unicodedata.normalize('NFD', w) if unicodedata.category(c) != 'Mn')
+
+def encode(words):
+    """Front coding: each word is a capital A-K (how many letters it shares with the previous word, 0-10) + the rest."""
+    out, prev = [], ''
+    for w in sorted(words):
+        k = 0
+        while k < min(len(w), len(prev), 10) and w[k] == prev[k]: k += 1
+        out.append(chr(65 + k) + w[k:]); prev = w
+    return ''.join(out)
+
+def build(src):
+    az = re.compile(r'^[a-z]{2,11}$')
+    small, big = scowl(src, (10, 20, 35)), scowl(src, (40, 50, 55, 60))
+    common = {w for w in small if az.match(w)} - TYPESET_SKIPS
+    extra = {w for w in big if az.match(w)} - TYPESET_SKIPS - common
+    known = common | extra
+    accents = {}
+    for w in sorted(small | big):
+        p = plain(w)
+        if p != w and re.fullmatch(r'[a-z]+', p) and p not in known: accents.setdefault(p, w)
+    allow = set()
+    if os.path.exists(ALLOW):
+        for line in open(ALLOW, encoding='utf8'):
+            line = line.split('#')[0].strip().lower()
+            if line: allow.add(line)
+    bad = [w for w in allow if not re.fullmatch(r'[a-z]{2,15}', w)]
+    if bad: sys.exit(f'words-allow.txt: not plain a-z words: {bad}')
+    rude = {w for w in (small | big) if w in TYPESET_SKIPS} - NEVER
+    more = (rude | set(accents) | allow) - known - NEVER
+    return common, extra, more, accents, SLURS
+
+HEADER = '''/* Word list for Typeset, built from SCOWL (wordlist-english on npm), sizes 10-35 as "common" and 40-60 as "extra".
+   Copyright 2000-2016 by Kevin Atkinson. Permission to use, copy, modify, distribute and sell these word lists, the
+   associated scripts, the output created from the scripts, and its documentation for any purpose is hereby granted
+   without fee, provided that the above copyright notice appears in all copies and that both that copyright notice and
+   this permission notice appear in supporting documentation. Kevin Atkinson makes no representations about the
+   suitability of this array for any purpose. It is provided "as is" without express or implied warranty.
+   Full notice: typeset-words-LICENSE.txt */
+'''
+HELPER = '''/* Generated by tools/build_words.py: edit that (or tools/words-allow.txt) and rerun, never this file.
+   Typeset uses common and extra. Scrawl and Joannagrams use PuzzWords, which adds "more": rude words (never slurs),
+   accented words typed without their accents, and the allow list.
+   PuzzWords.has(w): is it a word.  PuzzWords.shown(w): how to show it (cafe -> café).  PuzzWords.all(): the Set.
+   PuzzWords.never(w): a slur, never accepted (for a game's own extra lists). */
+window.PuzzWords=(()=>{let set=null,acc=null,bad=null;
+  const decode=s=>{const out=[];let prev='';for(const m of s.match(/[A-K][a-z]*/g)||[]){const w=prev.slice(0,m.charCodeAt(0)-65)+m.slice(1);out.push(w);prev=w}return out};
+  const load=()=>{if(set)return;const T=window.TS_WORDS;bad=new Set(decode(T.never));
+    set=new Set([...decode(T.common),...decode(T.extra),...decode(T.more)].filter(w=>!bad.has(w)));
+    acc=new Map(T.accents.split(',').filter(Boolean).map(p=>p.split(':')))};
+  return{has(w){load();return set.has(w)},shown(w){load();return acc.get(w)||w},all(){load();return set},never(w){load();return bad.has(w)}}})();
+'''
+
+def main():
+    if len(sys.argv) < 2: sys.exit(__doc__)
+    common, extra, more, accents, never = build(sys.argv[1])
+    acc = ','.join(f'{k}:{v}' for k, v in sorted(accents.items())).encode('ascii', 'backslashreplace').decode()  # \xe9 etc.
+    body = (HEADER + f'window.TS_WORDS={{common:"{encode(common)}",extra:"{encode(extra)}",more:"{encode(more)}",never:"{encode(never)}",accents:"{acc}"}};\n'
+            + HELPER)
+    open(OUT, 'w', encoding='utf8', newline='\n').write(body)
+    print(f'common {len(common)}, extra {len(extra)}, more {len(more)} ({len(accents)} accented)')
+
+if __name__ == '__main__':
+    main()

@@ -1,7 +1,7 @@
 {
  "note": "Captured from scrawl.html in the browser. trail = a fixed script (strike the first 3-letter word found by a triple loop over the hand, then end the turn), recorded as [word, foe index, your hp, foe hps] after each turn. `py tools/scrawl_sim.py selftest` replays it in Python and must match exactly.",
- "captured": "2026-11-22 (bonus squares and new tools from the 23 Nov daily; 22 Nov is the last day without)",
- "rules_hash": "0bc6dfb10440",
+ "captured": "2026-11-22 (bonus squares and new tools from the 23 Nov daily; 22 Nov is the last day without); 21 Nov trail recaptured 2026-11-24 for the permissive word list (it now finds ZEN)",
+ "rules_hash": "c35698a406f7",
  "cases": [
   {
    "seed": "scrawl-2026-10-25",
@@ -267,11 +267,11 @@
    ],
    "trail": [
     [
-     "nil",
+     "zen",
      0,
      18,
      [
-      16,
+      9,
       29,
       44
      ]
@@ -281,28 +281,38 @@
      0,
      9,
      [
-      8,
+      1,
       29,
       44
      ]
     ],
     [
      "tum",
-     0,
-     4,
+     1,
+     8,
      [
-      2,
+      0,
       29,
       44
      ]
     ],
     [
-     "-",
-     0,
+     "jog",
+     1,
+     3,
+     [
+      0,
+      11,
+      44
+     ]
+    ],
+    [
+     "duo",
+     1,
      0,
      [
-      2,
-      29,
+      0,
+      9,
       44
      ]
     ]
