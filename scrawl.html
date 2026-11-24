@@ -227,12 +227,12 @@ details p{margin:8px 0;font-size:14px}
 </div>
 <script src="puzz-core.js?v=42c25c62"></script>
 <script src="scrawl-items.js?v=524dcb55"></script>
-<script src="typeset-words.js?v=4cb3d273"></script>
+<script src="typeset-words.js?v=488a7376"></script>
 <script src="streak.js?v=b548c2ec"></script>
 <script>
 const shuffle=(r,a)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
-function decode(s){const out=[];let prev='';for(const m of s.match(/[A-K][a-z]*/g)){const w=prev.slice(0,m.charCodeAt(0)-65)+m.slice(1);out.push(w);prev=w}return out}
-const WORDS=new Set([...decode(TS_WORDS.common),...decode(TS_WORDS.extra)].filter(w=>w.length>=3));
+// Scrawl takes the permissive list (rude words, accents optional, the allow list; see tools/build_words.py).
+const WORDS=new Set([...PuzzWords.all()].filter(w=>w.length>=3)),SHOWN=w=>PuzzWords.shown(w).toUpperCase();
 
 // ---- letters ----
 const VAL={a:1,b:3,c:3,d:2,e:1,f:4,g:3,h:3,i:1,j:8,k:5,l:2,m:3,n:1,o:1,p:3,q:10,r:1,s:1,t:1,u:2,v:5,w:4,x:8,y:3,z:9};
@@ -509,7 +509,7 @@ function strike(){
   const ts=S.spell.map(byId);const u=useUp(ts);S.spell=[];
   if(S.edge==='longsent'){if(S.charged)S.charged=false;S.charge+=w.length;if(S.charge>=12){S.charge-=12;S.charged=true}}
   if(h.stun)S.stun=true;S.lastWord=w;if(h.on)fxq.push({t:'edge',name:E.name});
-  hitFoe(h.dmg,`Spellblade: <b>${w.toUpperCase()}</b>${h.fire?' 🔥':''}${h.on?` (${E.name}!${h.stun?' stunned':''})`:''}`,from,!!h.fire);
+  hitFoe(h.dmg,`Spellblade: <b>${SHOWN(w)}</b>${h.fire?' 🔥':''}${h.on?` (${E.name}!${h.stun?' stunned':''})`:''}`,from,!!h.fire);
   if(u.heal)S.log+=` 🌿 +${u.heal} HP.`;if(u.blk)S.log+=` 🛡 +${u.blk} block.`;afterAction()}
 function hitFoe(n,what,from,fire){const f=foe(),soak=Math.min(f.block,n);f.block-=soak;f.hp=Math.max(0,f.hp-(n-soak));fxq.push({t:'hit',n:n-soak,blocked:soak,from:from||[],fire});
   say(`${what} hits for <b>${n-soak}</b>${soak?` (${soak} blocked)`:''}.`);flash='foe'}
@@ -567,7 +567,7 @@ function render(){
   let blade=card('spell','Spellblade','any time',`A real word, 3 to ${MAXWORD} letters: its points, plus a bonus for length. Spell as many words as your tiles allow.`,true,!!T)+edgeChip+
     `<div class="wordrow"><div class="slots">${[...Array(MAXWORD)].map((_,i)=>{const t=S.spell[i]&&byId(S.spell[i]);const bq=S.bonus&&S.bonus[i],BQ={dl:'double letter',tl:'triple letter',dw:'double word'};return `<button class="slot ${t?'full':''} ${bq?'b-'+bq:''}" data-spell="${i}" aria-label="${t?'Letter '+(t.ch===BLANK?'blank':t.ch.toUpperCase())+', tap to take back':'Empty word slot'}${bq?', '+BQ[bq]:''}">${t?tileHTML(t):bq?`<span class="blab">${bq.toUpperCase()}</span>`:''}</button>`}).join('')}</div>
     </div>
-    <div class="strikerow"><div class="wordinfo">${raw.length?(raw.length<3?'Three letters or more.':w?`<b>${w.toUpperCase()}</b>${raw.includes(BLANK)?' (blank filled)':''} · <b>${hit.dmg} damage</b>${hit.on?` · <b class="edgeon">${E.name}!</b>`:''}${hit.blk?` · <b class="blkon">🛡 +${hit.blk} block</b>`:''}<br><small>${breakdown(hit)}</small>`:`<span class="bad">${raw.replace(/\?/g,'_').toUpperCase()} isn't in the word list</span>`):'Tap tiles to spell into the blade.'}</div><button class="btn primary" id="strikeBtn" ${w?'':'disabled'}>Strike</button></div></div>`;
+    <div class="strikerow"><div class="wordinfo">${raw.length?(raw.length<3?'Three letters or more.':w?`<b>${SHOWN(w)}</b>${raw.includes(BLANK)?' (blank filled)':''} · <b>${hit.dmg} damage</b>${hit.on?` · <b class="edgeon">${E.name}!</b>`:''}${hit.blk?` · <b class="blkon">🛡 +${hit.blk} block</b>`:''}<br><small>${breakdown(hit)}</small>`:`<span class="bad">${raw.replace(/\?/g,'_').toUpperCase()} isn't in the word list</span>`):'Tap tiles to spell into the blade.'}</div><button class="btn primary" id="strikeBtn" ${w?'':'disabled'}>Strike</button></div></div>`;
   let h='';
   S.kit.forEach(k=>{const Tk=TOOLS[k],p=preview(k,T),pk=(k==='swap'&&!S.pairCard||S.pairCard===k)&&S.swapPick&&byId(S.swapPick),ch=S.choosing&&S.choosing.k===k&&byId(S.choosing.id);
     const tierTag=Tk.tier&&Tk.tier!=='common'?`<span class="tiertag ${Tk.tier}">${TIER_NAME[Tk.tier]}</span>`:'';
@@ -584,11 +584,11 @@ function render(){
   $('endBtn').disabled=!!S.over||drafting;$('log').innerHTML=S.log||'';
   if(!drafting)dealNext=false;if(fxq.length)playFx(fxq.splice(0));
 }
-function shareText(){if(S.deep)return `The Puzz · Dungeon Scrawl ${mode==='descent'?`#${D.num} endless`:`endless ${S.seed.slice(8)}`}\n⬇️ Depth ${S.fi+1}: beat ${S.fi} foe${S.fi===1?'':'s'} in ${S.turns} turns, fell to ${FOES[foe().k].name}\n${S.best?`Best word: ${S.best.w.toUpperCase()} (${S.best.dmg})`:'No words struck'} · Edge: ${EDGES[S.edge].name}\nKit: ${S.kit.filter(k=>k!=='quill').map(k=>TOOLS[k].name).join(' · ')}\nthecosmickitchen.github.io/The-Puzz/scrawl.html${mode==='descent'?'':'#'+S.seed.slice(8)}`;
+function shareText(){if(S.deep)return `The Puzz · Dungeon Scrawl ${mode==='descent'?`#${D.num} endless`:`endless ${S.seed.slice(8)}`}\n⬇️ Depth ${S.fi+1}: beat ${S.fi} foe${S.fi===1?'':'s'} in ${S.turns} turns, fell to ${FOES[foe().k].name}\n${S.best?`Best word: ${SHOWN(S.best.w)} (${S.best.dmg})`:'No words struck'} · Edge: ${EDGES[S.edge].name}\nKit: ${S.kit.filter(k=>k!=='quill').map(k=>TOOLS[k].name).join(' · ')}\nthecosmickitchen.github.io/The-Puzz/scrawl.html${mode==='descent'?'':'#'+S.seed.slice(8)}`;
   const head=mode==='daily'||mode==='day'?`Dungeon Scrawl #${D.num} · ${D.label}`:mode==='lab'?'Dungeon Scrawl tool lab':`Dungeon Scrawl endless ${S.seed.slice(8)}`;
   const link=`thecosmickitchen.github.io/The-Puzz/scrawl.html#${mode==='daily'||mode==='day'?'d'+D.iso:mode==='lab'?'lab':S.seed.slice(8)}`;
   const foes=S.foes.map((f,i)=>i<S.fi||S.over==='won'?'🟩':i===S.fi?'🟥':'⬛').join('');
-  return `The Puzz · ${head}\n${foes} ${S.over==='won'?`all 3 foes in ${S.turns} turns · ❤️ ${S.hp}/${HP}`:`fell to ${FOES[foe().k].name} on turn ${S.turns}`}\n${S.best?`Best word: ${S.best.w.toUpperCase()} (${S.best.dmg})`:'No words struck'} · Edge: ${EDGES[S.edge].name}\nKit: ${S.kit.filter(k=>k!=='quill').map(k=>TOOLS[k].name).join(' · ')}\n${link}`}
+  return `The Puzz · ${head}\n${foes} ${S.over==='won'?`all 3 foes in ${S.turns} turns · ❤️ ${S.hp}/${HP}`:`fell to ${FOES[foe().k].name} on turn ${S.turns}`}\n${S.best?`Best word: ${SHOWN(S.best.w)} (${S.best.dmg})`:'No words struck'} · Edge: ${EDGES[S.edge].name}\nKit: ${S.kit.filter(k=>k!=='quill').map(k=>TOOLS[k].name).join(' · ')}\n${link}`}
 const randomBtn='<button class="btn" id="randomBtn">Random descent</button>';
 function descendButton(){if(S.over!=='won')return randomBtn+'<span class="sub">A new crawl tomorrow.</span>';const d=todaysDescent();
   if(d&&d.over)return randomBtn+`<span class="sub">You fell at depth ${d.fi+1} in today's descent.</span>`;

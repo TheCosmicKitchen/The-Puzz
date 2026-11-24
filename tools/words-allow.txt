@@ -1,0 +1,31 @@
+# Extra words Scrawl and Joannagrams accept, on top of SCOWL (see tools/build_words.py). One per line, a-z only.
+# Typeset doesn't use these. After editing: py tools/build_words.py <path to node_modules/wordlist-english>
+zen
+tao
+yay
+app
+bro
+bros
+vlog
+vlogs
+wifi
+kung
+oryx
+hoopoe
+hoopoes
+# food
+chai
+dal
+dhal
+gyoza
+kimchi
+masala
+matcha
+miso
+paneer
+pho
+ramen
+roti
+tahini
+tikka
+biryani

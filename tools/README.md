@@ -79,6 +79,7 @@ Pages load every local script and stylesheet as `file.js?v=<hash of the file>`. 
 
 ## Changelog
 
+* **1.7.0** (2026-11-24): the permissive word list Scrawl now uses (`tools/build_words.py`): rude words (never slurs), accented words spelled without their accents (CAFE shows as CAFÉ), and `tools/words-allow.txt` (ZEN and others). The 21 Nov fixture recaptured: the scripted run now finds ZEN.
 * **1.6.0** (2026-11-22): from the 23 Nov daily: blade bonus squares (DL / TL / DW), foes get 27% more health on bonus days (no-tricks win rate 67.6%, as before), and 12 new tools join the roster (Soften, Scribble, Lunge, Recoil, Triplicate, Kin, Bloom, Dial, Spin, Plural, Wye, Resound; 27 in all). New grammar: choose options by `steps`. The planner scores each word by its letter order.
 * **1.5.0** (2026-11-20): items as data. Every trick is read from `scrawl-items.js`, the same file the page uses, and the rules fingerprint covers it. Behaviour is fingerprinted identical to 1.4.0 on both page and sim.
 * **1.4.0** (2026-11-20): tiered equipment from the 21 Nov daily: a 15-trick roster in common / uncommon / rare (from the 1.2.0 trials), tiered Armoury offers with rare odds rising every three floors; Swap, Rotate, Vowel Shift, Split and Ink Blot retired from offers. Offers checked against the page over 558 rolls.
