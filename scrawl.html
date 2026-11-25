@@ -28,7 +28,8 @@
 body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--body)}
 .wrap{max-width:520px;margin:0 auto;padding-block:14px 32px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:12px}
 .eyebrow{font:700 12px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.toprow{display:flex;justify-content:space-between;gap:10px}.toprow a{text-decoration:none}.toprow a:hover{color:var(--ink)}
+.toprow{display:flex;justify-content:space-between;align-items:center;gap:10px}.navr{display:flex;align-items:center;gap:12px}
+.freebtn{font:700 12px var(--body);letter-spacing:.08em;text-transform:uppercase;border:0;border-radius:99px;padding:5px 12px;background:var(--gold);color:#2B2117;cursor:pointer}.toprow a{text-decoration:none}.toprow a:hover{color:var(--ink)}
 header{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
 h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:var(--gold)}
 .sub{color:var(--muted);font-size:13px}
@@ -84,6 +85,26 @@ h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:v
 .wordrow .slot.b-dl{background:color-mix(in srgb,#86bde8 38%,transparent);border-color:#5f9fd4;border-style:solid}
 .wordrow .slot.b-tl{background:color-mix(in srgb,#2f6fbf 38%,transparent);border-color:#2f6fbf;border-style:solid}
 .wordrow .slot.b-dw{background:color-mix(in srgb,#e48aa0 40%,transparent);border-color:#d16882;border-style:solid}
+/* the sword: hilt (a leather grip), crossguard, steel blade, a pointed tip */
+.wordrow.sword .slots{margin:0 14px 0 6px;position:relative}
+.wordrow.sword .slots::before{content:"";position:absolute;left:calc(100%/6*2);right:-2px;top:22%;bottom:22%;border-radius:2px;background:linear-gradient(#EEF2F6,#A9B4C0 48%,#C9D1D9 52%,#8E99A6);opacity:.55;z-index:0}
+.wordrow.sword .slot{z-index:1;border-style:solid}
+.wordrow .slot.s-hilt{background:repeating-linear-gradient(135deg,#6E4522 0 5px,#8A5A2E 5px 10px);border-color:#5A3618;border-radius:14px 6px 6px 14px}
+.wordrow .slot.s-hilt::before{content:"";position:absolute;left:-9px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FBE08A,#C8921B);box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.wordrow .slot.s-hilt .blab{color:#F3E2BC;opacity:1}
+.wordrow .slot.s-guard{background:color-mix(in srgb,#86bde8 30%,transparent);border-color:#5f9fd4}
+.wordrow .slot.s-guard::before{content:"";position:absolute;left:50%;width:8px;margin-left:-4px;top:-9px;bottom:-9px;border-radius:4px;background:linear-gradient(90deg,#C8921B,#FBE08A 50%,#C8921B);z-index:-1}
+.wordrow .slot.s-blade{background:linear-gradient(#F2F5F8,#C9D1D9);border-color:#8E99A6}
+.wordrow .slot.s-blade.b-dl{background:color-mix(in srgb,#86bde8 38%,#E4E9EE)}.wordrow .slot.s-blade.b-tl{background:color-mix(in srgb,#2f6fbf 38%,#E4E9EE)}
+.wordrow .slot.s-tip{background:color-mix(in srgb,#e48aa0 40%,#E4E9EE);border-color:#d16882;border-radius:8px 4px 4px 8px}
+.wordrow .slot.s-tip::after{content:"";position:absolute;right:-13px;top:50%;margin-top:-12px;border:12px solid transparent;border-left:12px solid #d16882;border-right:0}
+.wordrow.sword .slot.full{background:none;border-color:transparent}.wordrow.sword .slot.full::after,.wordrow.sword .slot.full::before{opacity:.35}
+.swordkey{font-size:11.5px;color:var(--muted)}.swordkey b{color:var(--ink)}
+.runes{display:flex;flex-wrap:wrap;gap:5px}.rune{font:700 11.5px var(--body);padding:3px 9px;border-radius:99px;background:color-mix(in srgb,var(--block) 18%,transparent);color:var(--ink)}
+.rune.empty{background:none;border:1.5px dashed var(--rule);color:var(--muted);font-weight:400}
+.offer.t-rune{border-color:color-mix(in srgb,var(--block) 55%,var(--rule));background:color-mix(in srgb,var(--block) 7%,var(--card))}.offer.t-rune .tag{color:var(--block)}
+.bagline{font-size:12.5px;color:var(--muted);text-align:center;min-height:0}.bagline b{color:var(--ink)}
+.tile i.bagmark{position:absolute;left:3px;bottom:3px;width:7px;height:7px;border-radius:50%;background:#8A5A2E;box-shadow:0 0 0 1.5px #F3E2BC}
 .wordrow .slot .blab{font:800 11px var(--body);letter-spacing:.06em;color:var(--ink);opacity:.8}.blkon{color:var(--block)}
 .coach{display:flex;gap:10px;align-items:center;background:color-mix(in srgb,var(--gold) 18%,var(--paper));border:1.5px solid color-mix(in srgb,var(--gold) 55%,transparent);border-radius:12px;padding:8px 10px 8px 12px;font-size:13.5px;line-height:1.35}
 .coach b{color:var(--ink)}.coach span{flex:1}
@@ -191,7 +212,7 @@ details p{margin:8px 0;font-size:14px}
 </head>
 <body>
 <div class="wrap">
-  <nav class="toprow"><a class="eyebrow" href="./">← The Puzz</a><a class="eyebrow" href="scrawl-lab/" title="Bot analytics for the tricks">Lab ↗</a></nav>
+  <nav class="toprow"><a class="eyebrow" href="./">← The Puzz</a><span class="navr"><button type="button" class="freebtn" id="freeBtn" title="A random crawl with the newest rules. Never touches your daily or streak.">Freeplay ▶</button><a class="eyebrow" href="scrawl-lab/" title="Bot analytics for the tricks">Lab ↗</a></span></nav>
   <header>
     <div class="brand"><svg class="logo" viewBox="0 0 72 72" aria-hidden="true">
         <rect x="4" y="44" width="64" height="20" rx="6" fill="#7A4C26"/><rect x="4" y="44" width="64" height="5" rx="2.5" fill="#94612F"/>
@@ -210,6 +231,7 @@ details p{margin:8px 0;font-size:14px}
   <section class="cards" id="cards"></section>
   <div class="coach" id="coach" hidden role="status"><span id="coachText"></span><button type="button" id="coachOff">Got it</button></div>
   <div class="hand" id="hand" role="group" aria-label="Your tiles"></div>
+  <div class="bagline" id="bagline"></div>
   <div class="fxkey" id="fxkey" aria-live="polite"></div>
   <div class="foot"><div class="log" id="log"></div><div class="acts"><button class="btn" id="undoBtn" disabled title="Take back your last trick, Quill or Strike this turn">Undo</button><button class="btn primary" id="endBtn">End turn</button></div></div>
   <section class="result" id="result" hidden></section>
@@ -219,6 +241,8 @@ details p{margin:8px 0;font-size:14px}
     <p><b>Win the daily and you can keep descending.</b> The same run carries on, kit and all: every third foe is The Editor, foes hit 10% harder every three floors, and the Armoury offers a new trick between every fight. How deep can you go? Your daily result is already counted, and the descent saves as you play.</p>
     <p>Each turn you draw six letter tiles. Tap a tile, then a card, or drag the tile onto the card. While you hold a tile, every card shows what it would do with it. Changed tiles come back to your hand, so you can keep working on them. Misplaced one? <b>Undo</b> takes back your last trick, Quill or Strike this turn. Unused tiles are lost when you end your turn.</p>
     <p><b>Spellblade</b> is your main attack: a real word of 3 to 6 letters deals its points, plus a bonus for long words. Use it as often as your tiles allow. Some blade slots are <b>bonus squares</b>: <b>DL</b> doubles the letter that lands there, <b>TL</b> triples it, and <b>DW</b> doubles the whole word if your word reaches it. Each day it has an <b>edge</b>, a bonus for words that fit today's rule: rhymes, palindromes, five-letter words, double letters and so on.</p>
+    <p><b>Freeplay</b> (top right) starts a random three-foe crawl with the newest rules straight away. It saves on its own and never touches your daily or your streak.</p>
+    <p><b>From the 27 Nov daily (and in Freeplay now) the Spellblade is a sword.</b> Put a tile in any slot, so you can plan a word around it; the word is one unbroken row. The <b>hilt</b> (first slot) gives you block for every letter of a word that starts on it, the <b>crossguard</b> doubles its letter and the <b>tip</b> doubles the word. The Armoury also offers a <b>rune</b> for the sword: it takes no room in your kit, and the same rune again makes it stronger. Up to three runes, three levels each. Tiles you don't use go in your <b>bag</b> (it holds two, enchanted tiles first) and come back next turn, safe from the foe's tricks.</p>
     <p>Tricks come in three tiers from the Scrawl Lab's bot trials: <b>common</b>, <b>uncommon</b> and <b>rare</b>. Rare ones turn up less often, and more often the deeper you go. Some let you <b>pick the letter</b>; some take <b>two tiles</b> (tap the one to change, then the one to copy).</p>
     <p>Your kit holds four cards: <b>Quill</b>, which flicks a single consonant for its points, and three letter tricks. You start with <b>Nudge</b> (B→C) and <b>Flip</b> (A↔Z) and pick a third before the first foe. After each win you stop at the <b>Armoury</b>: take a new trick in place of one of yours, or keep your kit. Want to try every trick? <a href="#lab" onclick="setTimeout(()=>location.reload())">Open the tool lab</a>.</p>
     <p><b>Enchanted tiles</b> turn up now and then and keep their enchantment through every trick: 🔥 <b>Flaming</b> adds 4 damage, 🛡 <b>Steel</b> gives you 6 block when you use it, ✨ <b>Gilded</b> is worth double, and 🌿 <b>Leaf</b> heals you 3.</p>
@@ -227,6 +251,7 @@ details p{margin:8px 0;font-size:14px}
 </div>
 <script src="puzz-core.js?v=42c25c62"></script>
 <script src="scrawl-items.js?v=524dcb55"></script>
+<script src="scrawl-blade.js?v=7123c75e"></script>
 <script src="typeset-words.js?v=4cb3d273"></script>
 <script src="streak.js?v=b548c2ec"></script>
 <script>
@@ -305,7 +330,11 @@ const FOES={
 let FOE_HP_SCALE=1.22,FOE_ATK_SCALE=1;   // tuned so a greedy bot with only Quill, Nudge and Flip (unused) wins about half its runs
 // Bonus squares hit harder, so foes on bonus days (from 22 Nov, and all endless runs) get 27% more health:
 // tuned so a bot that never uses tricks still wins about two runs in three, as before.
-const HP_BOOST=1.27,hpBoost=seed=>!/^scrawl-\d{4}-\d{2}-\d{2}$/.test(seed)||seed.slice(7)>='2026-11-22'?HP_BOOST:1;
+// The sword (from SCRAWL_BLADE.from; endless and lab at once): hilt, crossguard and tip squares, tiles in any slot, runes
+// in the blade, a holdover bag. It hits much harder, so its foes get SCRAWL_BLADE.foeHp in place of HP_BOOST.
+const BL=SCRAWL_BLADE,RUNES=Object.fromEntries(BL.runes.map(r=>[r.id,r])),RUNE_IDS=BL.runes.map(r=>r.id);
+const bladeOn=seed=>!/^scrawl-\d{4}-\d{2}-\d{2}$/.test(seed)||seed.slice(7)>=BL.from,sword=()=>bladeOn(S.seed);
+const HP_BOOST=1.27,hpBoost=seed=>bladeOn(seed)?BL.foeHp:!/^scrawl-\d{4}-\d{2}-\d{2}$/.test(seed)||seed.slice(7)>='2026-11-22'?HP_BOOST:1;
 const atkOf=m=>Math.round((m.atk||0)*FOE_ATK_SCALE*((S&&S.foes&&foe().ax)||1));
 // Endless descent: after the first three foes, more keep coming. Every third is The Editor; each set of three hits 10% harder.
 const DEEP_KINDS=['gremlin','worm','hush','jacket','splice'];
@@ -326,7 +355,24 @@ function newRun(seed,lab,deep){const r=mulberry(hseed(seed));const two=shuffle(r
   return{v:2,seed,lab:!!lab,deep:!!deep,foes:[...two,'editor'].map((k,i)=>{const hp=Math.round((FOES[k].hp+i*2)*FOE_HP_SCALE*hpBoost(seed));return{k,hp,max:hp,block:0,mi:Math.floor(r()*FOES[k].moves.length)}}),
     fi:0,turn:0,turns:0,hp:HP,block:0,hand:[],spell:[],uses:{},fightUses:{},pending:{},muffle:false,best:null,over:null,log:'',
     kit:lab?['quill',...ROSTER]:START.slice(),edge:ek[Math.floor(er()*ek.length)],dayLetter:'bcdfghklmnprstw'[Math.floor(er()*15)],
-    draft:lab?null:0,picks:[],made:0,charge:0,charged:false,lastWord:null,stun:false,swapIn:null}}
+    draft:lab?null:0,picks:[],made:0,charge:0,charged:false,lastWord:null,stun:false,swapIn:null,runes:{},bag:[],strikes:0,wordsTurn:0}}
+// ---- the sword's runes: one is on offer at each Armoury, beside the three tricks ----
+const rl=k=>(S.runes&&S.runes[k])||0,rper=k=>rl(k)?RUNES[k].per[rl(k)-1]:0;
+// a new rune while a socket is free, else an upgrade of one you have (up to maxLevel)
+function runeOffer(d){if(!sword())return null;const full=Object.keys(S.runes||{}).length>=BL.sockets;
+  const pool=RUNE_IDS.filter(k=>rl(k)<BL.maxLevel&&(rl(k)>0||!full));if(!pool.length)return null;
+  const r=mulberry(hseed(S.seed+'-rune-'+d));return pool[Math.floor(r()*pool.length)]}
+const runeDesc=(k,lv)=>{const R=RUNES[k];return R.levels?R.levels[lv-1]:R.desc.replace('{n}',R.per[lv-1])};
+const ROMAN=['','I','II','III','IV','V'];
+// what the runes add to a word of n letters: damage (before double word and the edge), block, healing
+const runeHit=n=>({dmg:rper('reach')*Math.max(0,n-3)+rper('whet')*(S.strikes||0)+rper('flurry')*(S.wordsTurn||0),heal:rper('leech')*Math.max(0,n-3)});
+const hiltPer=()=>sword()?BL.hiltPer+rper('pommel'):0;
+// the holdover bag: at the end of a turn it keeps up to bagCap unused tiles, enchanted ones first, then blanks, then the
+// letters that make the most words. They come back on top of next turn's draw, out of reach of the foe's tricks.
+const BAG_ORDER='seariotnldcupmghbyfkwvzxjq';
+const bagRank=t=>[t.fx?0:1,t.ch===BLANK?0:1,t.ch===BLANK?0:BAG_ORDER.indexOf(t.ch)];
+const bagCmp=(a,b)=>{const x=bagRank(a),y=bagRank(b);for(let i=0;i<3;i++)if(x[i]!==y[i])return x[i]-y[i];return 0};
+const bagPick=left=>left.slice().sort(bagCmp).slice(0,BL.bagCap).map(t=>({id:t.id,ch:t.ch,fx:t.fx,bag:true}));
 // the three tricks on offer at draft d (0: before the first foe, 1 and 2: after each win), from the day's seed
 // Tiered (from the 21 Nov daily): each of the three offers rolls a tier, 65% common, 27% uncommon, 8% rare,
 // with rare odds up 2 points every three floors of a descent (to 25%). An empty tier falls back to the next one.
@@ -340,6 +386,8 @@ function offers(d){
 function grant(k){if(TOOLS[k].perFight)S.fightUses[k]=TOOLS[k].perFight;else S.uses[k]=TOOLS[k].uses}
 // with room in the kit a pick goes straight in; a full kit means choosing a trick to give up for it
 function pick(k){if(S.draft==null)return;
+  if(RUNES[k]){S.runes={...(S.runes||{}),[k]:rl(k)+1};S.picks.push(k);S.draft=null;S.swapIn=null;if(k==='fuller')S.bonus=rollBonus();
+    say(`<b>${RUNES[k].name}${rl(k)>1?' '+ROMAN[rl(k)]:''}</b> ${rl(k)>1?'grows stronger':'is set into your sword'}.`);dealNext=true;persist();render();return}
   if(S.kit.length<KIT_MAX){S.kit.push(k);S.picks.push(k);S.draft=null;grant(k);say(`<b>${TOOLS[k].name}</b> joins your kit.`);dealNext=true;persist();render();return}
   S.swapIn=k;render()}
 function replace(old){const k=S.swapIn;if(!k||old==='quill')return;S.kit[S.kit.indexOf(old)]=k;S.picks.push(k);S.swapIn=null;S.draft=null;grant(k);
@@ -362,20 +410,24 @@ function drawTiles(n){const r=mulberry(hseed(S.seed+'-hand-'+S.fi+'-'+S.turn)),n
 // Bonus squares on the Spellblade (from the 22 Nov daily). Each turn one slot doubles or triples the letter that lands
 // there (DL, TL) or doubles the whole word (DW, only in slots 3 to 6); sometimes a second letter bonus. Seeded per turn.
 const BONUS_FROM='2026-11-22',bonusOn=()=>!/^scrawl-\d{4}-\d{2}-\d{2}$/.test(S.seed)||S.seed.slice(7)>=BONUS_FROM;
-function rollBonus(){const b=[null,null,null,null,null,null];if(!bonusOn())return b;const r=mulberry(hseed(S.seed+'-bonus-'+S.fi+'-'+S.turn));
+// On sword days the squares are the sword's own: hilt (block), crossguard DL, tip DW, plus the Fuller rune's groove.
+function rollBonus(){const b=[null,null,null,null,null,null];
+  if(sword()){const s=BL.squares.slice(),n=rl('fuller');if(n&&!s[3])s[3]=n===1?'dl':'tl';if(n>=3&&!s[4])s[4]='dl';return s}
+  if(!bonusOn())return b;const r=mulberry(hseed(S.seed+'-bonus-'+S.fi+'-'+S.turn));
   const x=r(),t=x<.6?'dl':x<.75?'tl':'dw',i=t==='dw'?2+Math.floor(r()*4):Math.floor(r()*6);b[i]=t;
   if(r()<.35){const j=Math.floor(r()*6);if(!b[j])b[j]=r()<.75?'dl':'tl'}
   return b}
 const slotMul=i=>S.bonus&&S.bonus[i]==='dl'?2:S.bonus&&S.bonus[i]==='tl'?3:1;
 function startTurn(){
-  S.turn++;S.turns++;S.uses={};S.kit.forEach(k=>{if(TOOLS[k].uses)S.uses[k]=TOOLS[k].uses});S.spell=[];S.block=0;S.swapPick=null;S.pairCard=null;S.choosing=null;
+  S.turn++;S.turns++;S.uses={};S.kit.forEach(k=>{if(TOOLS[k].uses)S.uses[k]=TOOLS[k].uses});S.spell=[];S.block=Math.min(S.block||0,rper('bastion'));S.swapPick=null;S.pairCard=null;S.choosing=null;
   const p=S.pending;S.muffle=!!p.muffle;
   S.hand=drawTiles(HAND-(p.nibble||0));S.bonus=rollBonus();
   const r=mulberry(hseed(S.seed+'-trick-'+S.fi+'-'+S.turn));
   if(p.jumble){const t=S.hand[Math.floor(r()*S.hand.length)];t.ch='qxzjkvwy'[Math.floor(r()*8)];t.fresh=true}
   if(p.redpen){shuffle(r,S.hand.map((_,i)=>i)).slice(0,p.redpen).forEach(i=>S.hand[i].crossed=true)}
+  S.hand.push(...(S.bag||[]));S.bag=[];S.wordsTurn=0;   // the bag's tiles come back, safe from the foe's tricks
   S.pending={};sel=null}
-function startFight(){S.fightUses={};S.kit.forEach(k=>{if(TOOLS[k].perFight)S.fightUses[k]=TOOLS[k].perFight});S.turn=0;S.pending={};S.charge=0;S.charged=false;S.lastWord=null;S.stun=false;startTurn()}
+function startFight(){S.bag=[];S.strikes=0;S.fightUses={};S.kit.forEach(k=>{if(TOOLS[k].perFight)S.fightUses[k]=TOOLS[k].perFight});S.turn=0;S.pending={};S.charge=0;S.charged=false;S.lastWord=null;S.stun=false;startTurn()}
 const foe=()=>S.foes[S.fi],F=()=>FOES[foe().k],nextMove=()=>F().moves[foe().mi%F().moves.length];
 const pts=t=>t.ch===BLANK?0:(S.muffle&&VOW.has(t.ch)?0:VAL[t.ch])*(t.fx==='gold'?2:1);
 const fireOf=ts=>ts.filter(t=>t.fx==='fire').length*4;
@@ -388,14 +440,17 @@ function useUp(ts,from){let heal=0;const blk=steelOf(ts);ts.forEach(t=>{if(t.fx=
 let S=null,mode='daily',D=null,sel=null,flash='';
 function load(m,arg){
   mode=m;D=m==='daily'||m==='day'?dayInfo(m==='day'?arg:null):null;
-  const resume=m==='endless'&&!arg?store.get('scrawl-endless'):null;   // Endless with no seed picks up your unfinished descent
+  // Endless (and Freeplay) with no seed picks up your unfinished run. Freeplay is a 3-foe crawl on an endless seed, so it
+  // always has the newest rules; it saves apart from the daily and never counts for the streak.
+  const KEY={daily:'scrawl-daily',endless:'scrawl-endless',free:'scrawl-free'}[m],resume=(m==='endless'||m==='free')&&!arg?store.get(KEY):null;
   const seed=m==='daily'||m==='day'?'scrawl-'+D.iso:'endless-'+(arg||(resume&&!resume.over&&resume.v===2?resume.seed.slice(8):Math.random().toString(36).slice(2,7)));
-  const saved=m==='daily'?store.get('scrawl-daily'):m==='endless'?store.get('scrawl-endless'):null;
-  S=saved&&saved.seed===seed&&saved.v===2?saved:newRun(seed,m==='lab',m==='endless');if(!S.turn)startFight();
-  $('sub').textContent=m==='lab'?'Tool lab · every trick':m==='endless'?'Endless descent · '+seed.slice(8):m==='day'?`Shared crawl #${D.num} · ${D.label} · not your streak`:`Daily crawl #${D.num} · ${D.label}`;
-  try{history.replaceState(null,'',m==='daily'?location.pathname:m==='day'?'#d'+D.iso:m==='lab'?'#lab':'#'+seed.slice(8))}catch(e){}
+  const saved=KEY?store.get(KEY):null;
+  S=saved&&saved.seed===seed&&saved.v===2?saved:newRun(seed,m==='lab',m==='endless');S.runes=S.runes||{};S.bag=S.bag||[];if(!S.turn)startFight();
+  $('freeBtn').textContent=m==='free'?'◀ Daily':'Freeplay ▶';
+  $('sub').textContent=m==='lab'?'Tool lab · every trick':m==='free'?'Freeplay · newest rules · '+seed.slice(8):m==='endless'?'Endless descent · '+seed.slice(8):m==='day'?`Shared crawl #${D.num} · ${D.label} · not your streak`:`Daily crawl #${D.num} · ${D.label}`;
+  try{history.replaceState(null,'',m==='daily'?location.pathname:m==='day'?'#d'+D.iso:m==='lab'?'#lab':m==='free'?'#free-'+seed.slice(8):'#'+seed.slice(8))}catch(e){}
   dealNext=true;render();if(S.over)showResult()}
-function persist(){if(mode==='daily')store.set('scrawl-daily',S);else if(mode==='endless')store.set('scrawl-endless',S);else if(mode==='descent')store.set('scrawl-descent',S)}
+function persist(){if(mode==='daily')store.set('scrawl-daily',S);else if(mode==='endless')store.set('scrawl-endless',S);else if(mode==='free')store.set('scrawl-free',S);else if(mode==='descent')store.set('scrawl-descent',S)}
 // Win the daily and you can keep descending, like Balatro's endless: same run, same kit, foes keep coming.
 // It continues exactly as a deep run would after the third foe, so the descent is the same for everyone today.
 function todaysDescent(){const d=store.get('scrawl-descent');return d&&d.seed===S.seed&&d.v===2?d:null}
@@ -449,7 +504,7 @@ const srcOf=t=>{if(dragSrc)return dragSrc;const el=document.querySelector(`#hand
 function foeSnap(){const sv=$('foe').querySelector('svg');return sv?{html:sv.outerHTML,r:sv.getBoundingClientRect()}:null}
 
 // ---- playing tiles ----
-const tileHTML=(t,extra='')=>`<span class="tile ${t.fx?'fx-'+t.fx:''} ${t.ch===BLANK?'blank':''} ${S.muffle&&VOW.has(t.ch)?'muted':''} ${t.crossed?'crossed':''} ${t.fresh?'new':''} ${t.ch!==BLANK&&VAL[t.ch]>=5?'hi':''} ${extra}">${t.fx?`<em aria-hidden="true">${FX[t.fx].icon}</em>`:''}${t.ch===BLANK?'':t.ch}<sub>${pts(t)}</sub></span>`;
+const tileHTML=(t,extra='')=>`<span class="tile ${t.fx?'fx-'+t.fx:''} ${t.ch===BLANK?'blank':''} ${S.muffle&&VOW.has(t.ch)?'muted':''} ${t.crossed?'crossed':''} ${t.fresh?'new':''} ${t.ch!==BLANK&&VAL[t.ch]>=5?'hi':''} ${extra}">${t.fx?`<em aria-hidden="true">${FX[t.fx].icon}</em>`:''}${t.ch===BLANK?'':t.ch}<sub>${pts(t)}</sub>${t.bag?'<i class="bagmark" aria-hidden="true"></i>':''}</span>`;
 const byId=id=>S.hand.find(t=>t.id===id);
 const newId=()=>'m'+S.turns+'-'+(S.made=(S.made||0)+1);
 // what a tool would do with tile t: {ok, html, ghost} (used for the card previews and to refuse a bad tile)
@@ -466,7 +521,7 @@ function preview(k,t){const T=TOOLS[k];if(!t||t.crossed||!usesLeft(k))return nul
   return null}
 function useOn(card){
   if(S.over||S.draft!=null||!sel)return;const t=byId(sel);if(!t||t.crossed){say('That tile is crossed out.');return}
-  if(card==='spell'){if(S.spell.length>=MAXWORD){say(`The Spellblade holds ${MAXWORD} letters.`);return}S.spell.push(t.id);sel=null;render();return}
+  if(card==='spell'){if(!putInBlade(t.id,slotTo)){say(`The Spellblade holds ${MAXWORD} letters.`);return}sel=null;render();return}
   const T=TOOLS[card];if(!T)return;if(!usesLeft(card)){say(`${T.name} is used up${T.perFight?' for this foe':' this turn'}.`);return}
   const okv=T.ok?T.ok(t):true;if(okv!==true){say(`${T.name}: ${okv}.`);return}
   const L=c=>c===BLANK?'a blank':c.toUpperCase(),c=t.ch;
@@ -490,23 +545,40 @@ function chooseLetter(c){const ch=S.choosing;if(!ch)return;const T=TOOLS[ch.k],t
   if(!c||!t||!T.options(t).includes(c)){render();return}const L=x=>x===BLANK?'a blank':x.toUpperCase(),was=t.ch;
   t.ch=c;t.fresh=true;fxq.push({t:'spark',card:ch.k});say(`${T.name}: <b>${L(was)}</b> → <b>${L(c)}</b>.`);
   if(T.perFight)S.fightUses[ch.k]--;else S.uses[ch.k]--;afterAction()}
-function removeTile(t){S.hand=S.hand.filter(x=>x!==t);S.spell=S.spell.filter(id=>id!==t.id)}
+function removeTile(t){S.hand=S.hand.filter(x=>x!==t);S.spell=sword()?S.spell.map(id=>id===t.id?null:id):S.spell.filter(id=>id!==t.id);while(S.spell.length&&!S.spell[S.spell.length-1])S.spell.pop()}
+// The blade's slots. Before sword days a word fills them from the left; on sword days a tile goes in the slot you pick
+// (a tile already there goes back to your hand), so you can plan around the hilt and the tip. The word is the filled
+// slots, and they must be one unbroken row. at = the slot it starts in.
+let slotTo=null;   // the slot a tap or drop aimed at, if any
+function putInBlade(id,at){const sp=S.spell;
+  if(!sword()||at==null){const i=sword()?(()=>{const last=sp.reduce((m,x,j)=>x?j:m,-1);for(let j=last+1;j<MAXWORD;j++)if(!sp[j])return j;for(let j=0;j<MAXWORD;j++)if(!sp[j])return j;return -1})():sp.length<MAXWORD?sp.length:-1;
+    if(i<0)return false;at=i}
+  while(sp.length<at)sp.push(null);sp[at]=id;return true}
+function bladeWord(){const sp=S.spell,at=sp.findIndex(x=>x);if(at<0)return{at:0,ids:[],gap:false};let e=at;while(e<sp.length&&sp[e])e++;
+  return{at,ids:sp.slice(at,e),gap:sp.slice(e).some(x=>x)}}
 // the word in the blade; blanks can be any letter, so find a real word that fits
-const spellRaw=()=>S.spell.map(id=>byId(id).ch).join('');
-function spellWord(){const w=spellRaw();if(w.length<3)return null;if(!w.includes(BLANK))return WORDS.has(w)?w:null;
+const spellRaw=()=>bladeWord().ids.map(id=>byId(id).ch).join('');
+function spellWord(){if(bladeWord().gap)return null;const w=spellRaw();if(w.length<3)return null;if(!w.includes(BLANK))return WORDS.has(w)?w:null;
   const holes=[...w].map((c,i)=>c===BLANK?i:-1).filter(i=>i>=0);if(holes.length>2)return null;const A='abcdefghijklmnopqrstuvwxyz';
   const tryFill=(arr,k)=>{if(k===holes.length){const s=arr.join('');return WORDS.has(s)?s:null}for(const ch of A){arr[holes[k]]=ch;const r=tryFill(arr,k+1);if(r)return r}return null};
   return tryFill([...w],0)}
 // damage, and whether today's edge kicks in
-function wordHit(w){const ts=S.spell.map(byId),E=EDGES[S.edge];let dmg=ts.reduce((s,t,i)=>s+pts(t)*slotMul(i),0)+(WORD_BONUS[ts.length]??0)+fireOf(ts);
-  const dw=ts.some((_,i)=>S.bonus&&S.bonus[i]==='dw');if(dw)dmg*=2;
+// letters (with the squares they sit on) + length bonus + fire + runes, x2 on a double word, then the edge.
+// On the sword a word on the hilt also gives block for every letter.
+function wordHit(w){const B=bladeWord(),at=B.at,ts=B.ids.map(byId),E=EDGES[S.edge],rh=sword()?runeHit(ts.length):{dmg:0,heal:0};
+  let dmg=ts.reduce((s,t,i)=>s+pts(t)*slotMul(at+i),0)+(WORD_BONUS[ts.length]??0)+fireOf(ts)+rh.dmg;
+  const dw=ts.some((_,i)=>S.bonus&&S.bonus[at+i]==='dw');if(dw)dmg*=2;
   const on=!!E.test(w);if(on){if(E.mult)dmg*=E.mult;if(E.add)dmg+=E.add}
-  return{dmg,on,stun:on&&!!E.stun,fire:fireOf(ts),blk:steelOf(ts),dw}}
+  const hilt=at===0&&S.bonus&&S.bonus[0]==='hilt'?hiltPer()*ts.length:0;
+  return{dmg,on,stun:on&&!!E.stun,fire:fireOf(ts),blk:steelOf(ts)+hilt,hilt,rune:rh.dmg,heal:rh.heal,dw,at,ts}}
 function strike(){
   const w=spellWord();if(!w||S.draft!=null||S.over)return;const h=wordHit(w),E=EDGES[S.edge];
   if(!S.best||h.dmg>S.best.dmg)S.best={w,dmg:h.dmg};
   const from=[...document.querySelectorAll('[data-spell] .tile')].map(el=>({r:el.getBoundingClientRect(),html:el.outerHTML}));
-  const ts=S.spell.map(byId);const u=useUp(ts);S.spell=[];
+  const ts=h.ts;const u=useUp(ts);S.spell=[];
+  if(h.hilt){S.block+=h.hilt;u.blk+=h.hilt;fxq.push({t:'ward',n:h.hilt,from:[]})}
+  if(h.heal){const was=S.hp;S.hp=Math.min(HP,S.hp+h.heal);if(S.hp>was){u.heal+=S.hp-was;fxq.push({t:'heal',n:S.hp-was,delay:520})}}
+  S.strikes=(S.strikes||0)+1;S.wordsTurn=(S.wordsTurn||0)+1;
   if(S.edge==='longsent'){if(S.charged)S.charged=false;S.charge+=w.length;if(S.charge>=12){S.charge-=12;S.charged=true}}
   if(h.stun)S.stun=true;S.lastWord=w;if(h.on)fxq.push({t:'edge',name:E.name});
   hitFoe(h.dmg,`Spellblade: <b>${w.toUpperCase()}</b>${h.fire?' 🔥':''}${h.on?` (${E.name}!${h.stun?' stunned':''})`:''}`,from,!!h.fire);
@@ -523,19 +595,24 @@ function afterAction(){
     say(`<b>${name}</b> is beaten. You catch your breath (+6).${S.draft!=null?' A new trick is on offer.':''}`)}
   persist();render()}
 function endTurn(){
-  if(S.over||S.draft!=null)return;const m0=nextMove(),f=foe();f.block=0;
+  if(S.over||S.draft!=null)return;
+  // on sword days the bag keeps the best leftovers, and Parry turns every unused tile into block
+  let kept=[],parry=0;if(sword()){const left=S.hand.filter(t=>!t.crossed);kept=S.bag=bagPick(left);parry=rper('parry')*left.length;S.block+=parry}
+  const m0=nextMove(),f=foe();f.block=0;
   // stunned: the foe loses its move
   const m=S.stun?{}:m0;
   if(m.armor)f.block+=m.armor;
   let dmg=0,blocked=0;const a=atkOf(m);if(a)for(let k=0;k<(m.twice?2:1);k++){const soak=Math.min(S.block,a);S.block-=soak;blocked+=soak;dmg+=a-soak}
   fxq.push({t:'foeTurn',atk:!!a,dmg,blocked,armor:m.armor});dealNext=true;
   S.hp=Math.max(0,S.hp-dmg);S.pending={jumble:m.jumble,nibble:m.nibble,muffle:m.muffle,redpen:m.redpen};f.mi++;
-  const bits=[];if(S.stun)bits.push('is stunned and does nothing');if(a)bits.push(`hits you for <b>${dmg}</b>${blocked?` (${blocked} blocked)`:''}`);if(m.armor)bits.push(`armours up (${m.armor})`);if(m.jumble)bits.push('jumbles a tile');if(m.nibble)bits.push('nibbles a tile');if(m.muffle)bits.push('muffles your vowels');if(m.redpen)bits.push(`crosses out ${m.redpen} tiles`);
+  const bits=[];if(parry)bits.push(`meets your parry (🛡 ${parry})`);if(S.stun)bits.push('is stunned and does nothing');if(a)bits.push(`hits you for <b>${dmg}</b>${blocked?` (${blocked} blocked)`:''}`);if(m.armor)bits.push(`armours up (${m.armor})`);if(m.jumble)bits.push('jumbles a tile');if(m.nibble)bits.push('nibbles a tile');if(m.muffle)bits.push('muffles your vowels');if(m.redpen)bits.push(`crosses out ${m.redpen} tiles`);
   S.stun=false;
   if(S.hp<=0){S.over='lost';persist();render();showResult();return}
-  startTurn();say(`<b>${F().name}</b> ${bits.join(', ')||'waits'}.`);persist();render()}
+  startTurn();say(`<b>${F().name}</b> ${bits.join(', ')||'waits'}.${kept.length?` Your bag brings back ${kept.map(t=>`<b>${t.ch===BLANK?'a blank':t.ch.toUpperCase()}</b>`).join(' and ')}.`:''}`);persist();render()}
 
 // ---- drawing ----
+const runeChips=()=>{const ks=Object.keys(S.runes||{});return ks.map(k=>`<span class="rune" title="${runeDesc(k,rl(k)).replace(/"/g,'&quot;')}">${RUNES[k].name}${rl(k)>1?' '+ROMAN[rl(k)]:''}: ${runeDesc(k,rl(k))}</span>`).join('')+
+  [...Array(Math.max(0,BL.sockets-ks.length))].map(()=>'<span class="rune empty">◇ empty rune socket</span>').join('')};
 function render(){
   const f=foe(),fd=F(),m=nextMove();
   if(S.deep){const best=+store.get('scrawl-deep-best')||0;$('trail').innerHTML=`<span class="depth">Depth <b>${S.fi+1}</b>${best?` · best ${best}`:''}</span>`}
@@ -551,23 +628,26 @@ function render(){
   $('status').innerHTML=st.map(x=>`<span>${x}</span>`).join('');
   // draft: a third trick before the first foe; after a win, a new trick in place of an old one, or keep your kit
   const drafting=S.draft!=null&&!S.over;$('draft').hidden=!drafting;$('cards').hidden=drafting;
-  if(drafting){const o=offers(S.draft),tag=k=>TOOLS[k].perFight?'once a foe':TOOLS[k].uses>1?'×'+TOOLS[k].uses+' a turn':'once a turn';
+  if(drafting){const o=offers(S.draft),ro=S.swapIn?null:runeOffer(S.draft),tag=k=>TOOLS[k].perFight?'once a foe':TOOLS[k].uses>1?'×'+TOOLS[k].uses+' a turn':'once a turn';
     $('draft').innerHTML=S.swapIn?`<h3>Give up which trick for ${TOOLS[S.swapIn].name}?</h3><p class="sub">Quill always stays.</p>
       <div class="offers">${S.kit.filter(k=>k!=='quill').map(k=>`<button class="offer" data-replace="${k}"><b>${TOOLS[k].name}</b><span>${TOOLS[k].desc}</span></button>`).join('')}</div>
       <button class="btn" data-back="1">Back</button>`
-    :`<h3>${S.draft===0?(S.deep?'Pick a third trick':'Pick a third trick for today'):'Armoury: swap your equipment'}</h3>
+    :`<h3>${S.draft===0?(S.deep||mode==='free'?'Pick a third trick':'Pick a third trick for today'):'Armoury: swap your equipment'}${ro?' or forge your sword':''}</h3>
       <p class="sub">${S.draft===0?`It joins Quill, Nudge and Flip for ${S.deep?'this descent':'the whole crawl'}.`:`Before ${S.deep?'depth '+(S.fi+1):'the next foe'}: take a new trick in place of one of yours, or keep your kit.`}</p>
       <div class="kitrow">${S.kit.map(k=>`<span class="kitchip">${TOOLS[k].name}</span>`).join('')}</div>
-      <div class="offers">${o.map(k=>`<button class="offer t-${TOOLS[k].tier||'none'}" data-pick="${k}"><b>${TOOLS[k].name}${TOOLS[k].tier?` <span class="tiertag ${TOOLS[k].tier}">${TIER_NAME[TOOLS[k].tier]}</span>`:''}</b><span class="tag">${tag(k)}</span><span>${TOOLS[k].desc}</span></button>`).join('')}</div>
+      <div class="offers">${o.map(k=>`<button class="offer t-${TOOLS[k].tier||'none'}" data-pick="${k}"><b>${TOOLS[k].name}${TOOLS[k].tier?` <span class="tiertag ${TOOLS[k].tier}">${TIER_NAME[TOOLS[k].tier]}</span>`:''}</b><span class="tag">${tag(k)}</span><span>${TOOLS[k].desc}</span></button>`).join('')}${ro?`<button class="offer t-rune" data-pick="${ro}"><b>${RUNES[ro].name}${rl(ro)?' '+ROMAN[rl(ro)+1]:''} <span class="tiertag" style="background:var(--block)">Rune</span></b><span class="tag">${rl(ro)?'upgrade for your sword':'set into your sword · keeps your kit'}</span><span>${runeDesc(ro,rl(ro)+1)}${rl(ro)?` (now: ${runeDesc(ro,rl(ro))})`:''}</span></button>`:''}</div>
+      ${sword()?`<div class="runes">${runeChips()}</div>`:''}
       ${S.kit.length>=KIT_MAX?'<button class="btn" data-keep="1">Keep my kit</button>':''}`}
   const T=(drag&&drag.started&&byId(drag.id))||(sel&&byId(sel));
   const raw=spellRaw(),w=spellWord(),hit=w?wordHit(w):null,E=EDGES[S.edge];
   const card=(k,title,uses,desc,wide,can)=>`<div class="cardx ${wide?'wide':''} ${uses==='used'?'spent':''} ${can?'can':''}" data-card="${k}"><h3>${title}<small>${uses}</small></h3><p>${desc}</p>`;
   const edgeChip=`<div class="edges"><span class="edge ${hit&&hit.on?'on':''}" title="${E.desc}">Today's edge: <b>${E.name}</b>${S.edge==='letter'?` (<b>${S.dayLetter.toUpperCase()}</b>)`:''}${S.edge==='longsent'?` <i class="meter"><i style="width:${S.charged?100:S.charge/12*100}%"></i></i>${S.charged?' ready':''}`:''}${S.lastWord&&(S.edge==='rhyme'||S.edge==='allit')?` · last word ${S.lastWord.toUpperCase()}`:''}</span><span class="edgedesc">${E.desc.replace("today's letter",`<b>${S.dayLetter.toUpperCase()}</b>`)}</span></div>`;
-  let blade=card('spell','Spellblade','any time',`A real word, 3 to ${MAXWORD} letters: its points, plus a bonus for length. Spell as many words as your tiles allow.`,true,!!T)+edgeChip+
-    `<div class="wordrow"><div class="slots">${[...Array(MAXWORD)].map((_,i)=>{const t=S.spell[i]&&byId(S.spell[i]);const bq=S.bonus&&S.bonus[i],BQ={dl:'double letter',tl:'triple letter',dw:'double word'};return `<button class="slot ${t?'full':''} ${bq?'b-'+bq:''}" data-spell="${i}" aria-label="${t?'Letter '+(t.ch===BLANK?'blank':t.ch.toUpperCase())+', tap to take back':'Empty word slot'}${bq?', '+BQ[bq]:''}">${t?tileHTML(t):bq?`<span class="blab">${bq.toUpperCase()}</span>`:''}</button>`}).join('')}</div>
-    </div>
-    <div class="strikerow"><div class="wordinfo">${raw.length?(raw.length<3?'Three letters or more.':w?`<b>${w.toUpperCase()}</b>${raw.includes(BLANK)?' (blank filled)':''} · <b>${hit.dmg} damage</b>${hit.on?` · <b class="edgeon">${E.name}!</b>`:''}${hit.blk?` · <b class="blkon">🛡 +${hit.blk} block</b>`:''}<br><small>${breakdown(hit)}</small>`:`<span class="bad">${raw.replace(/\?/g,'_').toUpperCase()} isn't in the word list</span>`):'Tap tiles to spell into the blade.'}</div><button class="btn primary" id="strikeBtn" ${w?'':'disabled'}>Strike</button></div></div>`;
+  const sw=sword(),SW=['hilt','guard','blade','blade','blade','tip'];
+  let blade=card('spell','Spellblade','any time',sw?`A real word, 3 to ${MAXWORD} letters, in one unbroken row: its points, plus a bonus for length. Put a tile in any slot.`:`A real word, 3 to ${MAXWORD} letters: its points, plus a bonus for length. Spell as many words as your tiles allow.`,true,!!T)+(sw?`<div class="runes">${runeChips()}</div>`:'')+edgeChip+
+    `<div class="wordrow ${sw?'sword':''}"><div class="slots">${[...Array(MAXWORD)].map((_,i)=>{const t=S.spell[i]&&byId(S.spell[i]);const bq=S.bonus&&S.bonus[i],BQ={dl:'double letter',tl:'triple letter',dw:'double word',hilt:'hilt: block for every letter'};
+      const lab=bq==='hilt'?'🛡':bq?bq.toUpperCase():'';return `<button class="slot ${t?'full':''} ${bq?'b-'+bq:''} ${sw?'s-'+SW[i]:''}" data-spell="${i}" aria-label="${t?'Letter '+(t.ch===BLANK?'blank':t.ch.toUpperCase())+', tap to take back':'Empty word slot'}${bq?', '+BQ[bq]:''}">${t?tileHTML(t):lab?`<span class="blab">${lab}</span>`:''}</button>`}).join('')}</div>
+    </div>${sw?`<div class="swordkey"><b>Hilt</b> +${hiltPer()} 🛡 a letter · <b>Crossguard</b> double letter · <b>Tip</b> double word</div>`:''}
+    <div class="strikerow"><div class="wordinfo">${raw.length?(bladeWord().gap?'<span class="bad">Close the gap: a word is one unbroken row.</span>':raw.length<3?'Three letters or more.':w?`<b>${w.toUpperCase()}</b>${raw.includes(BLANK)?' (blank filled)':''} · <b>${hit.dmg} damage</b>${hit.on?` · <b class="edgeon">${E.name}!</b>`:''}${hit.blk?` · <b class="blkon">🛡 +${hit.blk} block</b>`:''}${hit.heal?` · <b>❤ +${hit.heal}</b>`:''}<br><small>${breakdown(hit)}</small>`:`<span class="bad">${raw.replace(/\?/g,'_').toUpperCase()} isn't in the word list</span>`):'Tap tiles to spell into the blade.'}</div><button class="btn primary" id="strikeBtn" ${w?'':'disabled'}>Strike</button></div></div>`;
   let h='';
   S.kit.forEach(k=>{const Tk=TOOLS[k],p=preview(k,T),pk=(k==='swap'&&!S.pairCard||S.pairCard===k)&&S.swapPick&&byId(S.swapPick),ch=S.choosing&&S.choosing.k===k&&byId(S.choosing.id);
     const tierTag=Tk.tier&&Tk.tier!=='common'?`<span class="tiertag ${Tk.tier}">${TIER_NAME[Tk.tier]}</span>`:'';
@@ -579,14 +659,16 @@ function render(){
   const inSpell=new Set(S.spell);
   $('hand').innerHTML=drafting?'<span class="sub" style="align-self:center">Choose, then the fight begins.</span>':S.hand.filter(t=>!inSpell.has(t.id)).map((t,i)=>`<button data-t="${t.id}" class="${sel===t.id&&!(drag&&drag.started)?'sel':''} ${S.swapPick===t.id?'sel':''} ${drag&&drag.started&&drag.id===t.id?'lifted':''} ${dealNext?'deal':''}" style="--d:${dealNext?(0.25+i*0.07).toFixed(2)+'s':'0s'}" aria-label="${t.fx?FX[t.fx].name+' ':''}${t.ch===BLANK?'blank':t.ch.toUpperCase()}, ${pts(t)} points${t.crossed?', crossed out':''}" ${S.over?'disabled':''}>${tileHTML(t)}</button>`).join('')||'<span class="sub" style="align-self:center">No tiles left. End your turn.</span>';
   const fxs=[...new Set(S.hand.map(t=>t.fx).filter(Boolean))];
+  const left=S.hand.filter(t=>!t.crossed),keeps=sw&&!drafting&&!S.over?bagPick(left):[];
+  $('bagline').innerHTML=sw&&!drafting&&!S.over?`👜 <b>Bag</b> (${BL.bagCap}): ${keeps.length?`keeps ${keeps.map(t=>`<b>${t.ch===BLANK?'blank':t.ch.toUpperCase()}</b>`).join(' ')} for next turn`:'empty: tiles you do not use go here'}${rper('parry')?` · Parry 🛡 +${rper('parry')*left.length}`:''}`:'';
   $('fxkey').innerHTML=drafting?'':fxs.map(k=>`<span><b>${FX[k].icon} ${FX[k].name}</b> ${FX[k].say}</span>`).join('')+(S.hand.some(t=>t.ch===BLANK)?'<span><b>Blank</b> any letter in a word, worth 0</span>':'');
   S.hand.forEach(t=>t.fresh=false);
   $('endBtn').disabled=!!S.over||drafting;$('log').innerHTML=S.log||'';
   if(!drafting)dealNext=false;if(fxq.length)playFx(fxq.splice(0));
 }
 function shareText(){if(S.deep)return `The Puzz · Dungeon Scrawl ${mode==='descent'?`#${D.num} endless`:`endless ${S.seed.slice(8)}`}\n⬇️ Depth ${S.fi+1}: beat ${S.fi} foe${S.fi===1?'':'s'} in ${S.turns} turns, fell to ${FOES[foe().k].name}\n${S.best?`Best word: ${S.best.w.toUpperCase()} (${S.best.dmg})`:'No words struck'} · Edge: ${EDGES[S.edge].name}\nKit: ${S.kit.filter(k=>k!=='quill').map(k=>TOOLS[k].name).join(' · ')}\nthecosmickitchen.github.io/The-Puzz/scrawl.html${mode==='descent'?'':'#'+S.seed.slice(8)}`;
-  const head=mode==='daily'||mode==='day'?`Dungeon Scrawl #${D.num} · ${D.label}`:mode==='lab'?'Dungeon Scrawl tool lab':`Dungeon Scrawl endless ${S.seed.slice(8)}`;
-  const link=`thecosmickitchen.github.io/The-Puzz/scrawl.html#${mode==='daily'||mode==='day'?'d'+D.iso:mode==='lab'?'lab':S.seed.slice(8)}`;
+  const head=mode==='daily'||mode==='day'?`Dungeon Scrawl #${D.num} · ${D.label}`:mode==='lab'?'Dungeon Scrawl tool lab':mode==='free'?`Dungeon Scrawl freeplay ${S.seed.slice(8)}`:`Dungeon Scrawl endless ${S.seed.slice(8)}`;
+  const link=`thecosmickitchen.github.io/The-Puzz/scrawl.html#${mode==='daily'||mode==='day'?'d'+D.iso:mode==='lab'?'lab':mode==='free'?'free-'+S.seed.slice(8):S.seed.slice(8)}`;
   const foes=S.foes.map((f,i)=>i<S.fi||S.over==='won'?'🟩':i===S.fi?'🟥':'⬛').join('');
   return `The Puzz · ${head}\n${foes} ${S.over==='won'?`all 3 foes in ${S.turns} turns · ❤️ ${S.hp}/${HP}`:`fell to ${FOES[foe().k].name} on turn ${S.turns}`}\n${S.best?`Best word: ${S.best.w.toUpperCase()} (${S.best.dmg})`:'No words struck'} · Edge: ${EDGES[S.edge].name}\nKit: ${S.kit.filter(k=>k!=='quill').map(k=>TOOLS[k].name).join(' · ')}\n${link}`}
 const randomBtn='<button class="btn" id="randomBtn">Random descent</button>';
@@ -598,9 +680,9 @@ function showResult(){const R=$('result');R.hidden=false;
   let deepNote='';
   if(S.deep){const best=+store.get('scrawl-deep-best')||0,d=S.fi+1;if(d>best){store.set('scrawl-deep-best',d);deepNote=best?`<p class="sub">New best: depth ${d} (was ${best}).</p>`:''}else deepNote=`<p class="sub">Your best is depth ${best}.</p>`}
   R.innerHTML=`<h2>${S.deep?`You fell at depth ${S.fi+1}`:S.over==='won'?'The cellar is quiet':'You were edited out'}</h2>${deepNote}<pre id="shareTxt">${shareText()}</pre>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='daily'?descendButton():mode==='descent'?'<button class="btn" id="backBtn">Today\'s result</button>'+randomBtn:`<button class="btn" id="againBtn">${S.deep?'New descent':'Another crawl'}</button>`}</div>`;
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='daily'?descendButton():mode==='descent'?'<button class="btn" id="backBtn">Today\'s result</button>'+randomBtn:`<button class="btn" id="againBtn">${S.deep?'New descent':'Another crawl'}</button>${mode==='free'?'<button class="btn" id="backBtn">Today\'s daily</button>':''}`}</div>`;
   $('copyBtn').onclick=e=>{const b=e.currentTarget;try{navigator.clipboard.writeText(shareText()).then(()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)})}catch(err){}};
-  if($('againBtn'))$('againBtn').onclick=()=>{R.hidden=true;load(mode==='lab'?'lab':'endless',Math.random().toString(36).slice(2,7))};
+  if($('againBtn'))$('againBtn').onclick=()=>{R.hidden=true;load(mode==='lab'?'lab':mode==='free'?'free':'endless',Math.random().toString(36).slice(2,7))};
   if($('descendBtn'))$('descendBtn').onclick=keepDescending;
   if($('backBtn'))$('backBtn').onclick=()=>load('daily');
   if($('randomBtn'))$('randomBtn').onclick=()=>{R.hidden=true;load('endless',Math.random().toString(36).slice(2,7));window.scrollTo({top:0,behavior:'smooth'})};
@@ -611,17 +693,18 @@ $('draft').addEventListener('click',e=>{const b=e.target.closest('[data-pick],[d
   if(b.dataset.pick)pick(b.dataset.pick);else if(b.dataset.replace)replace(b.dataset.replace);else if(b.dataset.keep)keepKit();else{S.swapIn=null;render()}});
 $('hand').addEventListener('click',e=>{if(suppress)return;const b=e.target.closest('[data-t]');if(!b)return;sel=sel===b.dataset.t?null:b.dataset.t;render()});
 $('cards').addEventListener('click',e=>{const pc=e.target.closest('[data-choose]');if(pc){chooseLetter(pc.dataset.choose);return}
-  const sp=e.target.closest('[data-spell]');if(sp){const i=+sp.dataset.spell;if(S.spell[i]&&!sel){S.spell.splice(i,1);render();return}useOn('spell');return}
+  const sp=e.target.closest('[data-spell]');if(sp){const i=+sp.dataset.spell;if(S.spell[i]&&!sel){if(sword()){S.spell[i]=null;while(S.spell.length&&!S.spell[S.spell.length-1])S.spell.pop()}else S.spell.splice(i,1);render();return}
+    slotTo=i;useOn('spell');slotTo=null;return}
   const u=e.target.closest('[data-use]');if(u){useOn(u.dataset.use);return}
   const c=e.target.closest('[data-card]');if(c&&sel)useOn(c.dataset.card)});
 document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||!S||S.over||S.draft!=null)return;
-  if(/^[a-z]$/i.test(e.key)){if(S.spell.length>=MAXWORD)return;const inSpell=new Set(S.spell),t=S.hand.find(t=>!inSpell.has(t.id)&&!t.crossed&&t.ch===e.key.toLowerCase())||S.hand.find(t=>!inSpell.has(t.id)&&!t.crossed&&t.ch===BLANK);if(t){S.spell.push(t.id);sel=null;render()}e.preventDefault()}
-  else if(e.key==='Backspace'){S.spell.pop();render();e.preventDefault()}
+  if(/^[a-z]$/i.test(e.key)){const inSpell=new Set(S.spell),t=S.hand.find(t=>!inSpell.has(t.id)&&!t.crossed&&t.ch===e.key.toLowerCase())||S.hand.find(t=>!inSpell.has(t.id)&&!t.crossed&&t.ch===BLANK);if(t&&putInBlade(t.id,null)){sel=null;render()}e.preventDefault()}
+  else if(e.key==='Backspace'){S.spell.pop();while(S.spell.length&&!S.spell[S.spell.length-1])S.spell.pop();render();e.preventDefault()}
   else if(e.key==='Enter'){strike();e.preventDefault()}});
 // where a word's damage comes from: letters + length bonus (+ fire), then today's edge
-function breakdown(hit){const ts=S.spell.map(byId),n=ts.length,E=EDGES[S.edge],letters=ts.reduce((a,t,i)=>a+pts(t)*slotMul(i),0),boosted=ts.some((_,i)=>slotMul(i)>1),bits=[`letters ${letters}${boosted?' (bonus squares)':''}`];
-  if(WORD_BONUS[n])bits.push(`${n}-letter bonus ${WORD_BONUS[n]}`);if(hit.fire)bits.push(`🔥 ${hit.fire}`);
-  let txt=bits.join(' + ');if(hit.dw)txt=`(${txt}) × 2 double word`;if(hit.on&&E.mult)txt=`(${txt}) × ${E.mult} ${E.name}`;if(hit.on&&E.add)txt+=` + ${E.add} ${E.name}`;if(hit.stun)txt+=' · stuns';return txt}
+function breakdown(hit){const ts=hit.ts,at=hit.at,n=ts.length,E=EDGES[S.edge],letters=ts.reduce((a,t,i)=>a+pts(t)*slotMul(at+i),0),boosted=ts.some((_,i)=>slotMul(at+i)>1),bits=[`letters ${letters}${boosted?' (bonus squares)':''}`];
+  if(WORD_BONUS[n])bits.push(`${n}-letter bonus ${WORD_BONUS[n]}`);if(hit.fire)bits.push(`🔥 ${hit.fire}`);if(hit.rune)bits.push(`runes ${hit.rune}`);
+  let txt=bits.join(' + ');if(hit.dw)txt=`(${txt}) × 2 ${sword()?'tip':'double word'}`;if(hit.on&&E.mult)txt=`(${txt}) × ${E.mult} ${E.name}`;if(hit.on&&E.add)txt+=` + ${E.add} ${E.name}`;if(hit.stun)txt+=' · stuns';return txt}
 // Undo: take back the last trick, Quill or Strike this turn. Gone once the turn ends or a foe falls (no peeking at the next fight).
 let undoStack=[];
 function undoable(fn){return function(...a){if(!S||S.over||S.draft!=null)return fn.apply(this,a);
@@ -639,8 +722,9 @@ function coachLine(){
   if(S.over||S.draft!=null)return S.draft===0?'Pick one more trick for your kit. Each one changes letters in its own way.':'';
   const raw=spellRaw(),w=spellWord();
   if(drag&&drag.started)return 'Let go over the <b>Spellblade</b> to add the letter, or over a trick to change it.';
-  if(sel)return 'Now tap an empty Spellblade slot, or a trick card to change this letter.';
+  if(sel)return sword()?'Now tap any Spellblade slot (the hilt gives block, the tip doubles the word), or a trick card to change this letter.':'Now tap an empty Spellblade slot, or a trick card to change this letter.';
   if(!raw.length)return 'Make a word to attack: drag a letter up into the <b>Spellblade</b> slots, or tap a letter then a slot.';
+  if(bladeWord().gap)return 'A word is one unbroken row of letters: fill the gap or take a letter back.';
   if(raw.length<3)return 'Keep going: a real word needs at least 3 letters.';
   if(!w)return 'That isn\'t a word yet. Tap a letter in the blade to send it back.';
   return `Press <b>Strike</b> to hit for ${wordHit(w).dmg}. You can spell more words with the tiles you have left, then <b>End turn</b>.`}
@@ -650,20 +734,22 @@ function refreshExtras(){if(!S)return;$('undoBtn').disabled=!undoStack.length||!
 render=(f=>function(...a){const r=f(...a);refreshExtras();return r})(render);
 $('coachOff').onclick=()=>{store.set('scrawl-coach','off');$('coach').hidden=true};
 $('endBtn').onclick=()=>endTurn();
+$('freeBtn').onclick=()=>{$('result').hidden=true;if(mode==='free')load('daily');else load('free');window.scrollTo({top:0,behavior:'smooth'})};
 // drag: pick a tile up, carry it over a card (it previews what it'll do), let go to use it
 $('hand').addEventListener('pointerdown',e=>{const b=e.target.closest('[data-t]');if(!b||!S||S.over)return;drag={id:b.dataset.t,x:e.clientX,y:e.clientY,started:false,over:null}});
 document.addEventListener('pointermove',e=>{if(!drag)return;
   if(!drag.started){if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<8)return;const t=byId(drag.id);if(!t||t.crossed){drag=null;return}
     drag.started=true;drag.ghost=document.createElement('div');drag.ghost.className='dragghost';drag.ghost.innerHTML=tileHTML(t);fxLayer.append(drag.ghost);render()}
   e.preventDefault();drag.ghost.style.left=e.clientX+'px';drag.ghost.style.top=e.clientY+'px';
-  const el=document.elementFromPoint(e.clientX,e.clientY),c=el&&el.closest('[data-card]'),k=c?c.dataset.card:null;
+  const el=document.elementFromPoint(e.clientX,e.clientY),c=el&&el.closest('[data-card]'),k=c?c.dataset.card:null,sl=el&&el.closest('[data-spell]');drag.slot=sl?+sl.dataset.spell:null;
   if(k!==drag.over){drag.over=k;document.querySelectorAll('.cardx.drop').forEach(x=>x.classList.remove('drop'));if(c)c.classList.add('drop')}},{passive:false});
 function endDrag(e,cancel){if(!drag)return;const d=drag;drag=null;if(!d.started)return;
   suppress=true;setTimeout(()=>suppress=false,0);const g=d.ghost.querySelector('.tile');dragSrc=g?{r:g.getBoundingClientRect(),html:g.outerHTML}:null;d.ghost.remove();
-  if(!cancel&&d.over){sel=d.id;useOn(d.over)}else{sel=null;render()}dragSrc=null}
+  if(!cancel&&d.over){sel=d.id;slotTo=d.over==='spell'?d.slot:null;useOn(d.over);slotTo=null}else{sel=null;render()}dragSrc=null}
 document.addEventListener('pointerup',e=>endDrag(e,false));document.addEventListener('pointercancel',e=>endDrag(e,true));
 (function boot(){const h=(location.hash||'').slice(1),day=/^d(\d{4}-\d{2}-\d{2})$/.exec(h);
-  if(h==='lab')load('lab');else if(day&&day[1]<dayInfo().iso)load('day',day[1]);else if(/^[a-z0-9]{5}$/.test(h))load('endless',h);
+  const fr=/^free(?:-([a-z0-9]{5}))?$/.exec(h);
+  if(h==='lab')load('lab');else if(fr)load('free',fr[1]);else if(day&&day[1]<dayInfo().iso)load('day',day[1]);else if(/^[a-z0-9]{5}$/.test(h))load('endless',h);
   else{load('daily');if(!store.get('scrawl-seen')){$('rules').open=true;store.set('scrawl-seen',1)}}})();
 </script>
 </body>
