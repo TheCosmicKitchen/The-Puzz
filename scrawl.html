@@ -252,7 +252,7 @@ details p{margin:8px 0;font-size:14px}
   </details>
 </div>
 <script src="puzz-core.js?v=42c25c62"></script>
-<script src="scrawl-items.js?v=eefb7cfa"></script>
+<script src="scrawl-items.js?v=c70261f3"></script>
 <script src="scrawl-blade.js?v=7123c75e"></script>
 <script src="typeset-words.js?v=4cb3d273"></script>
 <script src="streak.js?v=b548c2ec"></script>
@@ -299,6 +299,9 @@ function compileItem(r){const tg=r.target||{type:'any'},e=r.effect||{},msg=tg.ms
   if(r.kind==='reroll')Object.assign(T,{random:true,reroll:e.reroll,notile:!!e.reroll.hand});
   if(r.kind==='affix')Object.assign(T,{notile:true,random:true,affix:e.affix});
   if(r.kind==='socket')T.socket=e.socket;
+  if(r.kind==='charm')Object.assign(T,{notile:true,charm:e});   // a button: this turn, this foe, or the foe's next move
+  if(r.kind==='mark')T.mark=e;                                   // tag a tile's letter; the tile stays
+  if(r.kind==='pair'&&e.meld)T.meld=true;                        // two tiles melt into one blank
   if(r.kind==='choose')T.options=t=>e.options.groups?[...e.options.groups.find(g=>g.includes(t.ch))]:e.options.steps?e.options.steps.map(d=>step(t.ch,d)):[...e.options.letters];
   if(r.kind==='make')T.make=t=>e.make.map(m=>m.self?{ch:t.ch,fx:t.fx}:m.copy?{ch:t.ch}:{ch:m.letter});
   if(r.kind==='pair')T.pair=(a,b)=>!e.sameKind||VOW.has(a.ch)===VOW.has(b.ch)?[b.ch,b.ch]:null;
@@ -499,7 +502,7 @@ const slotMul=i=>S.bonus&&S.bonus[i]==='dl'?2:S.bonus&&S.bonus[i]==='tl'?3:S.bon
 const maxWord=()=>hx().kern?4:MAXWORD;
 function startTurn(){
   S.turn++;S.turns++;S.uses={};S.kit.forEach(k=>{if(TOOLS[k].uses)S.uses[k]=TOOLS[k].uses});S.spell=[];S.block=Math.min(S.block||0,rper('bastion'));S.swapPick=null;S.pairCard=null;S.choosing=null;
-  S.rolls=0;S.sockets={};S.affixing=null;
+  S.rolls=0;S.sockets={};S.affixing=null;S.charm={};
   const p=S.pending;S.muffle=!!p.muffle;S.lenTurn=0;
   S.hand=drawTiles(HAND-(p.nibble||0),p.cluster?1:p.diph?4:0);S.bonus=rollBonus();
   const r=mulberry(hseed(S.seed+'-trick-'+S.fi+'-'+S.turn));
@@ -519,7 +522,7 @@ function foeHex(p,r){const H={};for(const k of HEX)if(p[k])H[k]=p[k];const live=
   if(H.dogear){const free=[0,1,2,3].filter(i=>!S.bonus[i]);if(free.length)S.bonus[free[Math.floor(r()*free.length)]]='x';else delete H.dogear}
   if(H.hang){let c=S.hand.filter(t=>live(t)&&!VOW.has(t.ch));if(!c.length)c=S.hand.filter(live);if(c.length)H.hang=c[Math.floor(r()*c.length)].ch;else delete H.hang}
   return H}
-function startFight(){S.bag=[];S.strikes=0;S.fightUses={};S.kit.forEach(k=>{if(TOOLS[k].perFight)S.fightUses[k]=TOOLS[k].perFight});S.turn=0;S.pending={};S.charge=0;S.charged=false;S.lastWord=null;S.stun=false;startTurn()}
+function startFight(){S.weak=null;S.bind=0;S.bag=[];S.strikes=0;S.fightUses={};S.kit.forEach(k=>{if(TOOLS[k].perFight)S.fightUses[k]=TOOLS[k].perFight});S.turn=0;S.pending={};S.charge=0;S.charged=false;S.lastWord=null;S.stun=false;startTurn()}
 const foe=()=>S.foes[S.fi],F=()=>FOES[foe().k],nextMove=()=>F().moves[foe().mi%F().moves.length];
 const pts=t=>t.ch===BLANK?0:(S.muffle&&VOW.has(t.ch)?0:S.hex&&S.hex.caps?1:VAL[t.ch])*(t.fx==='gold'?2:1);
 const fireOf=ts=>ts.filter(t=>t.fx==='fire').length*4;
@@ -630,9 +633,14 @@ function useOn(card){
     case 'make':{fxq.push({t:'spark',card});const at=S.hand.indexOf(t);S.hand.splice(at,1);
       const tiles=T.make(t).map(m=>({id:newId(),ch:m.ch,fx:m.fx,fresh:true}));S.hand.splice(at,0,...tiles);
       say(`${T.name}: <b>${L(c)}</b> → ${tiles.map(x=>`<b>${L(x.ch)}</b>`).join(' ')}.`);break}
+    case 'mark':{const e=T.mark;fxq.push({t:'spark',card});
+      if(e.weak){S.weak={c,x:e.weak};say(`${T.name}: <b>${F().name}</b> takes double from every word with <b>${L(c)}</b>.`)}
+      if(e.ink){S.ink={c,n:S.ink?Math.max(S.ink.n,e.ink):e.ink};say(`${T.name}: <b>${L(c)}</b> is stained for the run: +${S.ink.n} a word, growing.`)}
+      break}
     case 'choose':{S.choosing={k:card,id:t.id};sel=null;say(`${T.name}: pick the new letter for <b>${L(c)}</b>.`);render();return}
-    case 'pair':{if(!(S.pairCard===card&&S.swapPick)){S.swapPick=t.id;S.pairCard=card;sel=null;say(`${T.name}: now pick the tile whose letter <b>${L(c)}</b> takes.`);render();return}
+    case 'pair':{if(!(S.pairCard===card&&S.swapPick)){S.swapPick=t.id;S.pairCard=card;sel=null;say(T.meld?`${T.name}: now pick the tile to melt with <b>${L(c)}</b>.`:`${T.name}: now pick the tile whose letter <b>${L(c)}</b> takes.`);render();return}
       const a=byId(S.swapPick);if(!a||a.id===t.id){S.swapPick=null;S.pairCard=null;render();return}
+      if(T.meld){const was2=a.ch;a.ch=BLANK;delete a.fx;a.fresh=true;removeTile(t);S.swapPick=null;S.pairCard=null;fxq.push({t:'spark',card});say(`${T.name}: <b>${L(was2)}</b> and <b>${L(c)}</b> melt into a blank.`);break}
       const res=T.pair(a,t);if(!res){say(`${T.name}: pick a tile of the same kind (vowel or consonant).`);return}
       const was=a.ch;[a.ch,t.ch]=res;a.fresh=true;S.swapPick=null;S.pairCard=null;fxq.push({t:'spark',card});say(`${T.name}: <b>${L(was)}</b> → <b>${L(a.ch)}</b>.`);break}
     case 'swap':{if(!S.swapPick||S.pairCard){S.swapPick=t.id;S.pairCard=null;sel=null;say(`Swap: now pick a tile to trade with <b>${L(c)}</b>.`);render();return}
@@ -648,11 +656,30 @@ const spend=k=>{if(TOOLS[k].perFight)S.fightUses[k]--;else S.uses[k]--};
 // tricks that need no tile (draws, hand rerolls, affixes): a button on the card
 function fireTrick(k){const T=TOOLS[k];if(S.over||S.draft!=null||!T||!T.notile)return;if(S.affixing){say(`Pick one of the affixes on ${TOOLS[S.affixing.k].name} first.`);return}
   if(!usesLeft(k)){say(`${T.name} is used up${T.perFight?' for this foe':' this turn'}.`);return}
+  if(T.kind==='charm'){castCharm(k,T);return}
   const res=rollTrick(T,null),L=x=>`<b>${x.toUpperCase()}</b>`;spend(k);sel=null;fxq.push({t:'spark',card:k});
   if(res.opts&&res.opts.length>1){S.affixing={k,opts:res.opts};say(`${T.name}: pick one.`);persist();render();return}
   if(res.opts){addAffix(res.opts[0]);say(`${T.name}: ${L(res.opts[0])} pops out.`)}
   else say(res.tiles.length?`${T.name}: ${res.tiles.map(x=>L(x.ch)).join(' ')}.`:`${T.name}: nothing to roll.`);
   afterAction()}
+// charms change this turn (S.charm, cleared when the turn starts), this foe (S.stun, S.bind) or lay a word down (Ghostwriter)
+function castCharm(k,T){const e=T.charm,C=S.charm||(S.charm={});let msg;
+  if(e.ghost){const g=ghostWord();if(!g){say(`${T.name}: these tiles make no word.`);return}
+    S.spell=[];g.ids.forEach((id,i)=>putInBlade(id,i));C.ghost=e.ghost;msg=`<b>${g.w.toUpperCase()}</b> is on the sword, and it deals double.`}
+  else if(e.vowelBlock){C.vowelBlock=(C.vowelBlock||0)+e.vowelBlock;msg=`every vowel you strike with this turn gives 🛡 ${C.vowelBlock}.`}
+  else if(e.thorns){C.thorns=true;msg='whatever your block stops this turn is dealt back.'}
+  else if(e.stun){S.stun=true;msg=`<b>${F().name}</b>'s next move is struck from the record.`}
+  else if(e.bind){S.bind=Math.max(S.bind||0,e.bind);msg=`<b>${F().name}</b>'s tricks stay shut for its next ${e.bind} moves.`}
+  else if(e.rare){C.rare=e.rare;msg=`K J X Q Z multiply a word's damage by ${e.rare} each this turn.`}
+  else if(e.reverse){C.reverse=true;msg='words count spelled backwards too this turn.'}
+  spend(k);sel=null;fxq.push({t:'spark',card:k});say(`${T.name}: ${msg}`);afterAction()}
+// Ghostwriter: the highest-scoring word the free tiles spell (no blanks), searched along real word prefixes
+let PREFIX=null;
+function ghostWord(){if(!PREFIX){PREFIX=new Set();for(const w of WORDS)if(w.length<=MAXWORD)for(let i=1;i<=w.length;i++)PREFIX.add(w.slice(0,i))}
+  const busy=new Set(Object.values(S.sockets||{}).flat()),h=S.hand.filter(t=>!t.crossed&&t.ch!==BLANK&&!busy.has(t.id)),N=Math.min(maxWord(),h.length),used=[],pre=[];let best=null;
+  const go=s=>{if(pre.length>=3&&WORDS.has(s)){const v=pre.reduce((a,t)=>a+pts(t),0)+(WORD_BONUS[pre.length]??0)+fireOf(pre);if(!best||v>best.v)best={v,w:s,ids:pre.map(t=>t.id)}}
+    if(pre.length<N)for(let i=0;i<h.length;i++)if(!used[i]&&PREFIX.has(s+h[i].ch)){used[i]=1;pre.push(h[i]);go(s+h[i].ch);pre.pop();used[i]=0}};
+  go('');return best}
 function chooseAffix(a){const af=S.affixing;if(!af||!af.opts.includes(a))return;S.affixing=null;addAffix(a);say(`${TOOLS[af.k].name}: <b>${a.toUpperCase()}</b> pops out.`);afterAction()}
 // sockets: tiles wait in the card until they spell a word, then Set fires it
 const socketWord=k=>{const ids=(S.sockets||{})[k]||[];return ids.length===(TOOLS[k].socket.len||3)?fillWord(ids.map(id=>byId(id).ch).join('')):null};
@@ -680,7 +707,7 @@ function bladeWord(){const sp=S.spell,at=sp.findIndex(x=>x);if(at<0)return{at:0,
   return{at,ids:sp.slice(at,e),gap:sp.slice(e).some(x=>x)}}
 // the word in the blade; blanks can be any letter, so find a real word that fits
 const spellRaw=()=>bladeWord().ids.map(id=>byId(id).ch).join('');
-const spellWord=()=>bladeWord().gap?null:fillWord(spellRaw());
+const spellWord=()=>{if(bladeWord().gap)return null;const raw=spellRaw();return fillWord(raw)||(S.charm&&S.charm.reverse?fillWord([...raw].reverse().join('')):null)};
 function fillWord(w){if(w.length<3)return null;if(!w.includes(BLANK))return WORDS.has(w)?w:null;
   const holes=[...w].map((c,i)=>c===BLANK?i:-1).filter(i=>i>=0);if(holes.length>2)return null;const A='abcdefghijklmnopqrstuvwxyz';
   const tryFill=(arr,k)=>{if(k===holes.length){const s=arr.join('');return WORDS.has(s)?s:null}for(const ch of A){arr[holes[k]]=ch;const r=tryFill(arr,k+1);if(r)return r}return null};
@@ -692,19 +719,26 @@ function wordHit(w){const B=bladeWord(),at=B.at,ts=B.ids.map(byId),E=EDGES[S.edg
   let dmg=ts.reduce((s,t,i)=>s+(H.ellipsis&&i===n-1?0:pts(t)*slotMul(at+i)),0)+(WORD_BONUS[n]??0)+fireOf(ts)+rh.dmg;
   const dw=ts.some((_,i)=>S.bonus&&S.bonus[at+i]==='dw');if(dw)dmg*=2;
   const on=!!E.test(w);if(on){if(E.mult)dmg*=E.mult;if(E.add)dmg+=E.add}
+  // the newer tricks: Rare Ink, Ink Stain, Typecast and Ghostwriter on the damage; Hardcover turns vowels into block
+  const C=S.charm||{},rare=C.rare?ts.filter(t=>t.ch!==BLANK&&VAL[t.ch]>=5).length:0;if(rare)dmg=Math.floor(dmg*Math.pow(C.rare,rare));
+  const ink=!!(S.ink&&w.includes(S.ink.c));if(ink)dmg+=S.ink.n;
+  if(S.weak&&w.includes(S.weak.c))dmg*=S.weak.x;if(C.ghost)dmg*=C.ghost;
+  const vb=(C.vowelBlock||0)*[...w].filter(c=>VOW.has(c)).length;
   const cut=[];if(H.pedant&&n<4){dmg=0;cut.push('too short for the Pedant')}
   if(H.hang&&!w.includes(H.hang)){dmg=Math.floor(dmg/2);cut.push(`no ${H.hang.toUpperCase()}: half`)}
   if(H.abridge&&S.wordsTurn>0){dmg=Math.floor(dmg/2);cut.push('abridged: half')}
   if(H.rex&&n<=(S.lenTurn||0)){dmg=Math.floor(dmg/2);cut.push('not longer: half')}
   const gain=H.stammer?H.stammer*(n-new Set(w).size):0,back=H.reflect&&n>=5?Math.floor(dmg/2):0;
   const hilt=at===0&&S.bonus&&S.bonus[0]==='hilt'?hiltPer()*ts.length:0;
-  return{dmg,on,stun:on&&!!E.stun,fire:fireOf(ts),blk:steelOf(ts)+hilt,hilt,rune:rh.dmg,heal:rh.heal,dw,at,ts,cut,gain,back}}
+  return{dmg,on,stun:on&&!!E.stun,fire:fireOf(ts),blk:steelOf(ts)+hilt+vb,hilt,vb,ink,rune:rh.dmg,heal:rh.heal,dw,at,ts,cut,gain,back}}
 function strike(){
   const w=spellWord();if(!w||S.draft!=null||S.over)return;const h=wordHit(w),E=EDGES[S.edge];
   if(!S.best||h.dmg>S.best.dmg)S.best={w,dmg:h.dmg};
   const from=[...document.querySelectorAll('[data-spell] .tile')].map(el=>({r:el.getBoundingClientRect(),html:el.outerHTML}));
   const ts=h.ts;const u=useUp(ts);S.spell=[];
   if(h.hilt){S.block+=h.hilt;u.blk+=h.hilt;fxq.push({t:'ward',n:h.hilt,from:[]})}
+  if(h.vb){S.block+=h.vb;u.blk+=h.vb;fxq.push({t:'ward',n:h.vb,from:[]})}
+  if(h.ink)S.ink.n++;if(S.charm&&S.charm.ghost)delete S.charm.ghost;
   if(h.heal){const was=S.hp;S.hp=Math.min(HP,S.hp+h.heal);if(S.hp>was){u.heal+=S.hp-was;fxq.push({t:'heal',n:S.hp-was,delay:520})}}
   S.strikes=(S.strikes||0)+1;S.wordsTurn=(S.wordsTurn||0)+1;
   if(S.edge==='longsent'){if(S.charged)S.charged=false;S.charge+=w.length;if(S.charge>=12){S.charge-=12;S.charged=true}}
@@ -735,16 +769,19 @@ function endTurn(){
   if(m.armor)f.block+=m.armor;
   const fine=hx().fine?hx().fine*S.hand.filter(t=>!t.crossed).length:0;S.hp=Math.max(0,S.hp-fine);   // Overdue Fine: kept tiles cost HP
   let dmg=0,blocked=0;const a=atkOf(m);if(a)for(let k=0;k<(m.twice?2:1);k++){const soak=Math.min(S.block,a);S.block-=soak;blocked+=soak;dmg+=a-soak}
+  const thorns=S.charm&&S.charm.thorns&&blocked?Math.min(blocked,f.hp):0;if(thorns){f.hp-=thorns;fxq.push({t:'hit',n:thorns,blocked:0,from:[]})}   // Thorns
   fxq.push({t:'foeTurn',atk:!!a,dmg:dmg+fine,blocked,armor:m.armor});dealNext=true;
   S.hp=Math.max(0,S.hp-dmg);S.pending={jumble:m.jumble,nibble:m.nibble,muffle:m.muffle,redpen:m.redpen};for(const k of HEX)if(m[k])S.pending[k]=m[k];f.mi++;
-  const bits=[];if(parry)bits.push(`meets your parry (🛡 ${parry})`);if(S.stun)bits.push('is stunned and does nothing');if(a)bits.push(`hits you for <b>${dmg}</b>${blocked?` (${blocked} blocked)`:''}`);if(m.armor)bits.push(`armours up (${m.armor})`);if(m.jumble)bits.push('jumbles a tile');if(m.nibble)bits.push('nibbles a tile');if(m.muffle)bits.push('muffles your vowels');if(m.redpen)bits.push(`crosses out ${m.redpen} tiles`);if(fine)bits.unshift(`fines you <b>${fine}</b> for kept tiles`);
+  if(S.bind>0){for(const k of ['jumble','nibble','muffle','redpen',...HEX])delete S.pending[k];S.bind--}   // Bind: the foe's tricks stay shut
+  const bits=[];if(thorns)bits.push(`runs onto your thorns (<b>${thorns}</b> back)`);if(parry)bits.push(`meets your parry (🛡 ${parry})`);if(S.stun)bits.push('is stunned and does nothing');if(a)bits.push(`hits you for <b>${dmg}</b>${blocked?` (${blocked} blocked)`:''}`);if(m.armor)bits.push(`armours up (${m.armor})`);if(m.jumble)bits.push('jumbles a tile');if(m.nibble)bits.push('nibbles a tile');if(m.muffle)bits.push('muffles your vowels');if(m.redpen)bits.push(`crosses out ${m.redpen} tiles`);if(fine)bits.unshift(`fines you <b>${fine}</b> for kept tiles`);
   S.stun=false;
   if(S.hp<=0){S.over='lost';persist();render();showResult();return}
+  if(f.hp<=0){S.charm={};say(`<b>${F().name}</b> ${bits.join(', ')}.`);afterAction();return}   // finished off by Thorns
   startTurn();for(const k of HEX)if(S.hex[k]!=null)bits.push(HEX_DID[k](S.hex[k]));say(`<b>${F().name}</b> ${bits.join(', ')||'waits'}.${kept.length?` Your bag brings back ${kept.map(t=>`<b>${t.ch===BLANK?'a blank':t.ch.toUpperCase()}</b>`).join(' and ')}.`:''}`);persist();render()}
 
 // ---- drawing ----
 // the card row for tricks that need no tile (a button, or the affixes on offer) and for sockets (slots and Set)
-const VERB={draw:'Draw',reroll:'Roll',affix:'Pop'};
+const VERB={draw:'Draw',reroll:'Roll',affix:'Pop',charm:'Cast'};
 function extraRow(k,T){const n=usesLeft(k);
   if(T.notile){const af=S.affixing&&S.affixing.k===k?S.affixing:null;
     if(af)return `<div class="onerow"><span class="pv ok">Pick one</span><div class="picker" role="group" aria-label="${T.name}: pick an affix">${af.opts.map(a=>`<button type="button" class="afx" data-affix="${a}">${a.toUpperCase()}</button>`).join('')}</div></div></div>`;
