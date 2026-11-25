@@ -158,6 +158,23 @@ const colOf=p=>p>>2, shpOf=p=>p&3;
 const propOf=(p,prop)=>prop==='c'?colOf(p):shpOf(p);
 const nbOf=(i,N)=>{const r=Math.floor(i/N),c=i%N,o=[];if(r>0)o.push(i-N);if(r<N-1)o.push(i+N);if(c>0)o.push(i-1);if(c<N-1)o.push(i+1);return o};
 
+// Seeded shuffle. The engine used to shuffle with a.sort(()=>rand()-0.5), but a comparator that ignores its
+// arguments leaves the order up to the browser: Chrome's sort changes the way it calls the comparator once it
+// has warmed up (after some dozens of sorts), so the same seed gave a different box depending on what the
+// page had generated before, and Firefox/Safari sort differently again. This replays, step for step, what V8's
+// sort did with that comparator on a cold page (TimSort; arrays under 64 are one run: a leading
+// ascending/descending run, then binary insertion), so every box players have already had stays the same,
+// on every browser and in any call order. Longer arrays (never reached so far) get a plain Fisher-Yates.
+function coinShuffle(a,rand){const n=a.length,coin=()=>rand()<0.5; // true = the old comparator returned < 0
+  if(n<2)return a;
+  if(n>=64){for(let i=n-1;i>0;i--){const j=Math.floor(rand()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+  const desc=coin();let run=2;
+  while(run<n&&coin()===desc)run++;
+  if(desc)for(let l=0,r=run-1;l<r;l++,r--){const t=a[l];a[l]=a[r];a[r]=t}
+  for(let s=run;s<n;s++){const p=a[s];let l=0,r=s;while(l<r){const m=l+((r-l)>>1);if(coin())r=m;else l=m+1}
+    for(let k=s;k>l;k--)a[k]=a[k-1];a[l]=p}
+  return a}
+
 // maximal same-colour components of a colour grid -> [{color, shape:[[dr,dc]...] row-major, cells, key}]
 function patchesOf(cols,N){const seen=new Array(N*N).fill(false),out=[];
   for(let i=0;i<N*N;i++){if(seen[i]||cols[i]<0)continue;const comp=[i];seen[i]=true;
@@ -251,7 +268,7 @@ function tryGen(rand,N){
   // 1. carve the board into regions of 1-5 squares
   const reg=new Array(n).fill(-1);let R=0;
   const sizes=[1,2,2,3,3,3,4,4,4,5,5];
-  for(const i of [...Array(n).keys()].sort(()=>rand()-0.5)){if(reg[i]>=0)continue;const want=pick(sizes),cells=[i];reg[i]=R;
+  for(const i of coinShuffle([...Array(n).keys()],rand)){if(reg[i]>=0)continue;const want=pick(sizes),cells=[i];reg[i]=R;
     while(cells.length<want){const fr=[];cells.forEach(c=>nbOf(c,N).forEach(j=>{if(reg[j]<0)fr.push(j)}));if(!fr.length)break;const j=pick(fr);reg[j]=R;cells.push(j)}R++}
   // 2. colour regions so neighbouring regions differ
   const adj=Array.from({length:R},()=>new Set());for(let i=0;i<n;i++)for(const j of nbOf(i,N))if(reg[i]!==reg[j])adj[reg[i]].add(reg[j]);
@@ -299,7 +316,7 @@ function tryGen(rand,N){
     add(kill);
   }
   if(solve(P,2).count!==1)return null;
-  const order=P.clues.map((_,i)=>i).sort(()=>rand()-0.5);
+  const order=coinShuffle(P.clues.map((_,i)=>i),rand);
   for(const k of order){const c=P.clues[k];P.clues[k]=null;if(solve({...P,clues:P.clues.filter(Boolean)},2).count!==1)P.clues[k]=c}
   P.clues=P.clues.filter(Boolean);
   if(P.clues.filter(c=>c.t==='f').length>Math.ceil(n/6))return null;
