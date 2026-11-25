@@ -64,6 +64,23 @@ Every trick except Quill lives in `../scrawl-items.js`, which both the page and 
 
 The file's order matters: it sets the roster order, which the seeded Armoury rolls depend on. Add new items at the end.
 
+## The sword (runes and the bag)
+
+From the `from` daily in `../scrawl-blade.js` (endless and lab runs at once) the Spellblade is a sword. Page and sim read the same file, and the rules fingerprint covers it.
+
+| Field | Meaning |
+|---|---|
+| `squares` | The blade's six slots: `hilt` (a word that starts there gives `hiltPer` block per letter), `dl`, `tl`, `dw`, or `null` |
+| `foeHp` | Foe health multiplier on sword days, in place of the 1.27 bonus-day boost |
+| `sockets`, `maxLevel` | Runes the sword holds, and how far taking the same rune again levels it |
+| `bagCap` | Unused tiles kept for the next turn (enchanted first, then blanks, then the order `seariotnld...`) |
+| `runes[].kind` | `pommel` (hilt block per letter), `parry` (block per unused tile at the end of the turn), `bastion` (unused block carries over, up to n), `whet` (+n per earlier word against this foe), `reach` (+n per letter past the third), `flurry` (+n per earlier word this turn), `leech` (heal n per letter past the third), `fuller` (bonus squares in slots 4 and 5) |
+| `runes[].per` | The value at levels 1, 2, 3; `{n}` in `desc` shows it |
+
+Tiles go in any slot; a word is one unbroken row, and the planner tries each word on the hilt and wherever it hits hardest. At each Armoury one rune is on offer beside the three tricks (seeded by `-rune-<d>`; a new rune while a socket is free, else an upgrade). Draft policies: `random` treats the rune as a fourth offer, `tools` never takes one, `blade` always does, `runes` takes only runes.
+
+Experiments (all commands): `--runes pommel:2,parry` (fixed runes), `--bag-cap N`, `--bag-policy auto|high|first`, `--no-blade` (the 1.6.0 rules), `--rune-per '{"pommel":[2,3,4]}'`, `--blade-json '{"foeHp":2.2}'`.
+
 ## Asset stamps
 
 Pages load every local script and stylesheet as `file.js?v=<hash of the file>`. Run `py tools/stamp_assets.py` before committing, or turn on the hook once with `git config core.hooksPath tools/hooks` and it runs on every commit. `--check` exits 1 if any stamp is stale. Nobody bumps version numbers by hand.
@@ -75,10 +92,11 @@ Pages load every local script and stylesheet as `file.js?v=<hash of the file>`. 
   are never mixed up silently.
 * Each version is tagged in git as `scrawl-sim-v<version>`. A report names its tag and command, so `git checkout <tag>` then the command reproduces it exactly.
 * `sim_fixtures.json` holds reference runs captured from the page. `selftest` must pass before a trial means anything.
-  If the page's rules change, port the change, recapture the fixtures in the browser, and bump the version.
+  If the page's rules change, port the change, recapture the fixtures in the browser (run `capture_fixtures.js` in the console on scrawl.html), and bump the version.
 
 ## Changelog
 
+* **1.7.0** (2026-11-24): from the 27 Nov daily the Spellblade is a sword (`scrawl-blade.js`): hilt (1 block a letter), crossguard DL, tip DW in place of the rolled bonus squares, and tiles go in any slot. Eight runes for the sword, one on offer at each Armoury beside the tricks (3 sockets, 3 levels). A holdover bag keeps 2 unused tiles for the next turn. Foes get ×2.4 health on sword days in place of ×1.27 (no-tricks win rate back to about 2 in 3). Fixtures are captured with `tools/capture_fixtures.js` and include sword cases with preset runes.
 * **1.6.0** (2026-11-22): from the 23 Nov daily: blade bonus squares (DL / TL / DW), foes get 27% more health on bonus days (no-tricks win rate 67.6%, as before), and 12 new tools join the roster (Soften, Scribble, Lunge, Recoil, Triplicate, Kin, Bloom, Dial, Spin, Plural, Wye, Resound; 27 in all). New grammar: choose options by `steps`. The planner scores each word by its letter order.
 * **1.5.0** (2026-11-20): items as data. Every trick is read from `scrawl-items.js`, the same file the page uses, and the rules fingerprint covers it. Behaviour is fingerprinted identical to 1.4.0 on both page and sim.
 * **1.4.0** (2026-11-20): tiered equipment from the 21 Nov daily: a 15-trick roster in common / uncommon / rare (from the 1.2.0 trials), tiered Armoury offers with rare odds rising every three floors; Swap, Rotate, Vowel Shift, Split and Ink Blot retired from offers. Offers checked against the page over 558 rolls.
