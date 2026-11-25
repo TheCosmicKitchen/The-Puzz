@@ -26,7 +26,7 @@ from datetime import date, timedelta
 from itertools import combinations, product
 from multiprocessing import Pool
 
-SIM_VERSION = '1.6.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
+SIM_VERSION = '1.8.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 M = 0xFFFFFFFF
@@ -118,7 +118,14 @@ def compile_item(r):
         if 'shift' in e: T['to'] = lambda t, d=e['shift']: chr((ord(t['ch']) - 97 + d + 26) % 26 + 97)
         elif e.get('mirror'): T['to'] = lambda t: flip(t['ch'])
         elif 'map' in e: T['to'] = lambda t, m=e['map']: m[t['ch']]
+        elif 'fx' in e: T['to'] = lambda t: t['ch']; T['fx'] = e['fx']   # enchant: the letter stays, the tile takes an enchantment
         else: T['to'] = lambda t, c=e['set']: c
+    elif kd == 'draw': T.update(notile=True, random=True, draw=e['draw'])
+    elif kd == 'reroll':
+        T.update(random=True, reroll=e['reroll'])
+        if e['reroll'].get('hand'): T['notile'] = True
+    elif kd == 'affix': T.update(notile=True, random=True, affix=e['affix'])
+    elif kd == 'socket': T.update(socket=e['socket'], random=bool(e['socket'].get('draw')))
     elif kd == 'choose':
         o = e['options']
         if 'groups' in o: T['options'] = lambda t, G=o['groups']: list(next(g for g in G if t['ch'] in g))
@@ -131,6 +138,46 @@ def compile_item(r):
         T['pair'] = (lambda a, b: (b['ch'], b['ch']) if (a['ch'] in VOW) == (b['ch'] in VOW) else (a['ch'], b['ch'])) if e.get('sameKind') else (lambda a, b: (b['ch'], b['ch']))
     return T
 
+BAG_ALL = list(BAG)
+def pool_of(p, t=None):
+    """page: poolOf. Letters a draw or reroll picks from, weighted like the bag ('same' = the tile's own kind)."""
+    if p == 'same': return BAG_V if t['ch'] in VOW else BAG_C
+    return {'any': BAG_ALL, 'vowel': BAG_V, 'consonant': BAG_C}.get(p) or list(p)
+def new_tile(turns, made, ch, fx=None): return dict(id=f'm{turns}-{made}', ch=ch, fx=fx, crossed=False)
+def draw_into(hand, d, r, made, turns):
+    """page: drawInto. d = {n, pool}: n new tiles at the end of the hand."""
+    hand = list(hand)
+    for _ in range(d.get('n', 1)):
+        p = pool_of(d.get('pool', 'any')); made += 1; hand.append(new_tile(turns, made, p[math.floor(r() * len(p))]))
+    return hand, made
+def apply_random(T, hand, ids, r, made, turns):
+    """page: rollTrick. A draw, reroll or affix with its random stream r. Returns [(hand, made, label)]: one entry,
+    or one per affix on offer when the player picks."""
+    kd = T['kind']
+    if kd == 'draw':
+        h, m = draw_into(hand, T['draw'], r, made, turns); return [(h, m, None)]
+    if kd == 'reroll':
+        d = T['reroll']; h = list(hand)
+        for i, t in enumerate(hand):
+            if t['id'] in ids or (d.get('hand') and not t['crossed'] and T['ok'](t)):
+                p = [c for c in pool_of(d.get('pool', 'same'), t) if c != t['ch']]
+                h[i] = dict(t, ch=p[math.floor(r() * len(p))])
+        return [(h, made, None)]
+    if kd == 'affix':
+        L = T['affix']['list']; n = T['affix'].get('offer', 1)
+        opts = [L[math.floor(r() * len(L))]] if n == 1 else shuffle(r, L)[:n]
+        out = []
+        for a in opts:
+            h, m = list(hand), made
+            for ch in a: m += 1; h.append(new_tile(turns, m, ch))
+            out.append((h, m, a))
+        return out
+    raise ValueError(kd)
+def socket_effect(T, ts, muffle):
+    """page: socketHit. What a word set in a socket does: (damage, block, heal) before the tiles' own enchantments."""
+    s = T['socket']; p = sum(pts(t, muffle) for t in ts); fire = 4 * sum(t['fx'] == 'fire' for t in ts)
+    return s.get('dmg', 0) * (p + fire), s.get('block', 0) * p, s.get('heal', 0)
+
 ITEMS = load_items()
 TOOLS = {'quill': dict(kind='quill', uses=1, ok=lambda t: t['ch'] not in VOW and t['ch'] != BLANK,
                        name='Quill', desc='Flick one consonant for its points.'),
@@ -139,9 +186,11 @@ KIT_MAX, START = 4, ['quill', 'nudge', 'flip']
 TRICKS = [k for k in TOOLS if k != 'quill']
 LEGACY_OFFERS = ITEMS['legacyOffers']   # dailies before 21 Nov
 ROSTER = [k for k in TOOLS if TOOLS[k].get('tier')]
+LIVE_IDS = {r['id'] for r in ITEMS['items']}
 LIVE_TRICKS = ROSTER[:]          # what the page offers now; every trial uses these as controls
 TIERS_FROM = '2026-11-21'
 IDEAS_LOADED = []
+IDEA_RECORDS = {}   # ideas written as item records: their runs can be cached, since the record says all they do
 LINEAGE = {}      # idea -> the trick it evolved from
 ROUND_META = {}   # idea file -> its round, note and test list
 
@@ -159,7 +208,13 @@ def load_ideas(paths):
             continue
         ns = dict(VAL=VAL, VOW=VOW, BLANK=BLANK, nudge=nudge, flip=flip, ROT=ROT, VSH=VSH)
         exec(open(p, encoding='utf8').read(), ns)
-        for k, T in ns['IDEAS'].items():
+        ideas = dict(ns.get('IDEAS', {}))
+        for r in ns.get('RECORDS', []):   # ideas written in the scrawl-items.js grammar, ready to paste into the roster
+            ideas[r['id']] = compile_item(r); IDEA_RECORDS[r['id']] = r
+            if r.get('parent'): LINEAGE[r['id']] = r['parent']
+        for k, T in ideas.items():
+            if k in LIVE_IDS:   # an old idea that later shipped under the same id: the live item wins
+                print(f'  idea {k} in {os.path.basename(p)} is live now; using the live item', file=sys.stderr); continue
             TOOLS[k] = T
             if k not in TRICKS: TRICKS.append(k)
             IDEAS_LOADED.append(k)
@@ -247,7 +302,7 @@ class Game:
             x = r(); tier = 'rare' if x < rare else 'uncommon' if x < rare + .27 else 'common'
             order = {'rare': ['rare', 'uncommon', 'common'], 'uncommon': ['uncommon', 'common', 'rare'], 'common': ['common', 'uncommon', 'rare']}[tier]
             for tr in order:
-                pool = [k for k in self.roster() if TOOLS[k]['tier'] == tr and k not in self.kit and k not in out]
+                pool = [k for k in self.roster() if TOOLS[k].get('tier') == tr and k not in self.kit and k not in out]
                 if pool: out.append(pool[math.floor(r() * len(pool))]); break
         return out
     def grant(self, k):
@@ -279,7 +334,7 @@ class Game:
     def start_turn(self):
         self.turn += 1; self.turns += 1
         self.uses = {k: TOOLS[k]['uses'] for k in self.kit if 'uses' in TOOLS[k]}
-        self.block = 0; p = self.pending; self.muffle = bool(p.get('muffle'))
+        self.block = 0; self.rolls = 0; self.affixing = None; p = self.pending; self.muffle = bool(p.get('muffle'))
         self.hand = self.draw(HAND - (p.get('nibble') or 0)); self.bonus = self.roll_bonus()
         r = mulberry(hseed(f'{self.seed}-trick-{self.fi}-{self.turn}'))
         if p.get('jumble'):
@@ -313,9 +368,23 @@ class Game:
         """A trick or Quill on tile ids (two for Swap). Returns damage dealt (Quill) or 0."""
         T = TOOLS[k]; assert k in self.kit and self.uses_left(k) > 0 and not self.over and self.draft is None, (k, self.kit)
         choice = next((i[1:] for i in ids if i.startswith('=')), None); ids = [i for i in ids if not i.startswith('=')]
+        assert not self.affixing
         ts = [self.tile(i) for i in ids]; assert all(not t['crossed'] and T['ok'](t) for t in ts), (k, ts)
         dealt = 0
-        if T['kind'] == 'morph': ts[0]['ch'] = T['to'](ts[0])
+        if T['kind'] == 'morph':
+            ts[0]['ch'] = T['to'](ts[0])
+            if 'fx' in T: ts[0]['fx'] = T['fx']
+        elif T['kind'] in ('draw', 'reroll', 'affix'):
+            assert T.get('notile') or len(ts) == 1, (k, ids)
+            outs = apply_random(T, self.hand, ids, self.roll(), self.made, self.turns)
+            if len(outs) > 1: self.affixing = (k, outs)   # the player picks one; see pick_affix
+            else: self.hand, self.made = outs[0][0], outs[0][1]
+        elif T['kind'] == 'socket':
+            s = T['socket']; assert len(ts) == s.get('len', 3) and fill_word(''.join(t['ch'] for t in ts)), (k, ts)
+            d, b, h = socket_effect(T, ts, self.muffle)
+            self.use_up(ts); self.block += b; self.hp = min(HP, self.hp + h)
+            if d: dealt = self.hit_foe(d)
+            if s.get('draw'): self.hand, self.made = draw_into(self.hand, dict(n=s['draw'], pool='any'), self.roll(), self.made, self.turns)
         elif T['kind'] == 'choose':
             assert choice in T['options'](ts[0]), (k, choice); ts[0]['ch'] = choice
         elif T['kind'] == 'quill':
@@ -333,6 +402,12 @@ class Game:
         else: self.uses[k] -= 1
         self.after()
         return dealt
+    def roll(self):
+        """page: roll(). Each random trick use this turn gets its own stream, so a daily rolls the same for everyone (and Undo can't reroll)."""
+        self.rolls += 1; return mulberry(hseed(f'{self.seed}-roll-{self.fi}-{self.turn}-{self.rolls}'))
+    def pick_affix(self, i):
+        """page: chooseAffix. Take affix number i of the ones on offer."""
+        k, outs = self.affixing; self.affixing = None; self.hand, self.made = outs[i][0], outs[i][1]
     def strike(self, ids):
         assert len(ids) <= MAXWORD and not self.over and self.draft is None
         ts = [self.tile(i) for i in ids]; assert not any(t['crossed'] for t in ts)
@@ -385,6 +460,7 @@ def pts(t, muffle):
 
 # ---------------------------------------------------------------- the turn planner
 KILL = 1000.0
+WIDE_HAND, WIDE_WORDS = 8, 50   # hands over 8 tiles (only draws and affixes make them) plan with their 50 best words
 def incoming(g):
     m = g.next_move(); a = jsround(m.get('atk', 0) * FOE_ATK_SCALE * g.foe.get('ax', 1)); return a * (2 if m.get('twice') else 1)
 
@@ -436,10 +512,15 @@ def arrange(w, ts):
         order.append(pool.pop(j))
     return order
 
-def best_play(g, hand, uses_quill):
-    """Best words (in order) and Quill for this hand, scored for this foe. Returns (value, plan, info)."""
-    f = g.foe; need = f['hp'] + f['block']; inc = incoming(g); missing = HP - g.hp
+GREEDY_OPENERS = 3   # the quick bots try this many opening words, then take the best next word each time
+def best_play(g, hand, uses_quill, acc=(0, 0, 0), greedy=False):
+    """Best words (in order) and Quill for this hand, scored for this foe. acc = (damage, block, heal) already banked
+    this turn by sockets in the plan. greedy (the quick bots): instead of every sequence of words, try the best few
+    opening words and then always the best next one. Returns (value, plan, info)."""
+    f = g.foe; need = f['hp'] + f['block']; inc = max(0, incoming(g) - g.block); missing = HP - g.hp
     ws = words_for(hand, g.muffle, getattr(g, 'bonus', None))
+    if len(hand) > WIDE_HAND:   # draws and affixes make big hands: keep the strongest words so the search stays quick
+        ws = sorted(ws, key=lambda x: (-x[3], x[2]))[:WIDE_WORDS]
     quills = [t for t in hand if not t['crossed'] and TOOLS['quill']['ok'](t)] if uses_quill else []
     best = [-1.0, None, None]
     def score(dmg, steel, leaf, stun, plan, words_on, charge):
@@ -457,9 +538,15 @@ def best_play(g, hand, uses_quill):
                       plan + [('quill', [t['id']])], words_on, ctx['charge'])
         score(dmg, steel, leaf, stun, plan, words_on, ctx['charge'])
         if dmg >= need: return
+        cands = []
         for mask, ids, w, base, st, lf in ws:
             if used & mask: continue
             on = edge_on(g.edge, w, ctx); d = base * EDGE_MULT.get(g.edge, 1) + EDGE_ADD.get(g.edge, 0) if on else base
+            cands.append((d + min(st, inc) + 0.8 * min(lf, missing), mask, ids, w, d, st, lf, on))
+        if greedy:
+            cands.sort(key=lambda c: -c[0])   # stable: ties keep word order
+            cands = cands[:GREEDY_OPENERS if not words_on and not any(p[0] == 'word' for p in plan) else 1]
+        for _, mask, ids, w, d, st, lf, on in cands:
             c2 = dict(ctx); c2['last'] = w
             if g.edge == 'longsent':
                 if c2['charged']: c2['charged'] = False
@@ -467,82 +554,157 @@ def best_play(g, hand, uses_quill):
                 if c2['charge'] >= 12: c2['charge'] -= 12; c2['charged'] = True
             go(used | mask, c2, dmg + d, steel + st, leaf + lf, stun or (on and g.edge == 'mirror'),
                plan + [('word', ids, w)], words_on + int(on))
-    go(0, dict(last=g.last, letter=g.letter, charged=g.charged, charge=g.charge), 0, 0, 0, False, [], 0)
+    go(0, dict(last=g.last, letter=g.letter, charged=g.charged, charge=g.charge), acc[0], acc[1], acc[2], False, [], 0)
     return best
 
-def tool_moves(g, hand, uses, made):
-    """Every way to spend one trick charge on this hand: (tool, ids, new hand, new uses, new made)."""
+SAMPLES = 8   # outcomes the planner imagines for a random trick, from its own stream: it never peeks at the real roll
+QUICK_SAMPLES = 4   # the quick bots imagine fewer
+QUICK = {'quick': 'smart', 'qeager': 'eager'}   # heuristic bots: the same trick search, greedy words, fewer imagined rolls
+def chance(g, k, T, hand, ids, made, acc, n=SAMPLES):
+    """The outcomes a bot can expect from a random trick: SAMPLES lists of [(hand, made, acc)] choices."""
+    out = []
+    r = mulberry(hseed(f'{g.seed}-plan-{g.fi}-{g.turn}-{g.rolls}-{k}-{",".join(ids)}'))
+    for _ in range(n):
+        if T['kind'] == 'socket':
+            h, m = draw_into(hand, dict(n=T['socket']['draw'], pool='any'), r, made, g.turns); out.append([(h, m, acc)])
+        else: out.append([(h, m, acc) for h, m, _ in apply_random(T, hand, ids, r, made, g.turns)])
+    return out
+
+QUICK_KEEP = 5   # the quick bots fully weigh only this many single-tile changes per trick (the best by one_change)
+def one_change(hand):
+    """Heuristic for the quick bots: {(tile index, letter): rough value of the best word that tile could join as that letter}.
+    One pass over the tile combinations with that tile as a wildcard, instead of a full word search per candidate hand."""
+    idx = [i for i, t in enumerate(hand) if not t['crossed']]; best = {}
+    for n in range(3, min(MAXWORD, len(idx)) + 1):
+        for combo in combinations(idx, n):
+            for i in combo:
+                rest = [hand[j]['ch'] for j in combo if j != i]
+                if BLANK in rest: continue
+                base = sum(VAL[c] for c in rest) + WORD_BONUS[n]
+                for c in ABC:
+                    if ''.join(sorted(rest + [c])) in ANAG:
+                        v = base + VAL[c]
+                        if v > best.get((i, c), 0): best[(i, c)] = v
+    return best
+
+def prune(hand, moves):
+    """Keep each trick's QUICK_KEEP most promising single-tile changes (by one_change); everything else stays."""
+    groups = defaultdict(list); keep = []
+    for m in moves:
+        k, ids, h2 = m[0], m[1], m[2]
+        if h2 is not None and len(ids) >= 1 and TOOLS[k]['kind'] in ('morph', 'choose') and len(h2) == len(hand): groups[k].append(m)
+        else: keep.append(m)
+    if not groups: return moves
+    oc = one_change(hand); pos = {t['id']: i for i, t in enumerate(hand)}
+    for k, ms in groups.items():
+        if len(ms) <= QUICK_KEEP: keep += ms; continue
+        def proxy(m):
+            i = pos[m[1][0]]; return oc.get((i, m[2][i]['ch']), 0)
+        keep += sorted(ms, key=lambda m: -proxy(m))[:QUICK_KEEP]   # stable sort: ties keep move order
+    return keep
+
+def tool_moves(g, hand, uses, made, acc=(0, 0, 0), n=SAMPLES):
+    """Every way to spend one trick charge on this hand: (tool, ids, new hand, new uses, new made, new acc, samples).
+    samples is None for a sure thing; for a random trick it holds the imagined outcomes and the hand is unknown."""
     out = []
     for k, n in uses.items():
         if n <= 0 or k == 'quill': continue
         T = TOOLS[k]; nu = dict(uses); nu[k] = n - 1
+        if T.get('notile'):
+            out.append((k, [], None, nu, made, acc, chance(g, k, T, hand, [], made, acc, n))); continue
+        if T['kind'] == 'socket':
+            L = T['socket'].get('len', 3)
+            for mask, ids, w, base, st, lf in words_for([t for t in hand if T['ok'](t)], g.muffle):
+                if len(ids) != L: continue
+                ts = [next(t for t in hand if t['id'] == i) for i in ids]
+                d, b, h = socket_effect(T, ts, g.muffle)
+                a2 = (acc[0] + d, acc[1] + b + st, acc[2] + h + lf); h2 = [t for t in hand if t['id'] not in ids]
+                if T['random']: out.append((k, ids, None, nu, made, a2, chance(g, k, T, h2, ids, made, a2, n)))
+                else: out.append((k, ids, h2, nu, made, a2, None))
+            continue
         for i, t in enumerate(hand):
             if t['crossed'] or not T['ok'](t): continue
-            if T['kind'] == 'morph':
+            if T['kind'] == 'reroll':
+                out.append((k, [t['id']], None, nu, made, acc, chance(g, k, T, hand, [t['id']], made, acc, n)))
+            elif T['kind'] == 'morph':
                 nt = dict(t); nt['ch'] = T['to'](t)
-                if nt['ch'] == t['ch']: continue
-                out.append((k, [t['id']], hand[:i] + [nt] + hand[i + 1:], nu, made))
+                if 'fx' in T: nt['fx'] = T['fx']
+                if nt['ch'] == t['ch'] and nt['fx'] == t['fx']: continue
+                out.append((k, [t['id']], hand[:i] + [nt] + hand[i + 1:], nu, made, acc, None))
             elif T['kind'] == 'make':
                 m = made; new = []
                 for ch, fx in T['make'](t):
                     m += 1; new.append(dict(id=f'm{g.turns}-{m}', ch=ch, fx=fx, crossed=False))
-                out.append((k, [t['id']], hand[:i] + new + hand[i + 1:], nu, m))
+                out.append((k, [t['id']], hand[:i] + new + hand[i + 1:], nu, m, acc, None))
             elif T['kind'] == 'swap':
                 for j in range(i + 1, len(hand)):
                     u = hand[j]
                     if u['crossed'] or u['ch'] == t['ch']: continue
                     h2 = list(hand); h2[i] = dict(t, ch=u['ch']); h2[j] = dict(u, ch=t['ch'])
-                    out.append((k, [t['id'], u['id']], h2, nu, made))
+                    out.append((k, [t['id'], u['id']], h2, nu, made, acc, None))
             elif T['kind'] == 'choose':
                 for c in T['options'](t):
                     if c == t['ch']: continue
                     nt = dict(t); nt['ch'] = c
-                    out.append((k, [t['id'], '=' + c], hand[:i] + [nt] + hand[i + 1:], nu, made))
+                    out.append((k, [t['id'], '=' + c], hand[:i] + [nt] + hand[i + 1:], nu, made, acc, None))
             elif T['kind'] == 'pair':
                 for j, u in enumerate(hand):
                     if j == i or u['crossed'] or not T['ok'](u) or (j < i and not T.get('ordered')): continue
                     ca, cb = T['pair'](t, u)
                     if ca == t['ch'] and cb == u['ch']: continue
                     h2 = list(hand); h2[i] = dict(t, ch=ca); h2[j] = dict(u, ch=cb)
-                    out.append((k, [t['id'], u['id']], h2, nu, made))
+                    out.append((k, [t['id'], u['id']], h2, nu, made, acc, None))
     return out
 
 def plan_turn(g, bot, beam=5):
-    """The whole turn for a bot: trick uses first, then words and Quill. Returns (plan, base value, final value)."""
+    """The whole turn for a bot: trick uses first, then words and Quill. Returns (plan, base value, final value, path, replan).
+    A random trick is a chance node: it is worth the average of its imagined outcomes, and it ends the plan (replan=True),
+    so the bot rolls for real, looks at what it got, and plans the rest of the turn again."""
+    greedy = bot in QUICK; bot = QUICK.get(bot, bot); n = QUICK_SAMPLES if greedy else SAMPLES
     uses = {k: g.uses_left(k) for k in g.kit if k != 'quill'}
     qok = g.uses_left('quill') > 0
     cache = {}
-    def val(hand):
-        key = tuple((t['id'], t['ch'], t['fx'], t['crossed']) for t in hand)
-        if key not in cache: cache[key] = best_play(g, hand, qok)
+    def val(hand, acc=(0, 0, 0)):
+        key = (tuple((t['id'], t['ch'], t['fx'], t['crossed']) for t in hand), acc)
+        if key not in cache: cache[key] = best_play(g, hand, qok, acc, greedy)
         return cache[key]
+    def ev(samples):   # each sample: the choices it offers; the bot takes the best one
+        return sum(max(val(h, a)[0] for h, _, a in s) for s in samples) / len(samples)
     base = val(g.hand)
     if bot == 'notools' or not any(uses.values()):
-        return base[1], base[0], base[0], []
+        return base[1], base[0], base[0], [], False
     if bot == 'smart':
         # beam search over trick sequences; keep the best turn found anywhere along the way
-        best = (base[0], [], g.hand)
-        frontier = [(base[0], [], g.hand, uses, g.made)]
+        best = (base[0], [], g.hand, (0, 0, 0), False)
+        frontier = [(base[0], [], g.hand, uses, g.made, (0, 0, 0))]
         while frontier:
             nxt = []
-            for v, path, hand, us, made in frontier:
-                for k, ids, h2, u2, m2 in tool_moves(g, hand, us, made):
-                    v2 = val(h2)[0]; p2 = path + [(k, ids, v2 - v)]
-                    nxt.append((v2, p2, h2, u2, m2))
-                    if v2 > best[0] + 1e-9: best = (v2, p2, h2)
+            for v, path, hand, us, made, acc in frontier:
+                ms = tool_moves(g, hand, us, made, acc, n)
+                for k, ids, h2, u2, m2, a2, samples in (prune(hand, ms) if greedy else ms):
+                    if samples is not None:   # random: worth its average, and the plan stops here
+                        v2 = ev(samples); p2 = path + [(k, ids, v2 - v)]
+                        if v2 > best[0] + 1e-9: best = (v2, p2, None, None, True)
+                        continue
+                    v2 = val(h2, a2)[0]; p2 = path + [(k, ids, v2 - v)]
+                    nxt.append((v2, p2, h2, u2, m2, a2))
+                    if v2 > best[0] + 1e-9: best = (v2, p2, h2, a2, False)
             nxt.sort(key=lambda x: -x[0]); frontier = nxt[:beam]
-        v, path, hand = best
-        return [('tool', k, ids) for k, ids, _ in path] + val(hand)[1], base[0], v, path
+        v, path, hand, acc, rnd = best
+        tail = [] if rnd else val(hand, acc)[1]
+        return [('tool', k, ids) for k, ids, _ in path] + tail, base[0], v, path, rnd
     if bot == 'eager':
         # spend every charge: each step takes the best-scoring single use, even if the turn gets worse
-        hand, us, made, path, v = g.hand, uses, g.made, [], base[0]
+        hand, us, made, acc, path, v = g.hand, uses, g.made, (0, 0, 0), [], base[0]
         while True:
-            moves = tool_moves(g, hand, us, made)
+            moves = tool_moves(g, hand, us, made, acc, n)
+            if greedy: moves = prune(hand, moves)
             if not moves: break
-            scored = [(val(h2)[0], k, ids, h2, u2, m2) for k, ids, h2, u2, m2 in moves]
-            v2, k, ids, hand, us, made = max(scored, key=lambda x: x[0])
+            scored = [(ev(s) if s is not None else val(h2, a2)[0], k, ids, h2, u2, m2, a2, s) for k, ids, h2, u2, m2, a2, s in moves]
+            v2, k, ids, hand, us, made, acc, s = max(scored, key=lambda x: x[0])
             path.append((k, ids, v2 - v)); v = v2
-        return [('tool', k, ids) for k, ids, _ in path] + val(hand)[1], base[0], v, path
+            if s is not None: return [('tool', k, ids) for k, ids, _ in path], base[0], v, path, True
+        return [('tool', k, ids) for k, ids, _ in path] + val(hand, acc)[1], base[0], v, path, False
     raise ValueError(bot)
 
 # ---------------------------------------------------------------- drafting
@@ -588,16 +750,24 @@ def play(seed, bot, draft='random', kit=None, beam=5, verbose=False, deep=False)
             continue
         fi, turn, hp0 = g.fi, g.turn, g.hp
         hand_txt = ' '.join(t['ch'].upper() + ('*' if t['crossed'] else '') + ({'fire':'^','steel':'#','gold':'$','leaf':'+'}.get(t['fx'],'')) for t in g.hand)
-        plan, v0, v1, path = plan_turn(g, bot, beam)
+        dealt_turn = 0; spelled = []; path = []; v0 = None
+        while True:   # a random trick ends the plan: roll it, then plan the rest of the turn with what came up
+            plan, b0, v1, part, replan = plan_turn(g, bot, beam)
+            if v0 is None: v0 = b0
+            path += part
+            for step in plan:
+                if g.over or g.fi != fi or g.draft is not None: break
+                if step[0] == 'tool':
+                    dealt_turn += g.use_tool(step[1], step[2])
+                    if g.affixing:   # several affixes on offer: take the one that makes the best turn
+                        qok = g.uses_left('quill') > 0; outs = g.affixing[1]
+                        g.pick_affix(max(range(len(outs)), key=lambda i: best_play(g, outs[i][0], qok, greedy=bot in QUICK)[0]))
+                elif step[0] == 'quill': dealt_turn += g.use_tool('quill', step[1])
+                else:
+                    w, d, on = g.strike(step[1]); dealt_turn += d; words += 1; edge_hits += on; spelled.append(w.upper() + ('!' if on else ''))
+                    if d > best_word[1]: best_word = (w, d)
+            if not replan or g.over or g.fi != fi or g.draft is not None: break
         tool_names = [k for k, _, _ in path]
-        dealt_turn = 0; spelled = []
-        for step in plan:
-            if g.over or g.fi != fi or g.draft is not None: break
-            if step[0] == 'tool': g.use_tool(step[1], step[2])
-            elif step[0] == 'quill': dealt_turn += g.use_tool('quill', step[1])
-            else:
-                w, d, on = g.strike(step[1]); dealt_turn += d; words += 1; edge_hits += on; spelled.append(w.upper() + ('!' if on else ''))
-                if d > best_word[1]: best_word = (w, d)
         killed = g.fi != fi or g.over == 'won'
         for k, ids, gain in path:
             uses_log.append(dict(seed=seed, bot=bot, kit='+'.join(x for x in g.kit if x != 'quill'), tool=k, gain=round(gain, 2), killed=int(killed), fight=fi, edge=g.edge))
@@ -803,25 +973,28 @@ def trial(a):
     same seeds, foe HP at --hard-scale so wins don't all hit 100%. The eager bot plays a smaller set to find traps.
     Verdicts come from the rules below, not from a person reading the tables."""
     seeds = seeds_from(a); tag = a.tag or 'trial'; t0 = time.time(); _init(a.hard_scale)
-    tricks = a.tricks.split(',') if a.tricks else [k for k in TRICKS if k not in ('nudge', 'flip')]
-    tricks += [k for k in LIVE_TRICKS if k not in ('nudge', 'flip') and k not in tricks]   # every live trick is always a control, so the bar never moves
-    kits = {'(none)': ['quill', 'nudge', 'flip'], **{k: ['quill', 'nudge', 'flip', k] for k in tricks}}
-    jobs = [(s, 'smart', a.draft, kt, a.beam) for kt in kits.values() for s in seeds]
-    jobs += [(s, 'eager', a.draft, kits[k], a.beam) for k in tricks for s in seeds[:a.eager_n]]
-    runs, turns, uses = run_all(jobs, a.j)
+    base = [k for k in (a.base or '').split(',') if k]   # the kit every trick joins: Nudge + Flip (the start), or nothing
+    tricks = a.tricks.split(',') if a.tricks else [k for k in TRICKS if k not in base]
+    tricks += [k for k in LIVE_TRICKS if k not in base and k not in tricks]   # every live trick is always a control, so the bar never moves
+    kits = {'(none)': ['quill'] + base, **{k: ['quill'] + base + [k] for k in tricks}}
+    base_name = ' + '.join(['Quill'] + [TOOLS[k]['name'] for k in base])
+    SB, EB = ('quick', 'qeager') if a.quick else ('smart', 'eager')   # --quick: the heuristic bots
+    jobs = [(s, SB, a.draft, kt, a.beam) for kt in kits.values() for s in seeds]
+    jobs += [(s, EB, a.draft, kits[k], a.beam) for k in tricks for s in seeds[:a.eager_n]]
+    runs, turns, uses = run_all(jobs, a.j, cache=True)
     rows = {}
     for name, kt in kits.items():
         ks = '+'.join(kt[1:])
-        R = [r for r in runs if r['bot'] == 'smart' and r['kit'] == ks]; n = max(1, len(R))
-        T = [t for t in turns if t['bot'] == 'smart' and t['kit'] == ks]
-        U = [u for u in uses if u['bot'] == 'smart' and u['kit'] == ks and u['tool'] == name]
-        E = [u for u in uses if u['bot'] == 'eager' and u['kit'] == ks and u['tool'] == name]
+        R = [r for r in runs if r['bot'] == SB and r['kit'] == ks]; n = max(1, len(R))
+        T = [t for t in turns if t['bot'] == SB and t['kit'] == ks]
+        U = [u for u in uses if u['bot'] == SB and u['kit'] == ks and u['tool'] == name]
+        E = [u for u in uses if u['bot'] == EB and u['kit'] == ks and u['tool'] == name]
         rows[name] = dict(trick=name, idea=int(name in IDEAS_LOADED), win=sum(r['win'] for r in R) / n, turns=sum(r['turns'] for r in R) / n,
                           hp_left=sum(r['hp'] for r in R) / n,
                           use_rate=sum(name in t['tools'].split('+') for t in T) / max(1, len(T)), uses_run=len(U) / n,
                           gain=sum(max(-60, min(u['gain'], 60)) for u in U) / max(1, len(U)),
                           hurt=sum(u['gain'] < -0.01 for u in E) / max(1, len(E)) if E else None,
-                          desc=TOOLS[name].get('desc', '') if name in TOOLS else 'Quill + Nudge + Flip only')
+                          desc=TOOLS[name].get('desc', '') if name in TOOLS else base_name + ' only')
     none = rows['(none)']
     for r in rows.values():
         r['lift'] = r['win'] - none['win']; r['turns_saved'] = none['turns'] - r['turns']
@@ -831,21 +1004,22 @@ def trial(a):
         r = rows[k]; v = []
         if r['lift'] < .02 and r['turns_saved'] < .2: v.append('dud')
         elif r['lift'] > top + .03: v.append('overpowered')
-        elif r['lift'] >= med and r['use_rate'] >= .15: v.append('keeper')
-        elif r['lift'] >= med: v.append('niche')
+        elif r['lift'] >= max(med, a.bar) and r['use_rate'] >= .15: v.append('keeper')
+        elif r['lift'] >= max(med, a.bar): v.append('niche')
         else: v.append('weak')
         if r['hurt'] is not None and r['hurt'] >= .25: v.append('trap')
         r['verdict'] = '+'.join(v)
     order = sorted(tricks, key=lambda k: (-rows[k]['lift'], -rows[k]['turns_saved']))
-    md = [f'# Trick trial: {tag}', f"_{time.strftime('%Y-%m-%d %H:%M')} · {len(seeds)} seeds per trick · foe HP ×{a.hard_scale} · smart bot · "
+    md = [f'# Trick trial: {tag}', f"_{time.strftime('%Y-%m-%d %H:%M')} · {len(seeds)} seeds per trick · foe HP ×{a.hard_scale} · {SB} bot · "
           f"eager on {min(a.eager_n, len(seeds))} · {len(runs)} runs in {time.time()-t0:.0f}s · ideas from {', '.join(IDEA_FILES) or '-'}_", '',
-          f"Baseline (Quill + Nudge + Flip): win {none['win']:.1%}, {none['turns']:.2f} turns. Live tricks set the bar: median lift {med*100:+.1f} pts, best {top*100:+.1f}.", '',
+          f"Baseline ({base_name}): win {none['win']:.1%}, {none['turns']:.2f} turns. Each trick is played as {base_name} + the trick. "
+          f"The bar: a keeper adds at least {max(med, a.bar)*100:+.1f} pts (the median live lift {med*100:+.1f}, or the floor {a.bar*100:+.0f}, whichever is higher); best live {top*100:+.1f}.", '',
           '| trick | new? | verdict | win | lift | turns saved | used on turns | uses/run | gain/use | eager hurt | what it does |', '|' + '---|' * 11]
     for k in order:
         r = rows[k]
         md.append(f"| {k} | {'idea' if r['idea'] else 'live'} | {r['verdict']} | {r['win']:.1%} | {r['lift']*100:+.1f} | {r['turns_saved']:+.2f} | {r['use_rate']:.0%} | "
                   f"{r['uses_run']:.1f} | {r['gain']:+.1f} | {'-' if r['hurt'] is None else format(r['hurt'], '.0%')} | {r['desc']} |")
-    md += ['', 'Rules: dud = under +2 pts and under 0.2 turns saved; overpowered = 3+ pts above the best live trick; keeper = at least the median live lift and used on 15%+ of turns; '
+    md += ['', 'Rules: dud = under +2 pts and under 0.2 turns saved; overpowered = 3+ pts above the best live trick; keeper = at least the bar above and used on 15%+ of turns; '
            'niche = strong but rarely used; weak = below the median live trick; trap = the eager bot makes its turn worse with it 25%+ of the time.']
     os.makedirs(os.path.join(HERE, 'sim-out'), exist_ok=True)
     with open(os.path.join(HERE, 'sim-out', f'{tag}.md'), 'w', encoding='utf8') as f: f.write('\n'.join(md))
@@ -869,6 +1043,15 @@ def rules_hash():
         parts.append(page[i:j] if i >= 0 and j >= 0 else '')
     parts.append(open(os.path.join(ROOT, 'scrawl-items.js'), encoding='utf8', newline='').read().replace(chr(13) + chr(10), chr(10)))   # the items are rules too
     return hashlib.sha256(chr(10).join(parts).encode()).hexdigest()[:12]
+
+FXMARK = {'fire': '^', 'steel': '#', 'gold': '$', 'leaf': '+'}
+def stamp_fixtures(path):
+    """Take a capture from tools/capture_fixtures.js, stamp it with the page's rules fingerprint, save it as sim_fixtures.json."""
+    F = json.load(open(path, encoding='utf8'))
+    if isinstance(F, str): F = json.loads(F)
+    F['rules_hash'] = rules_hash()
+    json.dump(F, open(os.path.join(HERE, 'sim_fixtures.json'), 'w', encoding='utf8', newline=chr(10)), indent=1, ensure_ascii=False)
+    print(f"sim_fixtures.json: {len(F['cases'])} runs, {len(F.get('deep', []))} descents, {len(F.get('tricks', []))} trick scripts, rules {F['rules_hash']}")
 
 def selftest():
     """Replays reference runs captured from the page; any mismatch means the port has drifted."""
@@ -909,6 +1092,42 @@ def selftest():
         diffs = [k for k, v in (('deep_foes', foes == c['deep_foes']), ('trail', trail == c['trail']), ('depth', g.fi + 1 == c['depth'])) if not v]
         print(f"  {'ok  ' if not diffs else 'FAIL'} {c['seed']} endless descent to depth {g.fi + 1}" + (f"  differs in {diffs}" if diffs else ''))
         bad += bool(diffs)
+    same_kind = {r['id']: r.get('effect', {}).get('sameKind') for r in ITEMS['items']}
+    for c in F.get('tricks', []):   # every trick in the lab kit, used once each in kit order (tools/capture_fixtures.js)
+        g = Game(c['seed'], kit=['quill'] + ROSTER); g.kit_fixed = True; log = []
+        for _ in range(2):
+            if g.over: break
+            for k in list(g.kit):
+                T = TOOLS[k]
+                if k == 'quill' or not g.uses_left(k) or g.over: continue
+                okT = [t for t in g.hand if not t['crossed'] and T['ok'](t)]
+                if T.get('notile'):
+                    g.use_tool(k, [])
+                    if g.affixing: g.pick_affix(0)
+                elif T['kind'] == 'socket':
+                    w = next(([a, b, d] for a in okT for b in okT for d in okT if len({a['id'], b['id'], d['id']}) == 3 and a['ch'] + b['ch'] + d['ch'] in WORDS), None)
+                    if not w: continue
+                    g.use_tool(k, [t['id'] for t in w])
+                elif T['kind'] == 'pair':
+                    a = okT[0] if okT else None
+                    b = a and next((t for t in okT if t is not a and (not same_kind.get(k) or (a['ch'] in VOW) == (t['ch'] in VOW))), None)
+                    if not b: continue
+                    g.use_tool(k, [a['id'], b['id']])
+                else:
+                    if not okT: continue
+                    t = okT[0]
+                    if T['kind'] == 'choose':
+                        ch = next((x for x in T['options'](t) if x != t['ch']), None)
+                        if ch: g.use_tool(k, [t['id'], '=' + ch])
+                    else: g.use_tool(k, [t['id']])
+                log.append([k, ''.join(t['ch'] + FXMARK.get(t['fx'], '') + ('*' if t['crossed'] else '') for t in g.hand), g.foe['hp'], g.block, g.hp])
+            if not g.over: g.end_turn()
+        ok = log == c['log']
+        if not ok:
+            i = next((i for i, (x, y) in enumerate(zip(log, c['log'])) if x != y), min(len(log), len(c['log'])))
+            print(f"  FAIL {c['seed']} tricks: first difference at use {i}: sim {log[i] if i < len(log) else '-'} page {c['log'][i] if i < len(c['log']) else '-'}")
+        else: print(f"  ok   {c['seed']} every trick ({len(log)} uses)")
+        bad += not ok
     h = rules_hash(); known = F.get('rules_hash')
     print(f"  sim {SIM_VERSION} · page rules {h}" + ('' if h == known else f"  (fixtures were captured at {known}: if the page's rules changed, re-port and recapture)"))
     print('selftest ' + ('passed' if not bad else f'FAILED on {bad} case(s)'))
@@ -916,6 +1135,7 @@ def selftest():
 
 LAB = os.path.join(ROOT, 'scrawl-lab')       # the analytics pages on the site
 CHANGELOG = [   # newest first; every version gets a git tag scrawl-sim-v<version> so old reports can be rerun
+    ('1.8.0', '2026-11-24', 'New trick kinds: draw, reroll, affix (random prefixes and suffixes), socket (spell a 3-letter word into the trick) and enchanting morphs. Random tricks roll a seeded stream per use; bots plan them from 8 imagined outcomes and replan after the real roll. Hands over 8 tiles plan with their 50 best words. Heuristic quick / qeager bots; trial --quick, --base, --bar. Old idea ids no longer shadow live items in trials; trial runs are cached. 12 new tricks from the 27 Nov daily, tiered by hand (no rounds run).'),
     ('1.6.0', '2026-11-22', 'Blade bonus squares (DL / TL / DW) from the 22 Nov daily; five new tools (Soften, Scribble, Lunge, Recoil, Triplicate) join the roster that day; planner scores each word by its letter order.'),
     ('1.5.0', '2026-11-20', 'Items as data: every trick is read from scrawl-items.js, the same file the page uses; trick behaviour fingerprinted identical to 1.4.0 on page and sim.'),
     ('1.4.0', '2026-11-20', 'Tiered equipment from the 21 Nov daily: 15-trick roster (common / uncommon / rare from the 1.2.0 trials), tiered Armoury offers; Swap, Rotate, Vowel Shift, Split and Ink Blot retired from offers.'),
@@ -969,7 +1189,7 @@ def record(tag, a, rows, nseeds, nruns):
     hist = json.load(open(HISTORY, encoding='utf8')) if os.path.exists(HISTORY) else dict(rounds=[])
     meta = next((m for f, m in ROUND_META.items() if f'r{a.round}.py' == f), {}) if getattr(a, 'round', None) else {}
     entry = dict(tag=tag, round=getattr(a, 'round', None), date=time.strftime('%Y-%m-%d %H:%M'), sim_version=SIM_VERSION, rules=rules_hash(),
-                 hard_scale=a.hard_scale, seeds=nseeds, runs=nruns, note=meta.get('note', ''), idea_files=list(IDEA_FILES),
+                 hard_scale=a.hard_scale, base=getattr(a, 'base', 'nudge,flip'), bar=getattr(a, 'bar', 0), seeds=nseeds, runs=nruns, note=meta.get('note', ''), idea_files=list(IDEA_FILES),
                  tricks=[dict(r, parent=LINEAGE.get(k)) for k, r in rows.items()], run=run_info())
     hist['rounds'] = [r for r in hist['rounds'] if r['tag'] != tag] + [entry]
     hist['rounds'].sort(key=lambda r: (r['round'] or 0, r['date']))
@@ -989,7 +1209,8 @@ def describe(r):
     """A plain sentence for any item record, so every evolved item can be read by a player."""
     tg, e, kd = r.get('target', {'type': 'any'}), r.get('effect', {}), r['kind']
     who = {'vowel': 'A vowel', 'consonant': 'A consonant', 'minValue': f"A tile worth {tg.get('value')}+", 'letters': f"One of {' '.join(tg.get('letters', ''))}"}.get(tg['type'], 'A tile')
-    if kd == 'morph':
+    if kd == 'morph' and 'fx' in e: what = f"turns {e['fx']}"
+    elif kd == 'morph':
         if 'shift' in e: n = e['shift']; what = f"moves {abs(n)} step{'s' if abs(n) > 1 else ''} {'on' if n > 0 else 'back'}"
         elif e.get('mirror'): what = 'is mirrored (A↔Z)'
         elif e.get('set') == BLANK: what = 'becomes a blank'
@@ -1000,6 +1221,10 @@ def describe(r):
         parts = [('itself' if m.get('self') else 'a copy' if m.get('copy') else m['letter'].upper()) for m in e['make']]
         what = 'becomes ' + ' + '.join(parts)
     elif kd == 'pair': what = "takes another tile's letter" + (' (same kind only)' if e.get('sameKind') else '')
+    elif kd == 'draw': d = e['draw']; who, what = 'You', f"draw {d.get('n', 1)} tile{'s' if d.get('n', 1) > 1 else ''}" + ('' if d.get('pool', 'any') == 'any' else f" ({d['pool']})")
+    elif kd == 'reroll': d = e['reroll']; who = 'Every ' + who.split(' ', 1)[1].lower() if d.get('hand') else who; what = 'rerolls' + (' (same kind)' if d.get('pool', 'same') == 'same' else '')
+    elif kd == 'affix': who, what = 'You', 'pop a random ' + ' / '.join(x.upper() for x in e['affix']['list'])
+    elif kd == 'socket': o = e['socket']; who, what = 'A 3-letter word set in it', ', '.join(x for x in (f"deals ×{o['dmg']}" if o.get('dmg') else '', f"blocks ×{o['block']}" if o.get('block') else '', f"heals {o['heal']}" if o.get('heal') else '', f"draws {o['draw']}" if o.get('draw') else '') if x)
     else: what = 'swaps with another tile'
     ch = f" (×{r['uses']} a turn)" if r.get('uses', 1) > 1 else '' if r.get('uses') else f", {r['perFight']}× a foe"
     return f'{who} {what}{ch}.'
@@ -1120,19 +1345,47 @@ def _init(hp, ideas=None):
     FOE_HP_SCALE = hp
     if ideas and not IDEAS_LOADED: load_ideas(ideas)
 
-def run_all(jobs, procs):
-    t0 = time.time(); out = []
+def _cache_key(job):
+    """Runs are deterministic, so a run of live tricks (or of ideas written as records) is the same every time the sim,
+    the page rules and the foe HP scale are. None: don't cache (an idea written as Python code)."""
+    seed, bot, draft, kit, beam = job[:5]
+    if kit is None or len(job) > 5 or any(k != 'quill' and k not in LIVE_IDS and k not in IDEA_RECORDS for k in kit): return None
+    return json.dumps([FOE_HP_SCALE, seed, bot, draft, kit, beam, [IDEA_RECORDS.get(k) for k in kit]], sort_keys=True)
+
+def _cache_file():
+    import hashlib
+    src = open(os.path.abspath(__file__), encoding='utf8').read()
+    src = src[:src.index('# ---------------------------------------------------------------- reports')]   # rules, planner and play: all a run depends on
+    code = hashlib.sha256((src + rules_hash()).encode()).hexdigest()[:12]
+    return os.path.join(HERE, 'sim-out', f'run-cache-{code}.pkl')
+
+def run_all(jobs, procs, cache=False):
+    """Play every job on all cores. cache=True (trials) reuses identical earlier runs from sim-out/run-cache-*.pkl."""
+    import pickle
+    t0 = time.time(); out = []; store = {}; todo = jobs
+    if cache:
+        f = _cache_file()
+        if os.path.exists(f): store = pickle.load(open(f, 'rb'))
+        keys = [_cache_key(j) for j in jobs]
+        out = [store[k] for k in keys if k in store]
+        todo = [j for j, k in zip(jobs, keys) if k not in store]
+        print(f'  {len(out)} of {len(jobs)} runs from the cache', file=sys.stderr)
     with Pool(procs, initializer=_init, initargs=(FOE_HP_SCALE, IDEA_FILES)) as p:
-        for i, r in enumerate(p.imap_unordered(_job, jobs, chunksize=4)):
+        for i, (j, r) in enumerate(zip(todo, p.imap(_job, todo, chunksize=4))):
             out.append(r)
-            if (i + 1) % 200 == 0: print(f'  {i+1}/{len(jobs)} runs, {time.time()-t0:.0f}s', file=sys.stderr)
+            if cache:
+                k = _cache_key(j)
+                if k: store[k] = r
+            if (i + 1) % 200 == 0: print(f'  {i+1}/{len(todo)} runs, {time.time()-t0:.0f}s', file=sys.stderr)
+    if cache:
+        os.makedirs(os.path.dirname(_cache_file()), exist_ok=True); pickle.dump(store, open(_cache_file(), 'wb'))
     print(f'  {len(jobs)} runs in {time.time()-t0:.0f}s', file=sys.stderr)
     runs = [r for r, _, _ in out]; turns = [t for _, T, _ in out for t in T]; uses = [u for _, _, U in out for u in U]
     return runs, turns, uses
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('cmd', choices=['report', 'trial', 'compare', 'sweep', 'replay', 'selftest', 'viz', 'publish', 'evolve'])
+    ap.add_argument('cmd', choices=['report', 'trial', 'compare', 'sweep', 'replay', 'selftest', 'viz', 'publish', 'evolve', 'fixtures'])
     ap.add_argument('--gens', type=int, default=3, help='evolve: generations')
     ap.add_argument('--pop', type=int, default=8, help='evolve: children per generation')
     ap.add_argument('--round', type=int, help='trial: run evolution round N (loads ideas/r1..rN.py, tests the TEST list in rN.py)')
@@ -1142,7 +1395,10 @@ def main():
     ap.add_argument('--tag', help='trial: name for the output files')
     ap.add_argument('--eager-n', type=int, default=500, help='trial: seeds for the eager trap check')
     ap.add_argument('--sweep-n', type=int, default=600, help='report: seeds per sweep and scan step')
-    ap.add_argument('--hard-scale', type=float, default=2.0, help='report: foe HP scale for the hard sweep')
+    ap.add_argument('--hard-scale', type=float, default=2.0, help='report: foe HP scale for the hard sweep; trial: foe HP scale')
+    ap.add_argument('--base', default='nudge,flip', help="trial: the kit every trick joins besides Quill ('' = Quill alone, so lift is over no tricks)")
+    ap.add_argument('--quick', action='store_true', help='trial: play the heuristic bots (greedy words, 4 imagined rolls): several times faster')
+    ap.add_argument('--bar', type=float, default=0.0, help='trial: the least lift (as a fraction) a keeper must add, on top of the median live lift')
     ap.add_argument('--scan', type=lambda s: [float(x) for x in s.split(',')], default=[1.0, 1.22, 1.5, 1.75, 2.0, 2.5], help='report: foe HP scales to scan')
     ap.add_argument('seed', nargs='?')
     ap.add_argument('-n', type=int, default=500, help='number of synthetic seeds')
@@ -1157,6 +1413,7 @@ def main():
     ap.add_argument('-j', type=int, default=max(1, (os.cpu_count() or 2) - 1))
     a = ap.parse_args()
     if a.cmd == 'selftest': sys.exit(0 if selftest() else 1)
+    if a.cmd == 'fixtures': stamp_fixtures(a.seed); return
     if a.cmd in ('viz', 'publish'): publish(); return
     if a.round:
         a.ideas = [os.path.join(HERE, 'ideas', f'r{i}.py') for i in range(1, a.round + 1) if os.path.exists(os.path.join(HERE, 'ideas', f'r{i}.py'))]
