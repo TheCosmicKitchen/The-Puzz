@@ -67,6 +67,7 @@
       for (let turn = 0; turn < 2 && !S.over; turn++) {
         for (const k of S.kit) {
           const T = TOOLS[k]; if (k === 'quill' || !usesLeft(k) || S.over) continue;
+          if (T.kind === 'charm' || T.kind === 'mark' || T.meld) continue;   // page-only until the rules move to shared JS (the sim skips them too)
           const free = S.hand.filter(t => !t.crossed && !busyIds().has(t.id)), okT = free.filter(t => T.ok(t) === true);
           if (T.notile) { fireTrick(k); if (S.affixing) chooseAffix(S.affixing.opts[0]) }
           else if (T.kind === 'socket') {

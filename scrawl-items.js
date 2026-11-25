@@ -856,6 +856,138 @@ window.SCRAWL_ITEMS={
     }
    },
    "from": "2026-11-27"
+  },
+  {
+   "id": "hardcover",
+   "name": "Hardcover",
+   "tier": "common",
+   "kind": "charm",
+   "uses": 1,
+   "desc": "This turn every vowel in your words also gives 2 block.",
+   "effect": {
+    "vowelBlock": 2
+   },
+   "from": "2026-11-28"
+  },
+  {
+   "id": "forge",
+   "name": "Forge",
+   "tier": "common",
+   "kind": "pair",
+   "uses": 1,
+   "desc": "Melt two tiles into one blank, a wild letter.",
+   "target": {
+    "type": "notBlank",
+    "msg": "Not on a blank"
+   },
+   "effect": {
+    "meld": true
+   },
+   "from": "2026-11-28"
+  },
+  {
+   "id": "thorns",
+   "name": "Thorns",
+   "tier": "uncommon",
+   "kind": "charm",
+   "uses": 1,
+   "desc": "This turn, whatever your block stops is dealt back to the foe.",
+   "effect": {
+    "thorns": true
+   },
+   "from": "2026-11-28"
+  },
+  {
+   "id": "errata",
+   "name": "Errata",
+   "tier": "uncommon",
+   "kind": "charm",
+   "perFight": 1,
+   "desc": "Strike the foe's next move from the record: it does nothing. Once a foe.",
+   "effect": {
+    "stun": true
+   },
+   "from": "2026-11-28"
+  },
+  {
+   "id": "bind",
+   "name": "Bind",
+   "tier": "uncommon",
+   "kind": "charm",
+   "perFight": 1,
+   "desc": "The foe's tricks stay shut for its next 2 moves (attacks still land). Once a foe.",
+   "effect": {
+    "bind": 2
+   },
+   "from": "2026-11-28"
+  },
+  {
+   "id": "typecast",
+   "name": "Typecast",
+   "tier": "uncommon",
+   "kind": "mark",
+   "perFight": 1,
+   "desc": "Tap a tile: this foe takes double from every word with its letter. The tile stays. Once a foe.",
+   "target": {
+    "type": "notBlank",
+    "msg": "Not on a blank"
+   },
+   "effect": {
+    "weak": 2
+   },
+   "from": "2026-11-28"
+  },
+  {
+   "id": "rareink",
+   "name": "Rare Ink",
+   "tier": "uncommon",
+   "kind": "charm",
+   "uses": 1,
+   "desc": "This turn each K J X Q Z in a word multiplies its damage by 1.5.",
+   "effect": {
+    "rare": 1.5
+   },
+   "from": "2026-11-28"
+  },
+  {
+   "id": "mirrorwriting",
+   "name": "Mirror Writing",
+   "tier": "uncommon",
+   "kind": "charm",
+   "uses": 1,
+   "desc": "This turn a word counts spelled backwards too: STAR strikes as RATS.",
+   "effect": {
+    "reverse": true
+   },
+   "from": "2026-11-28"
+  },
+  {
+   "id": "inkstain",
+   "name": "Ink Stain",
+   "tier": "rare",
+   "kind": "mark",
+   "perFight": 1,
+   "desc": "Tap a tile to stain its letter for the rest of the run: every word with it deals +2, and the bonus grows by 1 each time.",
+   "target": {
+    "type": "notBlank",
+    "msg": "Not on a blank"
+   },
+   "effect": {
+    "ink": 2
+   },
+   "from": "2026-11-28"
+  },
+  {
+   "id": "ghostwriter",
+   "name": "Ghostwriter",
+   "tier": "rare",
+   "kind": "charm",
+   "perFight": 1,
+   "desc": "Lays the best word your tiles can make on the sword, and it deals double. Once a foe.",
+   "effect": {
+    "ghost": 2
+   },
+   "from": "2026-11-28"
   }
  ]
 };

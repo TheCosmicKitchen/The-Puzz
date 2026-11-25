@@ -26,7 +26,7 @@ from datetime import date, timedelta
 from itertools import combinations, permutations, product
 from multiprocessing import Pool
 
-SIM_VERSION = '2.0.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
+SIM_VERSION = '2.1.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 M = 0xFFFFFFFF
@@ -133,8 +133,13 @@ def compile_item(r):
         if 'groups' in o: T['options'] = lambda t, G=o['groups']: list(next(g for g in G if t['ch'] in g))
         elif 'steps' in o: T['options'] = lambda t, D=o['steps']: [chr((ord(t['ch']) - 97 + d + 26) % 26 + 97) for d in D]
         else: T['options'] = lambda t, L=o['letters']: list(L)
+    elif kd in ('charm', 'mark'):
+        # Hardcover, Thorns, Errata, Bind, Rare Ink, Mirror Writing, Ghostwriter, Typecast, Ink Stain (28 Nov): played on the page;
+        # the bots don't use them until the rules move to shared JS, so they only take part in the seeded offers here
+        T.update(unmodelled=True, notile=kd == 'charm')
     elif kd == 'make':
         T['make'] = lambda t, M=e['make']: [(t['ch'], t.get('fx')) if m.get('self') else (t['ch'], None) if m.get('copy') else (m['letter'], None) for m in M]
+    elif kd == 'pair' and e.get('meld'): T.update(unmodelled=True)   # Forge (28 Nov): page only for now, as above
     elif kd == 'pair':
         T['ordered'] = True
         T['pair'] = (lambda a, b: (b['ch'], b['ch']) if (a['ch'] in VOW) == (b['ch'] in VOW) else (a['ch'], b['ch'])) if e.get('sameKind') else (lambda a, b: (b['ch'], b['ch']))
@@ -812,7 +817,7 @@ def tool_moves(g, hand, uses, made, acc=(0, 0, 0), n=SAMPLES):
     samples is None for a sure thing; for a random trick it holds the imagined outcomes and the hand is unknown."""
     out = []
     for k, n in uses.items():
-        if n <= 0 or k == 'quill': continue
+        if n <= 0 or k == 'quill' or TOOLS[k].get('unmodelled'): continue
         T = TOOLS[k]; nu = dict(uses); nu[k] = n - 1
         if T.get('notile'):
             out.append((k, [], None, nu, made, acc, chance(g, k, T, hand, [], made, acc, n))); continue
@@ -1336,7 +1341,7 @@ def selftest():
             if g.over: break
             for k in list(g.kit):
                 T = TOOLS[k]
-                if k == 'quill' or not g.uses_left(k) or g.over: continue
+                if k == 'quill' or T.get('unmodelled') or not g.uses_left(k) or g.over: continue
                 okT = [t for t in g.hand if not t['crossed'] and T['ok'](t)]
                 if T.get('notile'):
                     g.use_tool(k, [])
@@ -1413,6 +1418,7 @@ def selftest():
 
 LAB = os.path.join(ROOT, 'scrawl-lab')       # the analytics pages on the site
 CHANGELOG = [   # newest first; every version gets a git tag scrawl-sim-v<version> so old reports can be rerun
+    ('2.1.0', '2026-11-25', 'Ten tricks from the 28 Nov daily (Hardcover, Forge, Thorns, Errata, Bind, Typecast, Rare Ink, Mirror Writing, Ink Stain, Ghostwriter) with new kinds charm and mark and a pair meld; they join the seeded offers, but the bots do not use them until the rules move to shared JS. Six fixtures recaptured.'),
     ('2.0.0', '2026-11-25', 'New trick kinds: draw, reroll, affix (random prefixes and suffixes), socket (spell a 3-letter word into the trick) and enchanting morphs. Random tricks roll a seeded stream per use; bots plan them from 8 imagined outcomes and replan after the real roll. Hands over 8 tiles plan with their 50 best words. Heuristic quick / qeager bots; trial --quick, --base, --bar. Old idea ids no longer shadow live items in trials; trial runs are cached. 12 new tricks from the 27 Nov daily, tiered by hand (no rounds run).'),
     ('1.9.0', '2026-11-25', '20 new foes from the 27 Nov daily (endless straight away), each with a trick on your next turn: a daily draws its first foe from an easy pool and its second from a middling one; five deep foes only appear down the descent, which ramps faster (+3 HP a floor, +0.15 attack per three floors). HARD_HP / HARD_ATK levers (1 for now: the sword already raises foe HP). compare reports how often each foe ends a run. (1.8.0 left for an open PR.)'),
     ('1.7.0', '2026-11-24', 'From the 27 Nov daily the Spellblade is a sword (scrawl-blade.js): hilt (block per letter), crossguard DL, tip DW, tiles in any slot; 8 runes offered at the Armoury beside the tricks (3 sockets, 3 levels); a holdover bag of 2; foe HP x2.4 on sword days in place of x1.27. Planner places each word on the hilt or where it hits hardest; drafts: tools / blade / runes.'),

@@ -776,9 +776,9 @@
    "edge": "twins",
    "letter": "g",
    "offers0": [
-    "pouch",
-    "revowel",
-    "resound"
+    "lucky",
+    "recast",
+    "inkwell"
    ],
    "rune0": "whet",
    "hand0": [
@@ -892,9 +892,9 @@
    "edge": "twins",
    "letter": "k",
    "offers0": [
-    "slip",
-    "inkwell",
-    "pouch"
+    "whisper",
+    "lucky",
+    "polish"
    ],
    "rune0": "reach",
    "hand0": [
@@ -988,9 +988,9 @@
    "edge": "mirror",
    "letter": "t",
    "offers0": [
-    "polish",
-    "lucky",
-    "revowel"
+    "hardcover",
+    "ember",
+    "recast"
    ],
    "rune0": "whet",
    "hand0": [
@@ -1105,8 +1105,8 @@
    "letter": "b",
    "offers0": [
     "recast",
-    "pouch",
-    "lunge"
+    "lucky",
+    "triplicate"
    ],
    "rune0": "pommel",
    "hand0": [
@@ -1220,9 +1220,9 @@
    "edge": "longsent",
    "letter": "n",
    "offers0": [
-    "back",
     "echo",
-    "pouch"
+    "sprout",
+    "lucky"
    ],
    "rune0": "pommel",
    "hand0": [
@@ -1336,8 +1336,8 @@
    "edge": "haiku",
    "letter": "s",
    "offers0": [
-    "soften",
-    "polish",
+    "plural",
+    "ember",
     "back"
    ],
    "rune0": "bastion",
@@ -10322,7 +10322,7 @@
   }
  ],
  "tricks_note": "Every trick in the lab kit used once in kit order on the first tile (pair, or 3-letter word) that takes it, for two turns: [trick, hand (^ fire, # steel, $ gold, + leaf, * crossed), foe hp, block, hp].",
- "rules_hash": "1d89e6394c79",
+ "rules_hash": "944634030bd4",
  "sword_note": "Sword days with preset runes; the word goes in at slot (turn mod 4). trail = [word, foe index, your hp, your block, foe hps, letters back from the bag] after each turn.",
  "deep_note": "Endless descent, scripted the same way with foe attacks off and foe HP x0.5 so it goes deep; trail is [word, foe index, foe hp]. deep_foes = deepFoe(3,4,5,6,9) at the normal HP scale.",
  "offers_fingerprint": {
