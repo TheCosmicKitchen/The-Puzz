@@ -30,5 +30,32 @@
     FOE_HP_SCALE=0.5;FOE_ATK_SCALE=0;
     const trail=play(seed,null,45,()=>0,hit=>[hit,S.fi,S.foes[S.fi].hp]);
     out.deep.push({seed,hp_scale:0.5,atk_scale:0,turns:45,deep_foes,trail,depth:S.fi+1});
+    // each new foe in turn, 999 HP and attacks off: strike the longest word a permutation search finds (up to three times, from
+    // the first slot), Quill the first consonant, end the turn; record what the foe's trick did to the next hand
+    FOE_HP_SCALE=keepHP;FOE_ATK_SCALE=0;
+    const perms=function*(n,L,pre=[]){if(pre.length===L){yield pre;return}for(let i=0;i<n;i++)if(!pre.includes(i))yield*perms(n,L,[...pre,i])};
+    const longest=()=>{const h=S.hand.filter(t=>!t.crossed);
+      for(let L=Math.min(maxWord(),h.length);L>=3;L--)for(const p of perms(h.length,L)){const w=p.map(i=>h[i].ch).join('');
+        if(WORDS.has(w)){S.spell=p.map(i=>h[i].id);strike();return w}}
+      return null};
+    out.foes=[];
+    for(const k of Object.keys(FOES).slice(6)){const seed='endless-'+k.slice(0,5);S=newRun(seed,false,false);startFight();
+      S.foes[0]={k,hp:999,max:999,block:0,mi:0};const trail=[];
+      for(let i=0;i<9;i++){if(S.over||S.fi)break;S.draft=null;const words=[];
+        for(let j=0;j<3;j++){const w=longest();if(!w)break;words.push(w)}
+        const q=S.hand.find(t=>!t.crossed&&TOOLS.quill.ok(t)===true);if(q&&usesLeft('quill')){sel=q.id;useOn('quill')}
+        const blk=S.foes[0].block;S.draft=null;endTurn();
+        trail.push([words,S.hp,S.foes[0].hp,blk,Object.entries(S.hex).sort(),S.hand.map(t=>t.ch+(t.crossed?'*':'')+(t.fx?t.fx[0]:'')).join(' '),S.bonus.map(b=>b||'-').join('')])}
+      out.foes.push({seed,foe:k,trail})}
+    out.foes_note='Each new foe with 999 HP and attacks off; the script strikes the longest word it finds (up to three times), Quills the first consonant and ends the turn. trail = [words, your hp, foe hp, foe block before its turn, the trick in force on the next turn, the next hand (* crossed, first letter of an enchantment), the next blade squares joined].';
+    // word scoring under each foe trick: fixed words on plain and folded / bonus blades, as a first word and as a later one
+    out.hits=[];S=newRun('endless-hits',false,false);startFight();S.edge='haiku';S.muffle=false;S.runes={};
+    for(const H of [{},{caps:1},{ellipsis:1},{pedant:1},{hang:'t'},{abridge:1},{rex:1},{reflect:1},{stammer:4}])
+      for(const w of ['cat','bell','sweet','queens','abbess','jazz'])
+        for(const b of [[null,null,null,null,null,null],['x','dl',null,'tl',null,'dw']])
+          for(const [nt,lt] of [[0,0],[1,4]]){S.hex=H;S.bonus=b;S.wordsTurn=nt;S.lenTurn=lt;S.strikes=0;
+            S.hand=[...w].map((ch,i)=>({id:'h'+i,ch,fx:i===1?'fire':undefined}));S.spell=S.hand.map(t=>t.id);
+            const h=wordHit(w);out.hits.push([H,w,b.map(x=>x||'-'),nt,lt,h.dmg,h.gain,h.back])}
+    out.hits_note='wordHit on fixed words from the first slot (2nd tile on fire, edge Haiku, no runes) under each foe trick: [trick, word, blade squares, words already struck this turn, last length, damage, block it gains, damage bounced back].';
   }finally{FOE_HP_SCALE=keepHP;FOE_ATK_SCALE=keepATK;S=keepS;mode=keepMode;render()}
   return JSON.stringify(out)})()

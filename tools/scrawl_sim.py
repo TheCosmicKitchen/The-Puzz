@@ -23,10 +23,10 @@ Results go to tools/sim-out/ as CSV (one row per run, one per turn, one per tric
 import argparse, csv, math, os, random, re, sys, time, json
 from collections import Counter, defaultdict
 from datetime import date, timedelta
-from itertools import combinations, product
+from itertools import combinations, permutations, product
 from multiprocessing import Pool
 
-SIM_VERSION = '1.7.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
+SIM_VERSION = '1.9.0'   # bump on any change to rules, bots or scoring; see tools/README.md for the changelog
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 M = 0xFFFFFFFF
@@ -195,8 +195,57 @@ FOES = {
     'jacket':  dict(hp=23, moves=[dict(armor=8, atk=5), dict(atk=12), dict(armor=6, atk=7)]),
     'splice':  dict(hp=22, moves=[dict(atk=6, twice=1), dict(atk=9), dict(atk=6, twice=1)]),
     'editor':  dict(hp=32, moves=[dict(atk=12), dict(redpen=2, atk=6), dict(atk=14), dict(armor=8, atk=6)]),
+    # from the 27 Nov daily (endless straight away); page: the same FOES. Easy ones (a daily's first foe):
+    'smudge':     dict(hp=21, moves=[dict(smudge=2, atk=6), dict(atk=10), dict(atk=8)]),
+    'pied':       dict(hp=21, moves=[dict(pied=1, atk=6), dict(atk=11), dict(pied=1, atk=6)]),
+    'ellipsis':   dict(hp=22, moves=[dict(ellipsis=1, atk=7), dict(atk=10), dict(ellipsis=1, atk=6)]),
+    'dogear':     dict(hp=22, moves=[dict(dogear=1, atk=6), dict(atk=11), dict(dogear=1, atk=7)]),
+    'diphthong':  dict(hp=21, moves=[dict(diph=1, atk=6), dict(atk=11), dict(atk=8)]),
+    'silverfish': dict(hp=22, moves=[dict(silver=1, atk=7), dict(atk=10), dict(silver=1, atk=6)]),
+    'stammer':    dict(hp=22, moves=[dict(stammer=4, atk=6), dict(atk=10), dict(stammer=4, atk=7)]),
+    # middling (a daily's second foe)
+    'lipogram':   dict(hp=22, moves=[dict(ban=1, atk=6), dict(atk=11), dict(ban=1, atk=7)]),
+    'plagiarist': dict(hp=22, moves=[dict(steal=1, atk=7), dict(atk=10), dict(steal=1, atk=6)]),
+    'smallcaps':  dict(hp=20, moves=[dict(caps=1, atk=6), dict(atk=12), dict(atk=8)]),
+    'pedant':     dict(hp=22, moves=[dict(pedant=1, atk=7), dict(atk=11), dict(pedant=1, atk=6)]),
+    'hangman':    dict(hp=22, moves=[dict(hang=1, atk=6), dict(atk=11), dict(hang=1, atk=7)]),
+    'overdue':    dict(hp=23, moves=[dict(fine=2, atk=5), dict(atk=10), dict(fine=2, atk=6)]),
+    'writersblock': dict(hp=22, moves=[dict(lock=1, atk=7), dict(atk=11), dict(lock=1, atk=6)]),
+    'censor':     dict(hp=22, moves=[dict(censor=1, atk=6), dict(atk=11), dict(censor=1, atk=6)]),
+    # deep: only down the endless descent
+    'kerning':    dict(hp=24, moves=[dict(kern=1, atk=7), dict(atk=12), dict(kern=1, atk=7)]),
+    'mirror':     dict(hp=24, moves=[dict(reflect=1, atk=6), dict(atk=12), dict(reflect=1, atk=8)]),
+    'abridger':   dict(hp=24, moves=[dict(abridge=1, atk=7), dict(atk=12), dict(abridge=1, atk=7)]),
+    'rex':        dict(hp=26, moves=[dict(rex=1, atk=8), dict(atk=14), dict(rex=1, atk=6)]),
+    'cluster':    dict(hp=24, moves=[dict(cluster=1, atk=7), dict(atk=12), dict(cluster=1, atk=7)]),
 }
+# page: HEX. Foe tricks that land on your next turn; they sit in Game.hex for that turn.
+HEX = ['ban', 'steal', 'pied', 'smudge', 'censor', 'silver', 'dogear', 'hang', 'cluster', 'diph', 'caps', 'ellipsis', 'kern', 'pedant', 'abridge', 'rex', 'reflect', 'stammer', 'fine', 'lock']
+OLD_KINDS, FOES_FROM = ['gremlin', 'worm', 'hush', 'jacket', 'splice'], '2026-11-27'
+def new_foes(seed): return not re.fullmatch(r'scrawl-\d{4}-\d{2}-\d{2}', seed) or seed[7:] >= FOES_FROM
+EARLY = OLD_KINDS + ['smudge', 'pied', 'ellipsis', 'dogear', 'diphthong', 'silverfish', 'stammer']
+MIDDLE = OLD_KINDS + ['lipogram', 'plagiarist', 'smallcaps', 'pedant', 'hangman', 'overdue', 'writersblock', 'censor']
+DEEP_ALL = list(dict.fromkeys(EARLY + MIDDLE)) + ['kerning', 'mirror', 'abridger', 'rex', 'cluster']
+def daily_two(r, seed):
+    """page: dailyTwo. Before 27 Nov two of the old five; from then one EARLY foe then one MIDDLE foe."""
+    if not new_foes(seed): return shuffle(r, OLD_KINDS)[:2]
+    a = EARLY[math.floor(r() * len(EARLY))]; m = [k for k in MIDDLE if k != a]
+    return [a, m[math.floor(r() * len(m))]]
+def hex_post(H, w, dmg, nth, plen):
+    """page: the end of wordHit. The foe's trick on a word after the edge: (damage, block it gains, damage bounced at you)."""
+    n = len(w)
+    if H.get('pedant') and n < 4: dmg = 0
+    if H.get('hang') and H['hang'] not in w: dmg //= 2
+    if H.get('abridge') and nth > 0: dmg //= 2
+    if H.get('rex') and n <= plen: dmg //= 2
+    gain = H['stammer'] * (n - len(set(w))) if H.get('stammer') else 0
+    back = dmg // 2 if H.get('reflect') and n >= 5 else 0
+    return dmg, gain, back
 FOE_HP_SCALE, FOE_ATK_SCALE = 1.22, 1.0
+# page: HARD_HP, HARD_ATK, DEEP_STEP. From the 27 Nov daily (and every non-daily seed) foes get more health and hit harder,
+# and the descent ramps faster: +3 HP a floor, +DEEP_STEP attack every three floors.
+HARD_HP, HARD_ATK, DEEP_STEP = 1, 1, .15   # page: the sword's foeHp already raises foe health from 27 Nov, so these stay 1 until measured
+def hard_mul(seed): return HARD_HP if new_foes(seed) else 1
 DEEP_KINDS = ['gremlin', 'worm', 'hush', 'jacket', 'splice']
 
 def edge_on(edge, w, ctx):
@@ -225,17 +274,18 @@ class Game:
     """One run, following the page step for step. Tiles are dicts {id, ch, fx, crossed}."""
     def __init__(self, seed, kit=None, deep=False, runes=None):
         r = mulberry(hseed(seed))
-        two = shuffle(r, ['gremlin', 'worm', 'hush', 'jacket', 'splice'])[:2]
+        two = daily_two(r, seed)
         er = mulberry(hseed(seed + '-edge'))
         self.seed = seed; self.deep = deep
         self.foes = []
         for i, k in enumerate(two + ['editor']):
-            hp = jsround((FOES[k]['hp'] + i * 2) * FOE_HP_SCALE * hp_boost(seed))
+            hp = jsround((FOES[k]['hp'] + i * 2) * FOE_HP_SCALE * hp_boost(seed) * hard_mul(seed))
             self.foes.append(dict(k=k, hp=hp, max=hp, block=0, mi=math.floor(r() * len(FOES[k]['moves']))))
+            if new_foes(seed): self.foes[-1]['ax'] = HARD_ATK
         self.edge = EDGE_KEYS[math.floor(er() * len(EDGE_KEYS))]
         self.letter = 'bcdfghklmnprstw'[math.floor(er() * 15)]
         self.fi = self.turn = self.turns = 0; self.hp = HP; self.block = 0; self.hand = []; self.uses = {}; self.fight_uses = {}
-        self.pending = {}; self.muffle = False; self.over = None; self.made = 0
+        self.pending = {}; self.muffle = False; self.over = None; self.made = 0; self.hex = {}; self.words_turn = self.len_turn = 0
         self.kit = list(kit) if kit else START[:]
         self.draft = None if kit else 0
         self.charge = 0; self.charged = False; self.last = None; self.stun = False
@@ -313,9 +363,10 @@ class Game:
             self.grant(k)
         self.draft = None
 
-    def draw(self, n):
+    def draw(self, n, vow=0):
         r = mulberry(hseed(f'{self.seed}-hand-{self.fi}-{self.turn}'))
         nv = min(n - 1, 2 if r() < .55 else 3); out = []
+        if vow: nv = min(n - 1, vow)   # Consonant Cluster (1) or Diphthong (4)
         fair = not re.fullmatch(r'scrawl-\d{4}-\d{2}-\d{2}', self.seed) or self.seed[7:] >= FAIR_FROM
         for k in range(n):
             pool = BAG_V if k < nv else BAG_C
@@ -330,15 +381,55 @@ class Game:
     def start_turn(self):
         self.turn += 1; self.turns += 1
         self.uses = {k: TOOLS[k]['uses'] for k in self.kit if 'uses' in TOOLS[k]}
-        self.block = min(self.block, self.rper('bastion')); p = self.pending; self.muffle = bool(p.get('muffle'))
-        self.hand = self.draw(HAND - (p.get('nibble') or 0)); self.bonus = self.roll_bonus()
+        self.block = min(self.block, self.rper('bastion')); p = self.pending; self.muffle = bool(p.get('muffle')); self.len_turn = 0
+        self.hand = self.draw(HAND - (p.get('nibble') or 0), 1 if p.get('cluster') else 4 if p.get('diph') else 0); self.bonus = self.roll_bonus()
         r = mulberry(hseed(f'{self.seed}-trick-{self.fi}-{self.turn}'))
         if p.get('jumble'):
             t = self.hand[math.floor(r() * len(self.hand))]; t['ch'] = 'qxzjkvwy'[math.floor(r() * 8)]
         if p.get('redpen'):
             for i in shuffle(r, range(len(self.hand)))[:p['redpen']]: self.hand[i]['crossed'] = True
+        self.hex = self.foe_hex(p, r)   # page: the foe's trick lands on the fresh draw; the bag's tiles are safe from it
         self.hand += self.bag; self.bag = []; self.words_turn = 0; self.keep = None   # page: the bag's tiles come back, safe from the foe's tricks
         self.pending = {}
+    def foe_hex(self, p, r):
+        """page: foeHex. The new foes' tricks, in this order, with the turn's trick dice."""
+        H = {k: p[k] for k in HEX if p.get(k)}; hand = self.hand
+        live = lambda t: not t['crossed'] and t['ch'] != BLANK
+        if H.get('ban'):
+            v = [t for t in hand if live(t) and t['ch'] in VOW]
+            if v:
+                c = v[math.floor(r() * len(v))]['ch']; H['ban'] = c
+                for t in hand:
+                    if t['ch'] == c: t['crossed'] = True
+            else: del H['ban']
+        if H.get('steal'):
+            b = None
+            for t in hand:
+                if t['ch'] != BLANK and (b is None or VAL[t['ch']] > VAL[b['ch']]): b = t
+            if b: self.hand = hand = [t for t in hand if t is not b]; H['steal'] = b['ch']
+            else: del H['steal']
+        if H.get('pied'):
+            for t in hand:
+                if t['ch'] in VOW: o = [c for c in 'aeiou' if c != t['ch']]; t['ch'] = o[math.floor(r() * 4)]
+        if H.get('smudge'):
+            for i in shuffle(r, range(len(hand)))[:H['smudge']]: hand[i]['ch'] = BLANK
+        if H.get('censor'):
+            big = [t for t in hand if not t['crossed'] and t['ch'] != BLANK and VAL[t['ch']] >= 4]
+            for t in big: t['crossed'] = True
+            H['censor'] = len(big)
+        if H.get('silver'):
+            n = sum(1 for t in hand if t['fx'])
+            for t in hand: t['fx'] = None
+            f = self.foe; f['hp'] = min(f['max'], f['hp'] + 3 * n); H['silver'] = n
+        if H.get('dogear'):
+            free = [i for i in range(4) if not self.bonus[i]]
+            if free: self.bonus[free[math.floor(r() * len(free))]] = 'x'
+            else: del H['dogear']
+        if H.get('hang'):
+            c = [t for t in hand if live(t) and t['ch'] not in VOW] or [t for t in hand if live(t)]
+            if c: H['hang'] = c[math.floor(r() * len(c))]['ch']
+            else: del H['hang']
+        return H
     def start_fight(self):
         self.fight_uses = {k: TOOLS[k]['perFight'] for k in self.kit if 'perFight' in TOOLS[k]}
         self.turn = 0; self.pending = {}; self.charge = 0; self.charged = False; self.last = None; self.stun = False
@@ -349,6 +440,7 @@ class Game:
     def next_move(self):
         f = self.foe; mv = FOES[f['k']]['moves']; return mv[f['mi'] % len(mv)]
     def uses_left(self, k):
+        if k != 'quill' and self.hex.get('lock'): return 0   # Writer's Block
         return self.fight_uses.get(k, 0) if 'perFight' in TOOLS[k] else self.uses.get(k, 0)
     def tile(self, tid):
         for t in self.hand:
@@ -372,7 +464,7 @@ class Game:
         elif T['kind'] == 'choose':
             assert choice in T['options'](ts[0]), (k, choice); ts[0]['ch'] = choice
         elif T['kind'] == 'quill':
-            t = ts[0]; dealt = self.hit_foe(pts(t, self.muffle) + (4 if t['fx'] == 'fire' else 0)); self.use_up([t])
+            t = ts[0]; dealt = self.hit_foe(pts(t, self.muffle, self.hex.get('caps')) + (4 if t['fx'] == 'fire' else 0)); self.use_up([t])
         elif T['kind'] == 'make':
             at = self.hand.index(ts[0]); new = []
             for ch, fx in T['make'](ts[0]):
@@ -388,14 +480,15 @@ class Game:
         return dealt
     def strike(self, ids, at=0):
         """Spell ids into the blade starting at slot at (0 = the hilt; any slot on sword days), then strike."""
-        assert len(ids) + at <= MAXWORD and not self.over and self.draft is None and (at == 0 or self.blade)
+        assert len(ids) + at <= (4 if self.hex.get('kern') else MAXWORD) and not self.over and self.draft is None and (at == 0 or self.blade)
         ts = [self.tile(i) for i in ids]; assert not any(t['crossed'] for t in ts)
         w = fill_word(''.join(t['ch'] for t in ts)); assert w, ''.join(t['ch'] for t in ts)
         add, blk, heal = self.rune_parts(len(ts), self.words_turn, self.strikes)
-        dmg = word_damage(ts, self.muffle, self.bonus, add, at)
+        dmg = word_damage(ts, self.muffle, self.bonus, add, at, self.hex)
         if at == 0 and self.bonus[0] == 'hilt': blk += self.hilt_per() * len(ts)
         on = edge_on(self.edge, w, dict(last=self.last, letter=self.letter, charged=self.charged))
         if on: dmg = dmg * EDGE_MULT.get(self.edge, 1) + EDGE_ADD.get(self.edge, 0)
+        dmg, gain, back = hex_post(self.hex, w, dmg, self.words_turn, self.len_turn)
         self.use_up(ts)
         self.block += blk; self.hp = min(HP, self.hp + heal); self.strikes += 1; self.words_turn += 1
         if self.edge == 'longsent':
@@ -403,8 +496,11 @@ class Game:
             self.charge += len(w)
             if self.charge >= 12: self.charge -= 12; self.charged = True
         if on and self.edge == 'mirror': self.stun = True
-        self.last = w
-        dealt = self.hit_foe(dmg); self.after()
+        self.last = w; self.len_turn = len(w)
+        if gain: self.foe['block'] += gain
+        dealt = self.hit_foe(dmg)
+        if back: self.hp = max(1, self.hp - back)   # Mirror Writing never knocks you out
+        self.after()
         return w, dealt, on
     def after(self):
         if self.foe['hp'] > 0: return
@@ -418,9 +514,12 @@ class Game:
     def deep_foe(self, i):
         """page: deepFoe(i), the endless descent. Every third foe is The Editor; each set of three hits 10% harder."""
         r = mulberry(hseed(f'{self.seed}-deep-{i}'))
-        k = 'editor' if i % 3 == 2 else DEEP_KINDS[math.floor(r() * len(DEEP_KINDS))]
-        hp = jsround((FOES[k]['hp'] + i * 2) * FOE_HP_SCALE * hp_boost(self.seed))
-        return dict(k=k, hp=hp, max=hp, block=0, mi=math.floor(r() * len(FOES[k]['moves'])), ax=round(1 + 0.1 * (i // 3), 2))
+        K = DEEP_ALL if new_foes(self.seed) else DEEP_KINDS
+        k = 'editor' if i % 3 == 2 else K[math.floor(r() * len(K))]
+        hard = new_foes(self.seed)
+        hp = jsround((FOES[k]['hp'] + i * (3 if hard else 2)) * FOE_HP_SCALE * hp_boost(self.seed) * hard_mul(self.seed))
+        ax = round(HARD_ATK + DEEP_STEP * (i // 3), 2) if hard else round(1 + 0.1 * (i // 3), 2)
+        return dict(k=k, hp=hp, max=hp, block=0, mi=math.floor(r() * len(FOES[k]['moves'])), ax=ax)
     def end_turn(self):
         assert not self.over and self.draft is None
         if self.blade:   # page: leftovers go in the bag; Parry turns every unused tile into block
@@ -430,18 +529,21 @@ class Game:
         m0 = self.next_move(); f = self.foe; f['block'] = 0
         m = {} if self.stun else m0
         if m.get('armor'): f['block'] += m['armor']
+        fine = self.hex.get('fine', 0) * sum(1 for t in self.hand if not t['crossed']); self.hp = max(0, self.hp - fine)   # Overdue Fine
         a = jsround(m.get('atk', 0) * FOE_ATK_SCALE * f.get('ax', 1)); dmg = 0
         for _ in range(2 if m.get('twice') else 1 if a else 0):
             soak = min(self.block, a); self.block -= soak; dmg += a - soak
         self.hp = max(0, self.hp - dmg)
         self.pending = {k: m.get(k) for k in ('jumble', 'nibble', 'muffle', 'redpen')}; f['mi'] += 1
+        for k in HEX:
+            if m.get(k): self.pending[k] = m[k]
         self.stun = False
-        if self.hp <= 0: self.over = 'lost'; return dmg
-        self.start_turn(); return dmg
+        if self.hp <= 0: self.over = 'lost'; return dmg + fine
+        self.start_turn(); return dmg + fine
 
-def pts(t, muffle):
+def pts(t, muffle, caps=False):
     if t['ch'] == BLANK: return 0
-    v = 0 if (muffle and t['ch'] in VOW) else VAL[t['ch']]
+    v = 0 if (muffle and t['ch'] in VOW) else 1 if caps else VAL[t['ch']]
     return v * (2 if t['fx'] == 'gold' else 1)
 
 # ---------------------------------------------------------------- the turn planner
@@ -464,20 +566,20 @@ BAG_ORDER = 'seariotnldcupmghbyfkwvzxjq'
 def bag_rank(t):
     return (0 if t['fx'] else 1, 0 if t['ch'] == BLANK else 1, BAG_ORDER.index(t['ch']) if t['ch'] != BLANK else 0)
 
-MUL = {'dl': 2, 'tl': 3}
-def word_damage(ts, muffle, bonus, add=0, at=0):
-    """page: wordHit before the edge. Letters (with DL / TL squares) + length bonus + fire + runes, then x2 if a DW square is used.
-    at = the slot the word starts in."""
-    bonus = bonus or [None] * 6; mul = {'dl': 2, 'tl': 3}
-    d = sum(pts(t, muffle) * mul.get(bonus[at + i], 1) for i, t in enumerate(ts)) + WORD_BONUS[len(ts)] + 4 * sum(t['fx'] == 'fire' for t in ts) + add
+MUL = {'dl': 2, 'tl': 3, 'x': 0}   # x: Dog-ear's folded slot
+def word_damage(ts, muffle, bonus, add=0, at=0, H=None):
+    """page: wordHit before the edge. Letters (with DL / TL squares, Dog-ear's 0, Small Caps, Ellipsis) + length bonus + fire + runes,
+    then x2 if a DW square is used. at = the slot the word starts in."""
+    bonus = bonus or [None] * 6; H = H or {}; caps, ell, n = H.get('caps'), H.get('ellipsis'), len(ts)
+    d = sum(0 if ell and i == n - 1 else pts(t, muffle, caps) * MUL.get(bonus[at + i], 1) for i, t in enumerate(ts)) + WORD_BONUS[len(ts)] + 4 * sum(t['fx'] == 'fire' for t in ts) + add
     return d * 2 if any(bonus[at + i] == 'dw' for i in range(len(ts))) else d
 
-def words_for(hand, muffle, bonus=None, hilt=0, free=False):
+def words_for(hand, muffle, bonus=None, hilt=0, free=False, H=None):
     """Every word the hand can spell, in every slot it can start in (free: any slot; else the first):
     list of (mask, ordered tile ids, actual word, base damage, block, leaf, uses DW, start slot)."""
     idx = [i for i, t in enumerate(hand) if not t['crossed']]
-    out = []
-    for n in range(3, min(MAXWORD, len(idx)) + 1):
+    out = []; H = H or {}
+    for n in range(3, min(4 if H.get('kern') else MAXWORD, len(idx)) + 1):
         for combo in combinations(idx, n):
             ts = [hand[i] for i in combo]
             letters = [t['ch'] for t in ts if t['ch'] != BLANK]; nb = n - len(letters)
@@ -499,11 +601,11 @@ def words_for(hand, muffle, bonus=None, hilt=0, free=False):
                 if not actual or actual in seen: continue
                 seen.add(actual); ids = [t['id'] for t in order]
                 if not free:
-                    out.append((mask, ids, actual, word_damage(order, muffle, bonus), steel, leaf, any(bonus and bonus[i] == 'dw' for i in range(n)), 0)); continue
+                    out.append((mask, ids, actual, word_damage(order, muffle, bonus, H=H), steel, leaf, any(bonus and bonus[i] == 'dw' for i in range(n)), 0)); continue
                 # any slot: only two placements can be best, on the hilt (block) or wherever it hits hardest
-                v = [pts(t, muffle) for t in order]; flat = WORD_BONUS[n] + 4 * sum(t['fx'] == 'fire' for t in order)
+                v = [0 if H.get('ellipsis') and i == n - 1 else pts(t, muffle, H.get('caps')) for i, t in enumerate(order)]; flat = WORD_BONUS[n] + 4 * sum(t['fx'] == 'fire' for t in order)
                 dmgs = []
-                for at in range(MAXWORD - n + 1):
+                for at in range((4 if H.get('kern') else MAXWORD) - n + 1):
                     dw = 'dw' in bonus[at:at + n]; d = sum(x * MUL.get(bonus[at + i], 1) for i, x in enumerate(v)) + flat
                     dmgs.append((d * 2 if dw else d, dw))
                 hard = max(range(len(dmgs)), key=lambda at: dmgs[at])
@@ -528,28 +630,29 @@ def arrange(w, ts):
 
 def best_play(g, hand, uses_quill):
     """Best words (in order) and Quill for this hand, scored for this foe. Returns (value, plan, info)."""
-    f = g.foe; need = f['hp'] + f['block']; inc = incoming(g); missing = HP - g.hp
-    ws = words_for(hand, g.muffle, getattr(g, 'bonus', None), g.hilt_per(), g.blade)
+    f = g.foe; need = f['hp'] + f['block']; inc = incoming(g); missing = HP - g.hp; H = g.hex
+    ws = words_for(hand, g.muffle, getattr(g, 'bonus', None), g.hilt_per(), g.blade, H)
     quills = [t for t in hand if not t['crossed'] and TOOLS['quill']['ok'](t)] if uses_quill else []
     best = [-1.0, None, None]
     parry, bastion, had = g.rper('parry'), g.rper('bastion'), g.block
-    live = [i for i, t in enumerate(hand) if not t['crossed']]
-    def score(dmg, steel, leaf, stun, plan, words_on, charge, used=0):
+    live = [i for i, t in enumerate(hand) if not t['crossed']]; fine = H.get('fine', 0)
+    def score(dmg, steel, leaf, stun, plan, words_on, charge, back=0, used=0):
         if parry: steel += parry * sum(1 for i in live if not used >> i & 1)   # every tile left over at the end turns to block
         blk = had + steel; soak = inc if not stun else 0
-        if dmg >= need: v = KILL + min(leaf, missing) * 0.8 - len(plan) * 0.01
-        else: v = dmg + min(blk, soak) - min(had, soak) + min(leaf, missing) * 0.8 + (inc if stun else 0) + charge * 0.3 + 0.3 * min(max(0, blk - soak), bastion)
+        pen = min(back, g.hp - 1) * 0.8   # Mirror Writing: hp it bounces back
+        if dmg >= need: v = KILL + min(leaf, missing) * 0.8 - len(plan) * 0.01 - pen
+        else: v = dmg + min(blk, soak) - min(had, soak) + min(leaf, missing) * 0.8 + (inc if stun else 0) + charge * 0.3 + 0.3 * min(max(0, blk - soak), bastion) - pen - (fine * sum(1 for i in live if not used >> i & 1) if fine else 0)
         if v > best[0]: best[:] = [v, list(plan), dict(dmg=dmg, edges=words_on)]
-    def go(used, ctx, dmg, steel, leaf, stun, plan, words_on):
-        # finish with a Quill on the best spare consonant (or none)
+    def go(used, ctx, dmg, steel, leaf, stun, plan, words_on, sb=0, back=0):
+        # finish with a Quill on the best spare consonant (or none); sb = block The Stammer has gained this turn
         if dmg < need:
             for t in quills:
                 bit = 1 << hand.index(t)
                 if used & bit: continue
-                q = pts(t, g.muffle) + (4 if t['fx'] == 'fire' else 0)
+                q = pts(t, g.muffle, H.get('caps')) + (4 if t['fx'] == 'fire' else 0); q -= min(sb, q)
                 score(dmg + q, steel + (6 if t['fx'] == 'steel' else 0), leaf + (3 if t['fx'] == 'leaf' else 0), stun,
-                      plan + [('quill', [t['id']])], words_on, ctx['charge'], used | bit)
-        score(dmg, steel, leaf, stun, plan, words_on, ctx['charge'], used)
+                      plan + [('quill', [t['id']])], words_on, ctx['charge'], back, used | bit)
+        score(dmg, steel, leaf, stun, plan, words_on, ctx['charge'], back, used)
         if dmg >= need: return
         nw = len([p for p in plan if p[0] == 'word'])
         for mask, ids, w, base, st, lf, dw, at in ws:
@@ -558,14 +661,17 @@ def best_play(g, hand, uses_quill):
                 add, rb, rh = g.rune_parts(len(ids), g.words_turn + nw, g.strikes + nw)
                 base = base + add * (2 if dw else 1); st = st + rb; lf = lf + rh
             on = edge_on(g.edge, w, ctx); d = base * EDGE_MULT.get(g.edge, 1) + EDGE_ADD.get(g.edge, 0) if on else base
-            c2 = dict(ctx); c2['last'] = w
+            sb2, bk = sb, 0
+            if H:
+                d, gain, bk = hex_post(H, w, d, ctx['n'], ctx['plen']); sb2 += gain; soak = min(sb2, d); d -= soak; sb2 -= soak
+            c2 = dict(ctx); c2['last'] = w; c2['n'] += 1; c2['plen'] = len(w)
             if g.edge == 'longsent':
                 if c2['charged']: c2['charged'] = False
                 c2['charge'] += len(w)
                 if c2['charge'] >= 12: c2['charge'] -= 12; c2['charged'] = True
             go(used | mask, c2, dmg + d, steel + st, leaf + lf, stun or (on and g.edge == 'mirror'),
-               plan + [('word', ids, w, at)], words_on + int(on))
-    go(0, dict(last=g.last, letter=g.letter, charged=g.charged, charge=g.charge), 0, 0, 0, False, [], 0)
+               plan + [('word', ids, w, at)], words_on + int(on), sb2, back + bk)
+    go(0, dict(last=g.last, letter=g.letter, charged=g.charged, charge=g.charge, n=g.words_turn, plen=g.len_turn), 0, 0, 0, False, [], 0)
     return best
 
 def tool_moves(g, hand, uses, made):
@@ -713,7 +819,7 @@ def play(seed, bot, draft='random', kit=None, beam=5, verbose=False, deep=False,
                           kill_by_tools=int(v1 >= KILL > v0), dealt=dealt_turn, took=took, hp=g.hp, words=' '.join(spelled), edge=g.edge))
         say(f'   foe {fi+1} t{turn}: [{hand_txt}] {"tools " + ",".join(tool_names) + " " if tool_names else ""}'
             f'{" ".join(spelled) or "-"} dealt {dealt_turn}{" KILL" if killed else ""} | took {took} hp {g.hp}')
-    run.update(win=int(g.over == 'won'), reached=g.fi + 1, hp=g.hp if g.over == 'won' else 0, turns=g.turns, dmg=dmg_total,
+    run.update(win=int(g.over == 'won'), reached=g.fi + 1, fell_to='' if g.over == 'won' else g.foe['k'], faced='+'.join(f['k'] for f in g.foes[:g.fi + 1]), hp=g.hp if g.over == 'won' else 0, turns=g.turns, dmg=dmg_total,
                words=words, edge_hits=edge_hits, best=best_word[0], best_dmg=best_word[1], kit='+'.join(k for k in g.kit if k != 'quill'),
                picks='+'.join(picks), runes='+'.join(f'{k}{v}' for k, v in g.runes.items()), tool_uses=len(uses_log), lift_turns=sum(t['lift'] > 0.01 for t in turns),
                tool_kills=sum(t['kill_by_tools'] for t in turns))
@@ -721,6 +827,17 @@ def play(seed, bot, draft='random', kit=None, beam=5, verbose=False, deep=False,
     return run, turns, uses_log
 
 def _job(a): return play(*a)
+
+def foe_table(runs, bots):
+    """Each foe: how often each bot met it, and the share of those meetings it lost. A hard wall shows up here."""
+    rows = []
+    for k in FOES:
+        row = dict(foe=k); seen = 0
+        for b in bots:
+            R = [r for r in runs if r['bot'] == b]; met = sum(r['faced'].split('+').count(k) for r in R); fell = sum(r['fell_to'] == k for r in R); seen += met
+            row[b] = f"{pct(fell, met).strip()} of {met}" if met else '-'
+        if seen: rows.append(row)
+    table(rows, ['foe'] + bots, '== foes ==   share of meetings with this foe that ended the run')
 
 # ---------------------------------------------------------------- reports
 def pct(n, d): return f'{100*n/d:5.1f}%' if d else '   - '
@@ -1029,6 +1146,47 @@ def selftest():
         diffs = [k for k, v in (('deep_foes', foes == c['deep_foes']), ('trail', trail == c['trail']), ('depth', g.fi + 1 == c['depth'])) if not v]
         print(f"  {'ok  ' if not diffs else 'FAIL'} {c['seed']} endless descent to depth {g.fi + 1}" + (f"  differs in {diffs}" if diffs else ''))
         bad += bool(diffs)
+    # each new foe in turn (tools/capture_fixtures.js): 999 HP, attacks off, longest words, then Quill
+    def longest(g):
+        h = [t for t in g.hand if not t['crossed']]
+        for L in range(min(4 if g.hex.get('kern') else MAXWORD, len(h)), 2, -1):
+            for p in permutations(range(len(h)), L):
+                w = ''.join(h[i]['ch'] for i in p)
+                if w in WORDS: g.strike([h[i]['id'] for i in p]); return w
+        return None
+    keep = FOE_ATK_SCALE; FOE_ATK_SCALE = 0
+    try:
+        for c in F.get('foes', []):
+            g = Game(c['seed']); g.foes[0] = dict(k=c['foe'], hp=999, max=999, block=0, mi=0); trail = []
+            for _ in range(9):
+                if g.over or g.fi: break
+                g.draft = None; words = []
+                for _ in range(3):
+                    w = longest(g)
+                    if not w: break
+                    words.append(w)
+                q = next((t for t in g.hand if not t['crossed'] and TOOLS['quill']['ok'](t)), None)
+                if q and g.uses_left('quill'): g.use_tool('quill', [q['id']])
+                blk = g.foes[0]['block']; g.draft = None; g.end_turn()
+                trail.append([words, g.hp, g.foes[0]['hp'], blk, [list(x) for x in sorted(g.hex.items())],
+                              ' '.join(t['ch'] + ('*' if t['crossed'] else '') + (t['fx'][0] if t['fx'] else '') for t in g.hand), ''.join(b or '-' for b in g.bonus)])
+            ok = trail == c['trail']
+            if not ok:
+                at = next((i for i, (x, y) in enumerate(zip(trail, c['trail'])) if x != y), min(len(trail), len(c['trail'])))
+                print(f"       turn {at + 1}: sim {trail[at] if at < len(trail) else '-'} / page {c['trail'][at] if at < len(c['trail']) else '-'}")
+            print(f"  {'ok  ' if ok else 'FAIL'} {c['foe']} ({c['seed']}, {len(trail)} turns)")
+            bad += not ok
+    finally: FOE_ATK_SCALE = keep
+    hb = 0
+    for H, w, b, nt, lt, dmg, gain, back in F.get('hits', []):
+        ts = [dict(id=f'h{i}', ch=c, fx='fire' if i == 1 else None, crossed=False) for i, c in enumerate(w)]
+        d = word_damage(ts, False, [None if x == '-' else x for x in b], H=H)
+        if len(w) == 5: d *= 2   # the Haiku edge
+        got = hex_post(H, w, d, nt, lt)
+        if got != (dmg, gain, back):
+            hb += 1
+            if hb <= 5: print(f"       {H} {w} {b} {nt}/{lt}: sim {got} / page {(dmg, gain, back)}")
+    if F.get('hits'): print(f"  {'ok  ' if not hb else 'FAIL'} word scoring under foe tricks ({len(F['hits'])} words)"); bad += bool(hb)
     h = rules_hash(); known = F.get('rules_hash')
     print(f"  sim {SIM_VERSION} · page rules {h}" + ('' if h == known else f"  (fixtures were captured at {known}: if the page's rules changed, re-port and recapture)"))
     print('selftest ' + ('passed' if not bad else f'FAILED on {bad} case(s)'))
@@ -1036,6 +1194,7 @@ def selftest():
 
 LAB = os.path.join(ROOT, 'scrawl-lab')       # the analytics pages on the site
 CHANGELOG = [   # newest first; every version gets a git tag scrawl-sim-v<version> so old reports can be rerun
+    ('1.9.0', '2026-11-25', '20 new foes from the 27 Nov daily (endless straight away), each with a trick on your next turn: a daily draws its first foe from an easy pool and its second from a middling one; five deep foes only appear down the descent, which ramps faster (+3 HP a floor, +0.15 attack per three floors). HARD_HP / HARD_ATK levers (1 for now: the sword already raises foe HP). compare reports how often each foe ends a run. (1.8.0 left for an open PR.)'),
     ('1.7.0', '2026-11-24', 'From the 27 Nov daily the Spellblade is a sword (scrawl-blade.js): hilt (block per letter), crossguard DL, tip DW, tiles in any slot; 8 runes offered at the Armoury beside the tricks (3 sockets, 3 levels); a holdover bag of 2; foe HP x2.4 on sword days in place of x1.27. Planner places each word on the hilt or where it hits hardest; drafts: tools / blade / runes.'),
     ('1.6.0', '2026-11-22', 'Blade bonus squares (DL / TL / DW) from the 22 Nov daily; five new tools (Soften, Scribble, Lunge, Recoil, Triplicate) join the roster that day; planner scores each word by its letter order.'),
     ('1.5.0', '2026-11-20', 'Items as data: every trick is read from scrawl-items.js, the same file the page uses; trick behaviour fingerprinted identical to 1.4.0 on page and sim.'),
@@ -1236,14 +1395,15 @@ def seeds_from(a):
     return [f'endless-sim{i}' for i in range(a.n)]
 
 IDEA_FILES = []
-def _init(hp, ideas=None):
-    global FOE_HP_SCALE
+def _init(hp, ideas=None, hard=None):
+    global FOE_HP_SCALE, HARD_HP, HARD_ATK
     FOE_HP_SCALE = hp
+    if hard: HARD_HP, HARD_ATK = hard
     if ideas and not IDEAS_LOADED: load_ideas(ideas)
 
 def run_all(jobs, procs):
     t0 = time.time(); out = []
-    with Pool(procs, initializer=_init, initargs=(FOE_HP_SCALE, IDEA_FILES)) as p:
+    with Pool(procs, initializer=_init, initargs=(FOE_HP_SCALE, IDEA_FILES, (HARD_HP, HARD_ATK))) as p:
         for i, r in enumerate(p.imap_unordered(_job, jobs, chunksize=4)):
             out.append(r)
             if (i + 1) % 200 == 0: print(f'  {i+1}/{len(jobs)} runs, {time.time()-t0:.0f}s', file=sys.stderr)
@@ -1281,6 +1441,7 @@ def main():
     ap.add_argument('--beam', type=int, default=5)
     ap.add_argument('--deep', action='store_true', help='compare: endless descent runs; reports how deep each bot gets')
     ap.add_argument('--hp-scale', type=float, help='override FOE_HP_SCALE')
+    ap.add_argument('--hard', help='override HARD_HP,HARD_ATK (the 27 Nov difficulty), e.g. 1.4,1.3')
     ap.add_argument('-j', type=int, default=max(1, (os.cpu_count() or 2) - 1))
     ap.add_argument('--runes', help='fixed runes in the blade, e.g. bulwark:2,parry (no drafting)')
     ap.add_argument('--bag-cap', type=int, help='experiment: holdover bag size (0 = no bag)')
@@ -1309,6 +1470,7 @@ def main():
         test = ROUND_META.get(f'r{a.round}.py', {}).get('test')
         if test: a.tricks = ','.join(test)
     if a.hp_scale: _init(a.hp_scale)
+    if a.hard: _init(FOE_HP_SCALE, None, tuple(float(x) for x in a.hard.split(',')))
     kit = ['quill'] + a.kit.split(',') if a.kit else None
     if a.cmd == 'replay':
         play(a.seed or 'endless-sim0', a.bot, a.draft, kit, a.beam, verbose=True, deep=a.deep, runes=runes); return
@@ -1328,6 +1490,7 @@ def main():
                 d = sorted(r['reached'] for r in runs if r['bot'] == b); n = len(d)
                 hist = Counter(d)
                 print(f"  {b:8} mean {sum(d)/n:.1f} · median {d[n//2]} · 90th pct {d[int(n*.9)]} · max {d[-1]} · " + ' '.join(f'{k}:{hist[k]}' for k in sorted(hist)))
+        foe_table(runs, a.bots.split(','))
         summarize(runs, turns, uses, f'compare, {len(seeds)} seeds, draft={a.draft}{", kit="+a.kit if a.kit else ""}{", runes="+a.runes if a.runes else ""}')
         rc = Counter(x for r in runs for x in r['runes'].split('+') if x)
         if rc: print('  runes held at the end (rune+level: runs): ' + ', '.join(f'{k} {v}' for k, v in rc.most_common()))
