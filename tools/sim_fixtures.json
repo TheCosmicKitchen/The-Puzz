@@ -1,5 +1,5 @@
 {
- "note": "Captured from scrawl.html with tools/capture_fixtures.js. trail = a fixed script (strike the first 3-letter word found by a triple loop over the hand, then end the turn), recorded as [word, foe index, your hp, foe hps] after each turn. tricks = every trick in the lab kit used once in kit order on the first tile that takes it, for two turns, recorded as [trick, hand (^ fire, # steel, $ gold, + leaf, * crossed), foe hp, block, hp]. `py tools/scrawl_sim.py selftest` replays it in Python and must match exactly.",
+ "note": "Captured from scrawl.html in the browser with tools/capture_fixtures.js. trail = a fixed script (strike the first 3-letter word found by a triple loop over the hand, then end the turn), recorded as [word, foe index, your hp, foe hps] after each turn. `py tools/scrawl_sim.py selftest` replays it in Python and must match exactly.",
  "captured": "2026-11-25",
  "cases": [
   {
@@ -28,6 +28,7 @@
     "split",
     "vshift"
    ],
+   "rune0": null,
    "hand0": [
     [
      "o",
@@ -123,6 +124,7 @@
     "twin",
     "vshift"
    ],
+   "rune0": null,
    "hand0": [
     [
      "a",
@@ -238,6 +240,7 @@
     "revowel",
     "double"
    ],
+   "rune0": null,
    "hand0": [
     [
      "z",
@@ -333,6 +336,7 @@
     "twin",
     "kin"
    ],
+   "rune0": null,
    "hand0": [
     [
      "f",
@@ -438,6 +442,7 @@
     "recast",
     "plural"
    ],
+   "rune0": null,
    "hand0": [
     [
      "a",
@@ -528,22 +533,128 @@
    ]
   },
   {
-   "seed": "scrawl-2026-11-27",
+   "seed": "scrawl-2026-11-26",
    "foes": [
     [
-     "hush",
-     34,
-     1
+     "jacket",
+     36,
+     0
     ],
     [
-     "worm",
+     "splice",
      37,
-     1
+     0
     ],
     [
      "editor",
      56,
+     1
+    ]
+   ],
+   "edge": "haiku",
+   "letter": "n",
+   "offers0": [
+    "whisper",
+    "lunge",
+    "dial"
+   ],
+   "rune0": null,
+   "hand0": [
+    [
+     "e",
+     null
+    ],
+    [
+     "l",
+     "leaf"
+    ],
+    [
+     "e",
+     null
+    ],
+    [
+     "v",
+     null
+    ],
+    [
+     "m",
+     null
+    ],
+    [
+     "h",
+     null
+    ]
+   ],
+   "trail": [
+    [
+     "elm",
+     0,
+     25,
+     [
+      27,
+      37,
+      56
+     ]
+    ],
+    [
+     "-",
+     0,
+     13,
+     [
+      27,
+      37,
+      56
+     ]
+    ],
+    [
+     "tor",
+     0,
+     6,
+     [
+      20,
+      37,
+      56
+     ]
+    ],
+    [
+     "hot",
+     0,
+     1,
+     [
+      14,
+      37,
+      56
+     ]
+    ],
+    [
+     "sir",
+     0,
+     0,
+     [
+      14,
+      37,
+      56
+     ]
+    ]
+   ]
+  },
+  {
+   "seed": "scrawl-2026-11-27",
+   "foes": [
+    [
+     "silverfish",
+     64,
      0
+    ],
+    [
+     "overdue",
+     73,
+     1
+    ],
+    [
+     "editor",
+     105,
+     1
     ]
    ],
    "edge": "letter",
@@ -553,6 +664,7 @@
     "upend",
     "exchange"
    ],
+   "rune0": "whet",
    "hand0": [
     [
      "y",
@@ -583,61 +695,61 @@
     [
      "chi",
      0,
-     18,
+     26,
      [
-      25,
-      37,
-      56
+      60,
+      73,
+      105
      ]
     ],
     [
-     "ted",
+     "try",
      0,
-     17,
+     19,
      [
-      21,
-      37,
-      56
+      51,
+      73,
+      105
      ]
     ],
     [
-     "law",
-     1,
-     13,
-     [
-      0,
-      37,
-      56
-     ]
-    ],
-    [
-     "oat",
-     1,
-     7,
-     [
-      0,
-      34,
-      56
-     ]
-    ],
-    [
-     "fox",
-     1,
-     1,
-     [
-      0,
-      17,
-      56
-     ]
-    ],
-    [
-     "hie",
-     1,
+     "was",
      0,
+     16,
      [
-      0,
-      12,
-      56
+      43,
+      73,
+      105
+     ]
+    ],
+    [
+     "cad",
+     0,
+     12,
+     [
+      42,
+      73,
+      105
+     ]
+    ],
+    [
+     "saw",
+     0,
+     5,
+     [
+      35,
+      73,
+      105
+     ]
+    ],
+    [
+     "rod",
+     0,
+     2,
+     [
+      32,
+      73,
+      105
      ]
     ]
    ]
@@ -646,19 +758,19 @@
    "seed": "scrawl-2026-12-25",
    "foes": [
     [
-     "hush",
-     34,
+     "ellipsis",
+     64,
+     0
+    ],
+    [
+     "overdue",
+     73,
      2
     ],
     [
-     "worm",
-     37,
-     1
-    ],
-    [
      "editor",
-     56,
-     1
+     105,
+     3
     ]
    ],
    "edge": "twins",
@@ -668,6 +780,7 @@
     "revowel",
     "resound"
    ],
+   "rune0": "whet",
    "hand0": [
     [
      "v",
@@ -698,61 +811,61 @@
     [
      "vet",
      0,
-     23,
+     26,
      [
-      26,
-      37,
-      56
+      56,
+      73,
+      105
      ]
     ],
     [
      "fir",
      0,
-     18,
+     19,
      [
-      18,
-      37,
-      56
+      48,
+      73,
+      105
      ]
     ],
     [
      "kit",
      0,
-     12,
+     19,
      [
-      12,
-      37,
-      56
+      40,
+      73,
+      105
      ]
     ],
     [
      "gee",
-     1,
+     0,
+     15,
+     [
+      26,
+      73,
+      105
+     ]
+    ],
+    [
+     "too",
+     0,
      8,
      [
-      0,
-      37,
-      56
+      18,
+      73,
+      105
      ]
     ],
     [
-     "mil",
-     1,
-     2,
-     [
-      0,
-      31,
-      56
-     ]
-    ],
-    [
-     "ten",
-     1,
+     "cox",
      0,
+     5,
      [
-      0,
-      27,
-      56
+      5,
+      73,
+      105
      ]
     ]
    ]
@@ -761,19 +874,19 @@
    "seed": "scrawl-2027-03-01",
    "foes": [
     [
-     "gremlin",
-     31,
-     0
+     "splice",
+     64,
+     1
     ],
     [
-     "hush",
-     37,
-     0
+     "censor",
+     70,
+     2
     ],
     [
      "editor",
-     56,
-     3
+     105,
+     1
     ]
    ],
    "edge": "twins",
@@ -783,6 +896,7 @@
     "inkwell",
     "pouch"
    ],
+   "rune0": "reach",
    "hand0": [
     [
      "h",
@@ -815,29 +929,29 @@
      0,
      21,
      [
-      31,
-      37,
-      56
+      64,
+      70,
+      105
      ]
     ],
     [
      "beg",
      0,
-     16,
+     12,
      [
-      21,
-      37,
-      56
+      56,
+      70,
+      105
      ]
     ],
     [
-     "wit",
+     "ids",
      0,
-     4,
+     3,
      [
-      14,
-      37,
-      56
+      50,
+      70,
+      105
      ]
     ],
     [
@@ -845,9 +959,9 @@
      0,
      0,
      [
-      6,
-      37,
-      56
+      42,
+      70,
+      105
      ]
     ]
    ]
@@ -856,19 +970,19 @@
    "seed": "endless-sim1",
    "foes": [
     [
-     "hush",
-     34,
-     1
+     "jacket",
+     67,
+     0
     ],
     [
-     "jacket",
-     39,
+     "lipogram",
+     70,
      2
     ],
     [
      "editor",
-     56,
-     1
+     105,
+     2
     ]
    ],
    "edge": "mirror",
@@ -878,6 +992,7 @@
     "lucky",
     "revowel"
    ],
+   "rune0": "whet",
    "hand0": [
     [
      "t",
@@ -908,41 +1023,61 @@
     [
      "tad",
      0,
-     18,
+     28,
      [
-      30,
-      39,
-      56
+      62,
+      70,
+      105
      ]
     ],
     [
      "git",
      0,
-     11,
+     19,
      [
-      25,
-      39,
-      56
+      62,
+      70,
+      105
      ]
     ],
     [
      "got",
      0,
-     6,
+     15,
      [
-      20,
-      39,
-      56
+      56,
+      70,
+      105
      ]
     ],
     [
      "beg",
      0,
-     0,
+     16,
      [
-      8,
-      39,
-      56
+      54,
+      70,
+      105
+     ]
+    ],
+    [
+     "for",
+     0,
+     7,
+     [
+      54,
+      70,
+      105
+     ]
+    ],
+    [
+     "xis",
+     0,
+     3,
+     [
+      43,
+      70,
+      105
      ]
     ]
    ]
@@ -951,18 +1086,18 @@
    "seed": "endless-zzzzz",
    "foes": [
     [
-     "gremlin",
-     31,
+     "smudge",
+     61,
      2
     ],
     [
-     "worm",
-     37,
-     1
+     "smallcaps",
+     64,
+     2
     ],
     [
      "editor",
-     56,
+     105,
      3
     ]
    ],
@@ -973,6 +1108,7 @@
     "pouch",
     "lunge"
    ],
+   "rune0": "pommel",
    "hand0": [
     [
      "e",
@@ -1003,41 +1139,61 @@
     [
      "ere",
      0,
-     18,
+     25,
      [
-      28,
-      37,
-      56
+      57,
+      64,
+      105
      ]
     ],
     [
      "eel",
      0,
-     9,
+     22,
      [
-      22,
-      37,
-      56
+      52,
+      64,
+      105
      ]
     ],
     [
-     "nod",
+     "don",
      0,
-     4,
+     21,
      [
-      17,
-      37,
-      56
+      47,
+      64,
+      105
      ]
     ],
     [
-     "hod",
+     "hen",
      0,
-     0,
+     21,
      [
-      5,
-      37,
-      56
+      38,
+      64,
+      105
+     ]
+    ],
+    [
+     "the",
+     0,
+     21,
+     [
+      14,
+      64,
+      105
+     ]
+    ],
+    [
+     "sue",
+     0,
+     14,
+     [
+      8,
+      64,
+      105
      ]
     ]
    ]
@@ -1046,18 +1202,18 @@
    "seed": "endless-abcde",
    "foes": [
     [
-     "gremlin",
-     31,
-     2
-    ],
-    [
-     "jacket",
-     39,
+     "silverfish",
+     64,
      1
     ],
     [
+     "plagiarist",
+     70,
+     2
+    ],
+    [
      "editor",
-     56,
+     105,
      2
     ]
    ],
@@ -1068,6 +1224,7 @@
     "echo",
     "pouch"
    ],
+   "rune0": "pommel",
    "hand0": [
     [
      "a",
@@ -1098,41 +1255,61 @@
     [
      "air",
      0,
-     18,
+     23,
      [
-      28,
-      39,
-      56
+      60,
+      70,
+      105
      ]
     ],
     [
      "hoe",
      0,
+     23,
+     [
+      57,
+      70,
+      105
+     ]
+    ],
+    [
+     "lac",
+     0,
+     19,
+     [
+      56,
+      70,
+      105
+     ]
+    ],
+    [
+     "ops",
+     0,
      12,
      [
-      22,
-      39,
-      56
+      48,
+      70,
+      105
      ]
     ],
     [
-     "sol",
+     "via",
      0,
-     7,
+     12,
      [
-      14,
-      39,
-      56
+      27,
+      70,
+      105
      ]
     ],
     [
-     "own",
+     "out",
      0,
-     0,
+     8,
      [
-      8,
-      39,
-      56
+      24,
+      70,
+      105
      ]
     ]
    ]
@@ -1141,19 +1318,19 @@
    "seed": "endless-q9x2k",
    "foes": [
     [
-     "gremlin",
-     31,
+     "silverfish",
+     64,
      1
     ],
     [
-     "jacket",
-     39,
-     0
+     "plagiarist",
+     70,
+     2
     ],
     [
      "editor",
-     56,
-     1
+     105,
+     2
     ]
    ],
    "edge": "haiku",
@@ -1163,6 +1340,7 @@
     "polish",
     "back"
    ],
+   "rune0": "bastion",
    "hand0": [
     [
      "a",
@@ -1193,41 +1371,61 @@
     [
      "aim",
      0,
-     25,
+     23,
      [
-      23,
-      39,
-      56
+      58,
+      70,
+      105
      ]
     ],
     [
      "ore",
      0,
-     13,
+     20,
      [
-      19,
-      39,
-      56
+      57,
+      70,
+      105
      ]
     ],
     [
      "ref",
      0,
-     4,
+     16,
      [
-      12,
-      39,
-      56
+      53,
+      70,
+      105
      ]
     ],
     [
      "ids",
      0,
-     0,
+     9,
      [
-      8,
+      47,
+      70,
+      105
+     ]
+    ],
+    [
+     "roe",
+     0,
+     6,
+     [
+      43,
+      70,
+      105
+     ]
+    ],
+    [
+     "tee",
+     0,
+     2,
+     [
       39,
-      56
+      70,
+      105
      ]
     ]
    ]
@@ -1239,268 +1437,7340 @@
    "hp_scale": 0.5,
    "atk_scale": 0,
    "turns": 45,
-   "depth": 13,
    "deep_foes": [
     [
-     "splice",
-     43,
+     "rex",
+     102,
      1,
-     1.1
+     1.15
     ],
     [
      "gremlin",
-     43,
+     94,
      2,
-     1.1
+     1.15
     ],
     [
      "editor",
-     65,
+     138,
      1,
-     1.1
+     1.15
     ],
     [
-     "worm",
-     53,
+     "pied",
+     114,
      1,
-     1.2
-    ],
-    [
-     "splice",
-     62,
-     2,
      1.3
+    ],
+    [
+     "abridger",
+     149,
+     2,
+     1.45
     ]
    ],
    "trail": [
     [
      "ere",
      0,
-     10
+     21
     ],
     [
      "eel",
      0,
-     4
+     16
     ],
     [
-     "nod",
+     "don",
+     0,
+     11
+    ],
+    [
+     "hen",
+     0,
+     2
+    ],
+    [
+     "the",
      1,
-     15
+     26
     ],
     [
      "tom",
      1,
-     10
+     20
     ],
     [
-     "tax",
+     "are",
+     1,
+     15
+    ],
+    [
+     "tie",
+     1,
+     11
+    ],
+    [
+     "ion",
+     1,
+     7
+    ],
+    [
+     "gee",
      2,
-     23
+     43
     ],
     [
      "tow",
      2,
-     16
+     43
     ],
     [
      "ask",
      2,
-     8
+     35
     ],
     [
      "gel",
      2,
+     28
+    ],
+    [
+     "era",
+     2,
+     24
+    ],
+    [
+     "too",
+     2,
+     8
+    ],
+    [
+     "you",
+     2,
      1
     ],
     [
-     "rye",
+     "aim",
      3,
-     18
+     42
     ],
     [
      "fab",
      3,
-     7
+     33
     ],
     [
      "pet",
-     4,
-     18
+     3,
+     27
     ],
     [
-     "tad",
+     "ens",
+     3,
+     19
+    ],
+    [
+     "ire",
+     3,
+     15
+    ],
+    [
+     "ire",
      4,
-     8
+     38
+    ],
+    [
+     "dew",
+     4,
+     22
     ],
     [
      "wad",
      4,
-     1
+     14
     ],
     [
      "ice",
+     4,
+     6
+    ],
+    [
+     "ugh",
      5,
-     27
+     56
     ],
     [
      "ear",
      5,
-     21
+     52
     ],
     [
-     "rid",
+     "ion",
      5,
-     13
+     42
     ],
     [
      "ere",
      5,
-     13
+     42
     ],
     [
      "rig",
      5,
-     7
+     36
     ],
     [
      "erg",
+     5,
+     15
+    ],
+    [
+     "rah",
+     5,
+     6
+    ],
+    [
+     "tub",
+     5,
+     6
+    ],
+    [
+     "kit",
+     6,
+     47
+    ],
+    [
+     "run",
+     6,
+     41
+    ],
+    [
+     "eel",
+     6,
+     32
+    ],
+    [
+     "ilk",
      6,
      22
     ],
     [
-     "nil",
+     "had",
      6,
-     18
+     15
     ],
     [
-     "mop",
-     6,
-     5
-    ],
-    [
-     "goo",
+     "far",
      7,
-     23
+     52
     ],
     [
      "nub",
      7,
-     17
+     44
     ],
     [
      "pun",
      7,
-     16
-    ],
-    [
-     "ken",
-     7,
-     7
-    ],
-    [
-     "aim",
-     8,
-     30
-    ],
-    [
-     "tip",
-     8,
-     25
-    ],
-    [
-     "oar",
-     8,
-     25
-    ],
-    [
-     "hie",
-     8,
-     17
-    ],
-    [
-     "bye",
-     8,
-     7
-    ],
-    [
-     "ugh",
-     9,
-     25
-    ],
-    [
-     "don",
-     9,
-     19
-    ],
-    [
-     "nix",
-     9,
-     6
-    ],
-    [
-     "gee",
-     10,
-     27
-    ],
-    [
-     "uni",
-     10,
-     23
-    ],
-    [
-     "lag",
-     10,
-     9
-    ],
-    [
-     "fer",
-     10,
-     2
-    ],
-    [
-     "net",
-     11,
-     34
+     35
     ],
     [
      "use",
-     11,
-     34
+     7,
+     30
     ],
     [
-     "lid",
-     11,
-     27
+     "aim",
+     7,
+     24
     ],
     [
-     "lie",
-     11,
-     21
+     "hie",
+     7,
+     6
     ],
     [
-     "sin",
-     11,
-     18
+     "wog",
+     8,
+     67
+    ]
+   ],
+   "depth": 9
+  }
+ ],
+ "sword": [
+  {
+   "seed": "endless-sim1",
+   "runes": {
+    "pommel": 2,
+    "whet": 1,
+    "leech": 1
+   },
+   "trail": [
+    [
+     "tad",
+     0,
+     30,
+     0,
+     [
+      62,
+      70,
+      105
+     ],
+     [
+      "a",
+      "a"
+     ]
     ],
     [
-     "raw",
-     11,
-     8
+     "git",
+     0,
+     18,
+     0,
+     [
+      61,
+      70,
+      105
+     ],
+     [
+      "b",
+      "a"
+     ]
     ],
     [
-     "fie",
+     "got",
+     0,
      11,
-     2
+     0,
+     [
+      54,
+      70,
+      105
+     ],
+     [
+      "b",
+      "a"
+     ]
     ],
     [
-     "rho",
+     "beg",
+     0,
+     9,
+     0,
+     [
+      40,
+      70,
+      105
+     ],
+     [
+      "b",
+      "a"
+     ]
+    ],
+    [
+     "for",
+     0,
+     6,
+     0,
+     [
+      37,
+      70,
+      105
+     ],
+     [
+      "b",
+      "a"
+     ]
+    ],
+    [
+     "xis",
+     0,
+     0,
+     0,
+     [
+      14,
+      70,
+      105
+     ],
+     [
+      "b",
+      "a"
+     ]
+    ]
+   ]
+  },
+  {
+   "seed": "endless-abcde",
+   "runes": {
+    "fuller": 3,
+    "flurry": 2,
+    "parry": 1
+   },
+   "trail": [
+    [
+     "air",
+     0,
+     29,
+     0,
+     [
+      60,
+      70,
+      105
+     ],
+     [
+      "c",
+      "b"
+     ]
+    ],
+    [
+     "hoe",
+     0,
+     30,
+     0,
+     [
+      53,
+      70,
+      105
+     ],
+     [
+      "e",
+      "c"
+     ]
+    ],
+    [
+     "lac",
+     0,
+     30,
+     0,
+     [
+      48,
+      70,
+      105
+     ],
+     [
+      "s",
+      "e"
+     ]
+    ],
+    [
+     "ops",
+     0,
+     30,
+     0,
+     [
+      28,
+      70,
+      105
+     ],
+     [
+      "e",
+      "i"
+     ]
+    ],
+    [
+     "via",
+     0,
+     30,
+     0,
+     [
+      7,
+      70,
+      105
+     ],
+     [
+      "e",
+      "r"
+     ]
+    ],
+    [
+     "out",
+     1,
+     30,
+     0,
+     [
+      0,
+      70,
+      105
+     ],
+     [
+      "a",
+      "s"
+     ]
+    ],
+    [
+     "oar",
+     1,
+     30,
+     0,
+     [
+      0,
+      64,
+      105
+     ],
+     [
+      "s",
+      "i"
+     ]
+    ],
+    [
+     "tor",
+     1,
+     28,
+     0,
+     [
+      0,
+      50,
+      105
+     ],
+     [
+      "s",
+      "i"
+     ]
+    ]
+   ]
+  },
+  {
+   "seed": "scrawl-2026-12-25",
+   "runes": {
+    "bastion": 3,
+    "reach": 2,
+    "pommel": 1
+   },
+   "trail": [
+    [
+     "vet",
+     0,
+     29,
+     0,
+     [
+      56,
+      73,
+      105
+     ],
+     [
+      "a",
+      "o"
+     ]
+    ],
+    [
+     "fir",
+     0,
+     19,
+     0,
+     [
+      46,
+      73,
+      105
+     ],
+     [
+      "l",
+      "a"
+     ]
+    ],
+    [
+     "kit",
+     0,
+     19,
+     0,
+     [
+      39,
+      73,
+      105
+     ],
+     [
+      "l",
+      "a"
+     ]
+    ],
+    [
+     "gee",
+     0,
      12,
-     28
+     0,
+     [
+      18,
+      73,
+      105
+     ],
+     [
+      "o",
+      "l"
+     ]
+    ],
+    [
+     "too",
+     0,
+     8,
+     0,
+     [
+      10,
+      73,
+      105
+     ],
+     [
+      "o",
+      "l"
+     ]
+    ],
+    [
+     "cox",
+     1,
+     8,
+     0,
+     [
+      0,
+      73,
+      105
+     ],
+     [
+      "i",
+      "i"
+     ]
+    ],
+    [
+     "mil",
+     1,
+     0,
+     0,
+     [
+      0,
+      67,
+      105
+     ],
+     [
+      "i",
+      "i"
+     ]
     ]
    ]
   }
  ],
+ "foes": [
+  {
+   "seed": "endless-smudg",
+   "foe": "smudge",
+   "trail": [
+    [
+     [
+      "gap",
+      "fat"
+     ],
+     30,
+     980,
+     0,
+     [
+      [
+       "smudge",
+       2
+      ]
+     ],
+     "c ? a ? i o",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "ciao"
+     ],
+     30,
+     971,
+     0,
+     [],
+     "h ss p r o u ? ?",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "hours"
+     ],
+     30,
+     955,
+     0,
+     [],
+     "u u a cf rl z ? ?",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "czar"
+     ],
+     30,
+     926,
+     0,
+     [
+      [
+       "smudge",
+       2
+      ]
+     ],
+     "? r ? o bl e ? ?",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "robe"
+     ],
+     30,
+     917,
+     0,
+     [],
+     "o r al n h f ? ?",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "roan"
+     ],
+     30,
+     907,
+     0,
+     [],
+     "t e p al k e ? ?",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "teak"
+     ],
+     30,
+     893,
+     0,
+     [
+      [
+       "smudge",
+       2
+      ]
+     ],
+     "? sg al l r ? ? ?",
+     "hiltdl---dw"
+    ],
+    [
+     [],
+     30,
+     891,
+     0,
+     [],
+     "o s nl i bs p al ?",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "bonsai"
+     ],
+     30,
+     856,
+     0,
+     [],
+     "m d e is s f ?",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-pied",
+   "foe": "pied",
+   "trail": [
+    [
+     [
+      "four"
+     ],
+     30,
+     985,
+     0,
+     [
+      [
+       "pied",
+       1
+      ]
+     ],
+     "es r u mf s z u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "serum"
+     ],
+     30,
+     959,
+     0,
+     [],
+     "fl t r e e h u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "refute"
+     ],
+     30,
+     920,
+     0,
+     [
+      [
+       "pied",
+       1
+      ]
+     ],
+     "i g m o r j",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "giro"
+     ],
+     30,
+     908,
+     0,
+     [
+      [
+       "pied",
+       1
+      ]
+     ],
+     "w if j o o b j",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "woo",
+      "jib"
+     ],
+     30,
+     876,
+     0,
+     [],
+     "y a i e d ns",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "aide"
+     ],
+     30,
+     865,
+     0,
+     [
+      [
+       "pied",
+       1
+      ]
+     ],
+     "i q w t r ag ns",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "twain"
+     ],
+     30,
+     838,
+     0,
+     [
+      [
+       "pied",
+       1
+      ]
+     ],
+     "d tf u f a r r",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "draft"
+     ],
+     30,
+     819,
+     0,
+     [],
+     "a d a p v t u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "adapt"
+     ],
+     30,
+     800,
+     0,
+     [
+      [
+       "pied",
+       1
+      ]
+     ],
+     "o m i c e l u",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-ellip",
+   "foe": "ellipsis",
+   "trail": [
+    [
+     [
+      "novas"
+     ],
+     30,
+     985,
+     0,
+     [
+      [
+       "ellipsis",
+       1
+      ]
+     ],
+     "l es a sg r t i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "liters"
+     ],
+     30,
+     957,
+     0,
+     [],
+     "i i t m l i a",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "limit"
+     ],
+     30,
+     931,
+     0,
+     [
+      [
+       "ellipsis",
+       1
+      ]
+     ],
+     "v e i ls a h a i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "avail",
+      "hie"
+     ],
+     30,
+     909,
+     0,
+     [
+      [
+       "ellipsis",
+       1
+      ]
+     ],
+     "rg s o a m o",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "roams"
+     ],
+     30,
+     897,
+     0,
+     [],
+     "t l u r d e o",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "toured"
+     ],
+     30,
+     863,
+     0,
+     [
+      [
+       "ellipsis",
+       1
+      ]
+     ],
+     "d o f ig a lg",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "dial"
+     ],
+     30,
+     850,
+     0,
+     [
+      [
+       "ellipsis",
+       1
+      ]
+     ],
+     "x i uf y s u o",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "yous"
+     ],
+     30,
+     829,
+     0,
+     [],
+     "o n g t i c i u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "outing"
+     ],
+     30,
+     790,
+     0,
+     [
+      [
+       "ellipsis",
+       1
+      ]
+     ],
+     "r h a il x n i",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-dogea",
+   "foe": "dogear",
+   "trail": [
+    [
+     [
+      "tiles"
+     ],
+     30,
+     988,
+     0,
+     [
+      [
+       "dogear",
+       1
+      ]
+     ],
+     "m b s pg i ef o",
+     "hiltdlx--dw"
+    ],
+    [
+     [
+      "impose"
+     ],
+     30,
+     937,
+     0,
+     [],
+     "g p u e of l",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "gulp"
+     ],
+     30,
+     917,
+     0,
+     [
+      [
+       "dogear",
+       1
+      ]
+     ],
+     "a e n e y r of e",
+     "hiltdl-x-dw"
+    ],
+    [
+     [
+      "yearn"
+     ],
+     30,
+     906,
+     0,
+     [
+      [
+       "dogear",
+       1
+      ]
+     ],
+     "m yf e a t b of e",
+     "hiltdlx--dw"
+    ],
+    [
+     [
+      "meaty"
+     ],
+     30,
+     886,
+     0,
+     [],
+     "h i ag n y t of e",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "hyena"
+     ],
+     30,
+     868,
+     0,
+     [
+      [
+       "dogear",
+       1
+      ]
+     ],
+     "h s i n os a of i",
+     "hiltdl-x-dw"
+    ],
+    [
+     [
+      "hons"
+     ],
+     30,
+     860,
+     0,
+     [
+      [
+       "dogear",
+       1
+      ]
+     ],
+     "e e t i s qs of a",
+     "hiltdlx--dw"
+    ],
+    [
+     [
+      "tease"
+     ],
+     30,
+     841,
+     0,
+     [],
+     "rs o q ef p n of i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "ripen"
+     ],
+     30,
+     809,
+     0,
+     [
+      [
+       "dogear",
+       1
+      ]
+     ],
+     "q r a e sg i of o",
+     "hiltdl-x-dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-dipht",
+   "foe": "diphthong",
+   "trail": [
+    [
+     [
+      "auk"
+     ],
+     30,
+     981,
+     0,
+     [
+      [
+       "diph",
+       1
+      ]
+     ],
+     "u i ol n u q cl i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "ionic"
+     ],
+     30,
+     959,
+     0,
+     [],
+     "n d e m k o u u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "nuked"
+     ],
+     30,
+     939,
+     0,
+     [],
+     "rs a u t c d o u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "actor"
+     ],
+     30,
+     923,
+     0,
+     [
+      [
+       "diph",
+       1
+      ]
+     ],
+     "n h u u al el u u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "nah"
+     ],
+     30,
+     917,
+     0,
+     [],
+     "u e f h n l el u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "fuel",
+      "hen"
+     ],
+     30,
+     898,
+     0,
+     [],
+     "f x d t a o u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "faux",
+      "dot"
+     ],
+     30,
+     875,
+     0,
+     [
+      [
+       "diph",
+       1
+      ]
+     ],
+     "e s ul e w i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "ewes"
+     ],
+     30,
+     862,
+     0,
+     [],
+     "r e tf x e f ul i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "refute"
+     ],
+     30,
+     810,
+     0,
+     [],
+     "l z eg e g wl i",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-silve",
+   "foe": "silverfish",
+   "trail": [
+    [
+     [
+      "guise"
+     ],
+     30,
+     976,
+     0,
+     [
+      [
+       "silver",
+       2
+      ]
+     ],
+     "e h a w t e",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "wheat"
+     ],
+     30,
+     942,
+     0,
+     [],
+     "n o t z i s e",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "onsite"
+     ],
+     30,
+     908,
+     0,
+     [
+      [
+       "silver",
+       1
+      ]
+     ],
+     "e r l x i p",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "peril"
+     ],
+     30,
+     880,
+     0,
+     [
+      [
+       "silver",
+       2
+      ]
+     ],
+     "c a n o w p",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "capon"
+     ],
+     30,
+     848,
+     0,
+     [],
+     "y e p l u e",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "yelp"
+     ],
+     30,
+     842,
+     0,
+     [
+      [
+       "silver",
+       2
+      ]
+     ],
+     "k a p e n o e u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "pekoe"
+     ],
+     30,
+     815,
+     0,
+     [
+      [
+       "silver",
+       2
+      ]
+     ],
+     "o y s i e t a u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "yetis"
+     ],
+     30,
+     791,
+     0,
+     [],
+     "o x c u o d a o",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "coda"
+     ],
+     30,
+     779,
+     0,
+     [
+      [
+       "silver",
+       2
+      ]
+     ],
+     "g j y i e h o o",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-stamm",
+   "foe": "stammer",
+   "trail": [
+    [
+     [
+      "waxen"
+     ],
+     30,
+     973,
+     0,
+     [
+      [
+       "stammer",
+       4
+      ]
+     ],
+     "r e i c v u i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "icier"
+     ],
+     30,
+     958,
+     0,
+     [],
+     "c e n t u rf u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "untrue"
+     ],
+     30,
+     915,
+     0,
+     [
+      [
+       "stammer",
+       4
+      ]
+     ],
+     "c ml e v o a",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "cameo"
+     ],
+     30,
+     868,
+     0,
+     [
+      [
+       "stammer",
+       4
+      ]
+     ],
+     "df rl o b e t",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "debtor"
+     ],
+     30,
+     826,
+     0,
+     [],
+     "f tg e i c o",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "cite"
+     ],
+     30,
+     792,
+     0,
+     [
+      [
+       "stammer",
+       4
+      ]
+     ],
+     "o b o i l r o",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "broil"
+     ],
+     30,
+     779,
+     0,
+     [
+      [
+       "stammer",
+       4
+      ]
+     ],
+     "ag i n z d k o o",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "kazoo",
+      "din"
+     ],
+     30,
+     706,
+     0,
+     [],
+     "a m l b a e",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "amble"
+     ],
+     30,
+     689,
+     0,
+     [
+      [
+       "stammer",
+       4
+      ]
+     ],
+     "o is d s n a a",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-lipog",
+   "foe": "lipogram",
+   "trail": [
+    [
+     [
+      "never"
+     ],
+     30,
+     985,
+     0,
+     [
+      [
+       "ban",
+       "o"
+      ]
+     ],
+     "g p o* kg r al i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "grip"
+     ],
+     30,
+     964,
+     0,
+     [],
+     "nf f i x o a al",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "naif"
+     ],
+     30,
+     942,
+     0,
+     [
+      [
+       "ban",
+       "a"
+      ]
+     ],
+     "r a*f ms p a* s al o",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "ramps"
+     ],
+     30,
+     928,
+     0,
+     [
+      [
+       "ban",
+       "o"
+      ]
+     ],
+     "m i c z r o* o",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "micro"
+     ],
+     30,
+     905,
+     0,
+     [],
+     "g e a i n l",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "genial"
+     ],
+     30,
+     871,
+     0,
+     [
+      [
+       "ban",
+       "e"
+      ]
+     ],
+     "e* a g v e* h",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "hag"
+     ],
+     30,
+     858,
+     0,
+     [
+      [
+       "ban",
+       "e"
+      ]
+     ],
+     "b r il g t e*",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "brig"
+     ],
+     30,
+     846,
+     0,
+     [],
+     "n al as r d v",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "rand"
+     ],
+     30,
+     833,
+     0,
+     [
+      [
+       "ban",
+       "o"
+      ]
+     ],
+     "o* e a g dl y as",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-plagi",
+   "foe": "plagiarist",
+   "trail": [
+    [
+     [
+      "canvas"
+     ],
+     30,
+     959,
+     0,
+     [
+      [
+       "steal",
+       "j"
+      ]
+     ],
+     "l u r g e",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "gruel"
+     ],
+     30,
+     945,
+     0,
+     [],
+     "n i j l s a",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "nails"
+     ],
+     30,
+     926,
+     0,
+     [
+      [
+       "steal",
+       "m"
+      ]
+     ],
+     "u n e l i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "line"
+     ],
+     30,
+     918,
+     0,
+     [
+      [
+       "steal",
+       "w"
+      ]
+     ],
+     "u d i sf n u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "unis"
+     ],
+     30,
+     904,
+     0,
+     [],
+     "n e r s a ql u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "square"
+     ],
+     30,
+     837,
+     0,
+     [
+      [
+       "steal",
+       "q"
+      ]
+     ],
+     "t o k o r",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "took"
+     ],
+     30,
+     825,
+     0,
+     [
+      [
+       "steal",
+       "f"
+      ]
+     ],
+     "r ns e m u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "rune"
+     ],
+     30,
+     813,
+     0,
+     [],
+     "b a z s e e",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "base"
+     ],
+     30,
+     795,
+     0,
+     [
+      [
+       "steal",
+       "j"
+      ]
+     ],
+     "m d o e l e",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-small",
+   "foe": "smallcaps",
+   "trail": [
+    [
+     [
+      "got"
+     ],
+     30,
+     985,
+     0,
+     [
+      [
+       "caps",
+       1
+      ]
+     ],
+     "g c v n e a o q",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "canoe"
+     ],
+     30,
+     974,
+     0,
+     [],
+     "e y j m u l v q",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "velum"
+     ],
+     30,
+     953,
+     0,
+     [],
+     "n e v e r ls j q",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "never"
+     ],
+     30,
+     937,
+     0,
+     [
+      [
+       "caps",
+       1
+      ]
+     ],
+     "s t b i y i j q",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "bits"
+     ],
+     30,
+     929,
+     0,
+     [],
+     "s i n j c e i j",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "incise"
+     ],
+     30,
+     889,
+     0,
+     [],
+     "a c t os e j j",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "coat"
+     ],
+     30,
+     872,
+     0,
+     [
+      [
+       "caps",
+       1
+      ]
+     ],
+     "r x w i t e e j",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "retie"
+     ],
+     30,
+     861,
+     0,
+     [],
+     "z d og v t e w j",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "voted"
+     ],
+     30,
+     835,
+     0,
+     [],
+     "b u yl rs x e w j",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-pedan",
+   "foe": "pedant",
+   "trail": [
+    [
+     [
+      "anted"
+     ],
+     30,
+     988,
+     0,
+     [
+      [
+       "pedant",
+       1
+      ]
+     ],
+     "ug o l m t y a",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "outlay"
+     ],
+     30,
+     939,
+     0,
+     [],
+     "g f b a o o",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "goof"
+     ],
+     30,
+     919,
+     0,
+     [
+      [
+       "pedant",
+       1
+      ]
+     ],
+     "p d b u a el a",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "baaed"
+     ],
+     30,
+     898,
+     0,
+     [
+      [
+       "pedant",
+       1
+      ]
+     ],
+     "i sl x l n i u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "unis"
+     ],
+     30,
+     882,
+     0,
+     [],
+     "t b e gl e sl i l",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "begets"
+     ],
+     30,
+     844,
+     0,
+     [
+      [
+       "pedant",
+       1
+      ]
+     ],
+     "a f i l s n i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "finals"
+     ],
+     30,
+     808,
+     0,
+     [
+      [
+       "pedant",
+       1
+      ]
+     ],
+     "e v o n u c i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "novice"
+     ],
+     30,
+     768,
+     0,
+     [],
+     "ol t d n a rs u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "outran"
+     ],
+     30,
+     734,
+     0,
+     [
+      [
+       "pedant",
+       1
+      ]
+     ],
+     "n e o r o g",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-hangm",
+   "foe": "hangman",
+   "trail": [
+    [
+     [
+      "flare"
+     ],
+     30,
+     966,
+     0,
+     [
+      [
+       "hang",
+       "r"
+      ]
+     ],
+     "e r e dg t a",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "teared"
+     ],
+     30,
+     932,
+     0,
+     [],
+     "o n i v gg i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "vino"
+     ],
+     30,
+     915,
+     0,
+     [
+      [
+       "hang",
+       "r"
+      ]
+     ],
+     "a z o rf n wl i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "rowan"
+     ],
+     30,
+     872,
+     0,
+     [
+      [
+       "hang",
+       "l"
+      ]
+     ],
+     "a is y l rl s i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "airily"
+     ],
+     30,
+     837,
+     0,
+     [],
+     "r n c i a f",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "cairn"
+     ],
+     30,
+     809,
+     0,
+     [
+      [
+       "hang",
+       "l"
+      ]
+     ],
+     "d z v ls i a",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "valid"
+     ],
+     30,
+     768,
+     0,
+     [
+      [
+       "hang",
+       "r"
+      ]
+     ],
+     "i o e y r t",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "yore"
+     ],
+     30,
+     758,
+     0,
+     [],
+     "hg t i e m r i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "hermit"
+     ],
+     30,
+     716,
+     0,
+     [
+      [
+       "hang",
+       "r"
+      ]
+     ],
+     "o r ws n e a i",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-overd",
+   "foe": "overdue",
+   "trail": [
+    [
+     [
+      "taped"
+     ],
+     30,
+     982,
+     0,
+     [
+      [
+       "fine",
+       2
+      ]
+     ],
+     "e g c i rl w",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "grew"
+     ],
+     28,
+     967,
+     0,
+     [],
+     "b al n i e r i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "bairn"
+     ],
+     30,
+     955,
+     0,
+     [
+      [
+       "fine",
+       2
+      ]
+     ],
+     "gs l m y a i e i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "gamely"
+     ],
+     26,
+     913,
+     0,
+     [
+      [
+       "fine",
+       2
+      ]
+     ],
+     "i a n z g ag i i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "again"
+     ],
+     22,
+     889,
+     0,
+     [],
+     "n a i r w es i i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "winier"
+     ],
+     22,
+     855,
+     0,
+     [
+      [
+       "fine",
+       2
+      ]
+     ],
+     "i i q l n ks a i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "ilia",
+      "kin"
+     ],
+     22,
+     828,
+     0,
+     [
+      [
+       "fine",
+       2
+      ]
+     ],
+     "q e n l a t",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "neat"
+     ],
+     20,
+     811,
+     0,
+     [],
+     "o a w q r n l",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "rowan"
+     ],
+     20,
+     788,
+     0,
+     [
+      [
+       "fine",
+       2
+      ]
+     ],
+     "s r o ig e f l",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-write",
+   "foe": "writersblock",
+   "trail": [
+    [
+     [
+      "viols"
+     ],
+     30,
+     973,
+     0,
+     [
+      [
+       "lock",
+       1
+      ]
+     ],
+     "d y tf o u r",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "dour"
+     ],
+     30,
+     961,
+     0,
+     [],
+     "r t g o i ws tf",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "riot"
+     ],
+     30,
+     951,
+     0,
+     [
+      [
+       "lock",
+       1
+      ]
+     ],
+     "a o ff z o t tf ws",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "afoot"
+     ],
+     30,
+     922,
+     0,
+     [
+      [
+       "lock",
+       1
+      ]
+     ],
+     "hg r a e p e tf ws",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "heater"
+     ],
+     30,
+     873,
+     0,
+     [],
+     "af d r j o ts ws",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "toward"
+     ],
+     30,
+     821,
+     0,
+     [
+      [
+       "lock",
+       1
+      ]
+     ],
+     "e dg e s zf w",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "sewed"
+     ],
+     30,
+     792,
+     0,
+     [
+      [
+       "lock",
+       1
+      ]
+     ],
+     "t u r g f as",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "graft"
+     ],
+     30,
+     777,
+     0,
+     [],
+     "y o j r of u u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "your"
+     ],
+     30,
+     759,
+     0,
+     [
+      [
+       "lock",
+       1
+      ]
+     ],
+     "ts m r if i v of u",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-censo",
+   "foe": "censor",
+   "trail": [
+    [
+     [
+      "boos"
+     ],
+     30,
+     988,
+     0,
+     [
+      [
+       "censor",
+       0
+      ]
+     ],
+     "u il a y l n i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "inlay"
+     ],
+     30,
+     975,
+     0,
+     [],
+     "hs i t l r i i u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "hilt"
+     ],
+     30,
+     964,
+     0,
+     [
+      [
+       "censor",
+       1
+      ]
+     ],
+     "p a d t al j* i i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "adapt"
+     ],
+     30,
+     950,
+     0,
+     [
+      [
+       "censor",
+       1
+      ]
+     ],
+     "a h sg n q* u i i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "shun"
+     ],
+     30,
+     937,
+     0,
+     [],
+     "x w o g e d a i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "wodge"
+     ],
+     30,
+     913,
+     0,
+     [
+      [
+       "censor",
+       0
+      ]
+     ],
+     "i a g i b n a i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "baaing"
+     ],
+     30,
+     877,
+     0,
+     [
+      [
+       "censor",
+       0
+      ]
+     ],
+     "a c i r a lf i i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "racial"
+     ],
+     30,
+     835,
+     0,
+     [],
+     "i c d ns e e i i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "indie",
+      "ice"
+     ],
+     30,
+     816,
+     0,
+     [
+      [
+       "censor",
+       0
+      ]
+     ],
+     "u o a p n t",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-kerni",
+   "foe": "kerning",
+   "trail": [
+    [
+     [
+      "boat"
+     ],
+     30,
+     985,
+     0,
+     [
+      [
+       "kern",
+       1
+      ]
+     ],
+     "i r p u y i a",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "pray"
+     ],
+     30,
+     974,
+     0,
+     [],
+     "s ql ug e a g i i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "quasi"
+     ],
+     30,
+     946,
+     0,
+     [
+      [
+       "kern",
+       1
+      ]
+     ],
+     "n os w d ps i e i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "node"
+     ],
+     30,
+     934,
+     0,
+     [
+      [
+       "kern",
+       1
+      ]
+     ],
+     "e m a r s is ps i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "emir",
+      "asp"
+     ],
+     30,
+     917,
+     0,
+     [],
+     "z i a t d a i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "ditz"
+     ],
+     30,
+     901,
+     0,
+     [
+      [
+       "kern",
+       1
+      ]
+     ],
+     "x o o r d n a a",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "odor"
+     ],
+     30,
+     884,
+     0,
+     [
+      [
+       "kern",
+       1
+      ]
+     ],
+     "o s e k i g a a",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "oiks",
+      "age"
+     ],
+     30,
+     854,
+     0,
+     [],
+     "hl wg r a o t a",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "wrath"
+     ],
+     30,
+     835,
+     0,
+     [
+      [
+       "kern",
+       1
+      ]
+     ],
+     "a s n d o e a o",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-mirro",
+   "foe": "mirror",
+   "trail": [
+    [
+     [
+      "could"
+     ],
+     30,
+     983,
+     0,
+     [
+      [
+       "reflect",
+       1
+      ]
+     ],
+     "v a d as t n",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "data"
+     ],
+     30,
+     970,
+     0,
+     [],
+     "ng l b x a o n",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "loan"
+     ],
+     30,
+     958,
+     0,
+     [
+      [
+       "reflect",
+       1
+      ]
+     ],
+     "k e e s u j n x",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "keens"
+     ],
+     21,
+     931,
+     0,
+     [
+      [
+       "reflect",
+       1
+      ]
+     ],
+     "g t l d og o u x",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "logout"
+     ],
+     1,
+     889,
+     0,
+     [],
+     "o e r q i l x",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "oriel"
+     ],
+     1,
+     868,
+     0,
+     [
+      [
+       "reflect",
+       1
+      ]
+     ],
+     "d e a vf lg s x",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "salved"
+     ],
+     1,
+     808,
+     0,
+     [
+      [
+       "reflect",
+       1
+      ]
+     ],
+     "qg o m a c i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "mica"
+     ],
+     1,
+     777,
+     0,
+     [],
+     "o ol t w d bf o",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "wood"
+     ],
+     4,
+     760,
+     0,
+     [
+      [
+       "reflect",
+       1
+      ]
+     ],
+     "if e g t m v bf o",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-abrid",
+   "foe": "abridger",
+   "trail": [
+    [
+     [
+      "maul"
+     ],
+     30,
+     984,
+     0,
+     [
+      [
+       "abridge",
+       1
+      ]
+     ],
+     "n e f t d i k",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "finked"
+     ],
+     30,
+     939,
+     0,
+     [],
+     "e l c i d o",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "coiled"
+     ],
+     30,
+     903,
+     0,
+     [
+      [
+       "abridge",
+       1
+      ]
+     ],
+     "tg n e e i r",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "entire"
+     ],
+     30,
+     873,
+     0,
+     [
+      [
+       "abridge",
+       1
+      ]
+     ],
+     "l n s e k i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "likens"
+     ],
+     30,
+     835,
+     0,
+     [],
+     "p r e ng o gs",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "prone"
+     ],
+     30,
+     819,
+     0,
+     [
+      [
+       "abridge",
+       1
+      ]
+     ],
+     "o t s l og u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "tools"
+     ],
+     30,
+     807,
+     0,
+     [
+      [
+       "abridge",
+       1
+      ]
+     ],
+     "i d b p i e u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "biped"
+     ],
+     30,
+     792,
+     0,
+     [],
+     "f s i o h a i u",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "oafish"
+     ],
+     30,
+     754,
+     0,
+     [
+      [
+       "abridge",
+       1
+      ]
+     ],
+     "n t ss c a o i u",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-rex",
+   "foe": "rex",
+   "trail": [
+    [
+     [
+      "beamed"
+     ],
+     30,
+     955,
+     0,
+     [
+      [
+       "rex",
+       1
+      ]
+     ],
+     "n o d el g i",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "dogie"
+     ],
+     30,
+     941,
+     0,
+     [],
+     "l a e d e k",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "leaked"
+     ],
+     30,
+     901,
+     0,
+     [
+      [
+       "rex",
+       1
+      ]
+     ],
+     "h tl o e zg r",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "hertz"
+     ],
+     30,
+     814,
+     0,
+     [
+      [
+       "rex",
+       1
+      ]
+     ],
+     "s l r u q i o",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "liquor"
+     ],
+     30,
+     763,
+     0,
+     [],
+     "p i e d c w",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "wiped"
+     ],
+     30,
+     712,
+     0,
+     [
+      [
+       "rex",
+       1
+      ]
+     ],
+     "l o o sf r nl",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "loons"
+     ],
+     30,
+     696,
+     0,
+     [
+      [
+       "rex",
+       1
+      ]
+     ],
+     "e n r if w o",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "owner"
+     ],
+     30,
+     648,
+     0,
+     [],
+     "fs s e i n a if",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "fines"
+     ],
+     30,
+     635,
+     0,
+     [
+      [
+       "rex",
+       1
+      ]
+     ],
+     "a z t n e f if a",
+     "hiltdl---dw"
+    ]
+   ]
+  },
+  {
+   "seed": "endless-clust",
+   "foe": "cluster",
+   "trail": [
+    [
+     [
+      "onto"
+     ],
+     30,
+     989,
+     0,
+     [
+      [
+       "cluster",
+       1
+      ]
+     ],
+     "j o d l gg h p",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "gold"
+     ],
+     30,
+     967,
+     0,
+     [],
+     "e d q i w es p h",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "wiped"
+     ],
+     30,
+     941,
+     0,
+     [
+      [
+       "cluster",
+       1
+      ]
+     ],
+     "s yl n q o b es h",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "honeys"
+     ],
+     30,
+     895,
+     0,
+     [
+      [
+       "cluster",
+       1
+      ]
+     ],
+     "t c s f i b b",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "tics"
+     ],
+     30,
+     882,
+     0,
+     [],
+     "r o c ol j v b b",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "boor"
+     ],
+     30,
+     870,
+     0,
+     [
+      [
+       "cluster",
+       1
+      ]
+     ],
+     "rs ts l o d x b v",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "trod"
+     ],
+     30,
+     860,
+     0,
+     [
+      [
+       "cluster",
+       1
+      ]
+     ],
+     "l t pg v ns u b v",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "blunt"
+     ],
+     30,
+     839,
+     0,
+     [],
+     "t l z o i a v v",
+     "hiltdl---dw"
+    ],
+    [
+     [
+      "vital"
+     ],
+     30,
+     815,
+     0,
+     [
+      [
+       "cluster",
+       1
+      ]
+     ],
+     "d ef b t w ls o v",
+     "hiltdl---dw"
+    ]
+   ]
+  }
+ ],
+ "foes_note": "Each new foe with 999 HP and attacks off; the script strikes the longest word it finds (up to three times), Quills the first consonant and ends the turn. trail = [words, your hp, foe hp, foe block before its turn, the trick in force on the next turn, the next hand (* crossed, first letter of an enchantment), the next blade squares joined].",
+ "hits": [
+  [
+   {},
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   9,
+   0,
+   0
+  ],
+  [
+   {},
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   9,
+   0,
+   0
+  ],
+  [
+   {},
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   7,
+   0,
+   0
+  ],
+  [
+   {},
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   7,
+   0,
+   0
+  ],
+  [
+   {},
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   14,
+   0,
+   0
+  ],
+  [
+   {},
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   14,
+   0,
+   0
+  ],
+  [
+   {},
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   16,
+   0,
+   0
+  ],
+  [
+   {},
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   16,
+   0,
+   0
+  ],
+  [
+   {},
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   32,
+   0,
+   0
+  ],
+  [
+   {},
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   32,
+   0,
+   0
+  ],
+  [
+   {},
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   42,
+   0,
+   0
+  ],
+  [
+   {},
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   42,
+   0,
+   0
+  ],
+  [
+   {},
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   27,
+   0,
+   0
+  ],
+  [
+   {},
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   27,
+   0,
+   0
+  ],
+  [
+   {},
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   42,
+   0,
+   0
+  ],
+  [
+   {},
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   42,
+   0,
+   0
+  ],
+  [
+   {},
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   21,
+   0,
+   0
+  ],
+  [
+   {},
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   21,
+   0,
+   0
+  ],
+  [
+   {},
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   50,
+   0,
+   0
+  ],
+  [
+   {},
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   50,
+   0,
+   0
+  ],
+  [
+   {},
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   33,
+   0,
+   0
+  ],
+  [
+   {},
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   33,
+   0,
+   0
+  ],
+  [
+   {},
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   44,
+   0,
+   0
+  ],
+  [
+   {},
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   44,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   10,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   10,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   12,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   12,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   26,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   26,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   30,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   30,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   17,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   17,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   38,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   38,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   17,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   17,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   38,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   38,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   10,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   10,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   12,
+   0,
+   0
+  ],
+  [
+   {
+    "caps": 1
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   12,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   8,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   8,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   6,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   6,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   12,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   12,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   10,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   10,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   30,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   30,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   40,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   40,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   26,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   26,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   40,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   40,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   20,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   20,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   48,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   48,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   24,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   24,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   17,
+   0,
+   0
+  ],
+  [
+   {
+    "ellipsis": 1
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   17,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   0,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   0,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   14,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   14,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   16,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   16,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   32,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   32,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   42,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   42,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   27,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   27,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   42,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   42,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   21,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   21,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   50,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   50,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   33,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   33,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   44,
+   0,
+   0
+  ],
+  [
+   {
+    "pedant": 1
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   44,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   9,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   9,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   8,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   8,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   32,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   32,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   42,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   42,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   13,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   13,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   21,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   21,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   10,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   10,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   25,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   25,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   16,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   16,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   22,
+   0,
+   0
+  ],
+  [
+   {
+    "hang": "t"
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   22,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   9,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   4,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   3,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   14,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   16,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   8,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   32,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   16,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   42,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   21,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   27,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   13,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   42,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   21,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   21,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   10,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   50,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   25,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   33,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   16,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   44,
+   0,
+   0
+  ],
+  [
+   {
+    "abridge": 1
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   22,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   9,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   4,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   3,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   14,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   16,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   8,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   32,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   32,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   42,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   42,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   27,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   27,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   42,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   42,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   21,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   21,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   50,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   50,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   33,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   16,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   44,
+   0,
+   0
+  ],
+  [
+   {
+    "rex": 1
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   22,
+   0,
+   0
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   9,
+   0,
+   0
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   9,
+   0,
+   0
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   14,
+   0,
+   0
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   14,
+   0,
+   0
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   16,
+   0,
+   0
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   16,
+   0,
+   0
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   32,
+   0,
+   16
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   32,
+   0,
+   16
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   42,
+   0,
+   21
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   42,
+   0,
+   21
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   27,
+   0,
+   13
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   27,
+   0,
+   13
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   42,
+   0,
+   21
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   42,
+   0,
+   21
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   21,
+   0,
+   10
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   21,
+   0,
+   10
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   50,
+   0,
+   25
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   50,
+   0,
+   25
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   33,
+   0,
+   0
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   33,
+   0,
+   0
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   44,
+   0,
+   0
+  ],
+  [
+   {
+    "reflect": 1
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   44,
+   0,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   9,
+   0,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "cat",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   9,
+   0,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "cat",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   7,
+   0,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   14,
+   4,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "bell",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   14,
+   4,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   16,
+   4,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "bell",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   16,
+   4,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   32,
+   4,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "sweet",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   32,
+   4,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   42,
+   4,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "sweet",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   42,
+   4,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   27,
+   4,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "queens",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   27,
+   4,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   42,
+   4,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "queens",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   42,
+   4,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   21,
+   8,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "abbess",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   21,
+   8,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   50,
+   8,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "abbess",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   50,
+   8,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   0,
+   0,
+   33,
+   4,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "jazz",
+   [
+    "-",
+    "-",
+    "-",
+    "-",
+    "-",
+    "-"
+   ],
+   1,
+   4,
+   33,
+   4,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   0,
+   0,
+   44,
+   4,
+   0
+  ],
+  [
+   {
+    "stammer": 4
+   },
+   "jazz",
+   [
+    "x",
+    "dl",
+    "-",
+    "tl",
+    "-",
+    "dw"
+   ],
+   1,
+   4,
+   44,
+   4,
+   0
+  ]
+ ],
+ "hits_note": "wordHit on fixed words from the first slot (2nd tile on fire, edge Haiku, no runes) under each foe trick: [trick, word, blade squares, words already struck this turn, last length, damage, block it gains, damage bounced back].",
  "tricks": [
   {
    "seed": "endless-trk01",
@@ -1508,513 +8778,513 @@
     [
      "nudge",
      "pn^hepr",
-     34,
+     64,
      0,
      30
     ],
     [
      "flip",
      "kn^hepr",
-     34,
+     64,
      0,
      30
     ],
     [
      "twin",
      "kkn^hepr",
-     34,
+     64,
      0,
      30
     ],
     [
      "leap",
      "mkn^hepr",
-     34,
+     64,
      0,
      30
     ],
     [
      "slip",
      "zkn^hepr",
-     34,
+     64,
      0,
      30
     ],
     [
      "whisper",
      "skn^hepr",
-     34,
+     64,
      0,
      30
     ],
     [
      "upend",
      "zkn^hepr",
-     34,
+     64,
      0,
      30
     ],
     [
      "revowel",
      "zkn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "recast",
      "akn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "back",
      "zkn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "echo",
      "kkn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "sprout",
      "kekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "double",
      "kkekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "respell",
      "bkekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "mimic",
      "kkekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "soften",
      "akekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "scribble",
      "aeekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "lunge",
      "deekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "recoil",
      "aeekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "triplicate",
      "aaaeekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "kin",
      "aaaeekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "bloom",
      "aaaaeekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "dial",
      "zaaaeekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "spin",
      "saaaeekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "plural",
      "ssaaaeekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "wye",
      "sseaaeekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "resound",
      "ssaaaeekn^hapr",
-     34,
+     64,
      0,
      30
     ],
     [
      "inkwell",
      "ssaaaeekn^hapre",
-     34,
+     64,
      0,
      30
     ],
     [
      "pouch",
      "ssaaaeekn^haprea",
-     34,
+     64,
      0,
      30
     ],
     [
      "lucky",
      "ssaaaeekn^hapreas",
-     34,
+     64,
      0,
      30
     ],
     [
      "polish",
      "nsaaaeekn^hapreas",
-     34,
+     64,
      0,
      30
     ],
     [
      "ember",
      "n^saaaeekn^hapreas",
-     34,
+     64,
      0,
      30
     ],
     [
      "suffix",
      "n^saaaeekn^hapreased",
-     34,
+     64,
      0,
      30
     ],
     [
      "prefix",
      "n^saaaeekn^hapreasedre",
-     34,
+     64,
      0,
      30
     ],
     [
      "gild",
      "n$saaaeekn^hapreasedre",
-     34,
+     64,
      0,
      30
     ],
     [
      "grabbag",
      "n$saaaeekn^hapreasedreeat",
-     34,
+     64,
      0,
      30
     ],
     [
      "exchange",
      "saaekn^hapreasedreeatyvli",
-     30,
+     60,
      0,
      30
     ],
     [
      "glyph",
      "aekn^hareasedreeatyvli",
-     15,
+     45,
      0,
      30
     ],
     [
      "hyphen",
      "aekn^hareasedreeatyvlire",
-     15,
+     45,
      0,
      30
     ],
     [
      "nudge",
-     "dwa#oug#",
-     15,
+     "dwa#oug#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "flip",
-     "wwa#oug#",
-     15,
+     "wwa#oug#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "twin",
-     "wwwa#oug#",
-     15,
+     "wwwa#oug#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "leap",
-     "ywwa#oug#",
-     15,
+     "ywwa#oug#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "slip",
-     "uwwa#oug#",
-     15,
+     "uwwa#oug#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "whisper",
-     "uwwa#ouk#",
-     15,
+     "uwwa#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "upend",
-     "nwwa#ouk#",
-     15,
+     "nwwa#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "revowel",
-     "nwwe#ouk#",
-     15,
+     "nwwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "back",
-     "mwwe#ouk#",
-     15,
+     "mwwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "echo",
-     "wwwe#ouk#",
-     15,
+     "wwwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "sprout",
-     "wewwe#ouk#",
-     15,
+     "wewwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "double",
-     "wwewwe#ouk#",
-     15,
+     "wwewwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "respell",
-     "bwewwe#ouk#",
-     15,
+     "bwewwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "mimic",
-     "wwewwe#ouk#",
-     15,
+     "wwewwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "soften",
-     "awewwe#ouk#",
-     15,
+     "awewwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "scribble",
-     "aeewwe#ouk#",
-     15,
+     "aeewwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "lunge",
-     "deewwe#ouk#",
-     15,
+     "deewwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "recoil",
-     "aeewwe#ouk#",
-     15,
+     "aeewwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "kin",
-     "eeewwe#ouk#",
-     15,
+     "eeewwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "bloom",
-     "eeeewwe#ouk#",
-     15,
+     "eeeewwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "dial",
-     "deeewwe#ouk#",
-     15,
+     "deeewwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "spin",
-     "beeewwe#ouk#",
-     15,
+     "beeewwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "plural",
-     "bseeewwe#ouk#",
-     15,
+     "bseeewwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "wye",
-     "bsaeewwe#ouk#",
-     15,
+     "bsaeewwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "resound",
-     "bseeewwe#ouk#",
-     15,
+     "bseeewwe#ouk#n^s",
+     45,
      0,
-     23
+     20
     ],
     [
      "inkwell",
-     "bseeewwe#ouk#g",
-     15,
+     "bseeewwe#ouk#n^sg",
+     45,
      0,
-     23
+     20
     ],
     [
      "pouch",
-     "bseeewwe#ouk#ge",
-     15,
+     "bseeewwe#ouk#n^sge",
+     45,
      0,
-     23
+     20
     ],
     [
      "lucky",
-     "bseeewwe#ouk#gel",
-     15,
+     "bseeewwe#ouk#n^sgel",
+     45,
      0,
-     23
+     20
     ],
     [
      "polish",
-     "sseeewwe#ouk#gel",
-     15,
+     "sseeewwe#ouk#n^sgel",
+     45,
      0,
-     23
+     20
     ],
     [
      "ember",
-     "s^seeewwe#ouk#gel",
-     15,
+     "s^seeewwe#ouk#n^sgel",
+     45,
      0,
-     23
+     20
     ],
     [
      "gild",
-     "s$seeewwe#ouk#gel",
-     15,
+     "s$seeewwe#ouk#n^sgel",
+     45,
      0,
-     23
+     20
     ],
     [
      "exchange",
-     "sewwe#ouk#geleion",
-     11,
+     "sewwe#ouk#n^sgeleion",
+     41,
      0,
-     23
+     20
     ],
     [
      "glyph",
-     "oniolf",
-     34,
+     "we#ouk#n^sgeleion",
+     23,
      0,
-     29
+     20
     ],
     [
      "hyphen",
-     "oniolfde",
-     34,
+     "we#ouk#n^sgeleioned",
+     23,
      0,
-     29
+     20
     ]
    ]
   },
@@ -2024,513 +9294,513 @@
     [
      "nudge",
      "l+nu$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "flip",
      "o+nu$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "twin",
      "o+onu$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "leap",
      "q+onu$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "slip",
      "w+onu$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "whisper",
      "w+omu$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "upend",
      "m+omu$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "revowel",
      "m+amu$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "recast",
      "a+amu$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "back",
      "z+amu$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "echo",
      "a+amu$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "sprout",
      "a+eamu$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "double",
      "a+aeamu$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "respell",
      "a+aeabu$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "mimic",
      "a+aeabu$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "soften",
      "a+aeaau$iqd",
-     34,
+     61,
      0,
      30
     ],
     [
      "scribble",
      "a+aeaau$ied",
-     34,
+     61,
      0,
      30
     ],
     [
      "lunge",
      "d+aeaau$ied",
-     34,
+     61,
      0,
      30
     ],
     [
      "recoil",
      "a+aeaau$ied",
-     34,
+     61,
      0,
      30
     ],
     [
      "triplicate",
      "a+aaaeaau$ied",
-     34,
+     61,
      0,
      30
     ],
     [
      "kin",
      "a+aaaeaau$ied",
-     34,
+     61,
      0,
      30
     ],
     [
      "bloom",
      "a+aaaaeaau$ied",
-     34,
+     61,
      0,
      30
     ],
     [
      "dial",
      "z+aaaaeaau$ied",
-     34,
+     61,
      0,
      30
     ],
     [
      "spin",
      "s+aaaaeaau$ied",
-     34,
+     61,
      0,
      30
     ],
     [
      "plural",
      "s+saaaaeaau$ied",
-     34,
+     61,
      0,
      30
     ],
     [
      "wye",
      "s+seaaaeaau$ied",
-     34,
+     61,
      0,
      30
     ],
     [
      "resound",
      "s+saaaaeaau$ied",
-     34,
+     61,
      0,
      30
     ],
     [
      "inkwell",
      "s+saaaaeaau$iedd",
-     34,
+     61,
      0,
      30
     ],
     [
      "pouch",
      "s+saaaaeaau$ieddi",
-     34,
+     61,
      0,
      30
     ],
     [
      "lucky",
      "s+saaaaeaau$ieddie",
-     34,
+     61,
      0,
      30
     ],
     [
      "polish",
      "o+saaaaeaau$ieddie",
-     34,
+     61,
      0,
      30
     ],
     [
      "ember",
      "o^saaaaeaau$ieddie",
-     34,
+     61,
      0,
      30
     ],
     [
      "suffix",
      "o^saaaaeaau$ieddieing",
-     34,
+     61,
      0,
      30
     ],
     [
      "prefix",
      "o^saaaaeaau$ieddieingin",
-     34,
+     61,
      0,
      30
     ],
     [
      "gild",
      "o$saaaaeaau$ieddieingin",
-     34,
+     61,
      0,
      30
     ],
     [
      "grabbag",
      "o$saaaaeaau$ieddieingintoe",
-     34,
+     61,
      0,
      30
     ],
     [
      "exchange",
      "saaaeaau$ieddieinginoefgoa",
-     30,
+     57,
      0,
      30
     ],
     [
      "glyph",
      "aaeaau$iedieinginoefgoa",
-     18,
+     45,
      0,
      30
     ],
     [
      "hyphen",
      "aaeaau$iedieinginoefgoaing",
-     18,
+     45,
      0,
      30
     ],
     [
      "nudge",
-     "fe$jlng",
-     18,
+     "fe$keeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "flip",
-     "ue$jlng",
-     18,
+     "ue$keeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "twin",
-     "uue$jlng",
-     18,
+     "uue$keeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "leap",
-     "wue$jlng",
-     18,
+     "wue$keeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "slip",
-     "eue$jlng",
-     18,
+     "eue$keeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "whisper",
-     "eue$jlmg",
-     18,
+     "eue$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "upend",
-     "ene$jlmg",
-     18,
+     "ene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "revowel",
-     "ane$jlmg",
-     18,
+     "ane$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "back",
-     "zne$jlmg",
-     18,
+     "zne$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "echo",
-     "nne$jlmg",
-     18,
+     "nne$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "sprout",
-     "nene$jlmg",
-     18,
+     "nene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "double",
-     "nnene$jlmg",
-     18,
+     "nnene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "respell",
-     "bnene$jlmg",
-     18,
+     "bnene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "mimic",
-     "nnene$jlmg",
-     18,
+     "nnene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "soften",
-     "anene$jlmg",
-     18,
+     "anene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "scribble",
-     "aeene$jlmg",
-     18,
+     "aeene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "lunge",
-     "deene$jlmg",
-     18,
+     "deene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "recoil",
-     "aeene$jlmg",
-     18,
+     "aeene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "kin",
-     "eeene$jlmg",
-     18,
+     "eeene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "bloom",
-     "eeeene$jlmg",
-     18,
+     "eeeene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "dial",
-     "deeene$jlmg",
-     18,
+     "deeene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "spin",
-     "beeene$jlmg",
-     18,
+     "beeene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "plural",
-     "bseeene$jlmg",
-     18,
+     "bseeene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "wye",
-     "bsaeene$jlmg",
-     18,
+     "bsaeene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "resound",
-     "bseeene$jlmg",
-     18,
+     "bseeene$geeju$e",
+     45,
      0,
-     18
+     24
     ],
     [
      "inkwell",
-     "bseeene$jlmgn",
-     18,
+     "bseeene$geeju$en",
+     45,
      0,
-     18
+     24
     ],
     [
      "pouch",
-     "bseeene$jlmgni",
-     18,
+     "bseeene$geeju$eni",
+     45,
      0,
-     18
+     24
     ],
     [
      "lucky",
-     "bseeene$jlmgnit",
-     18,
+     "bseeene$geeju$enit",
+     45,
      0,
-     18
+     24
     ],
     [
      "polish",
-     "oseeene$jlmgnit",
-     18,
+     "oseeene$geeju$enit",
+     45,
      0,
-     18
+     24
     ],
     [
      "ember",
-     "o^seeene$jlmgnit",
-     18,
+     "o^seeene$geeju$enit",
+     45,
      0,
-     18
+     24
     ],
     [
      "gild",
-     "o$seeene$jlmgnit",
-     18,
+     "o$seeene$geeju$enit",
+     45,
      0,
-     18
+     24
     ],
     [
      "exchange",
-     "seee$jlmgnitpeat",
-     14,
+     "seee$geeju$enitpeat",
+     41,
      0,
-     18
+     24
     ],
     [
      "glyph",
-     "e$jlmgnitpeat",
-     5,
+     "e$geeju$enitpeat",
+     32,
      0,
-     18
+     24
     ],
     [
      "hyphen",
-     "e$jlmgnitpeating",
-     5,
+     "e$geeju$enitpeating",
+     32,
      0,
-     18
+     24
     ]
    ]
   },
@@ -2540,516 +9810,523 @@
     [
      "nudge",
      "jp$jged#",
-     36,
+     61,
      0,
      30
     ],
     [
      "flip",
      "qp$jged#",
-     36,
+     61,
      0,
      30
     ],
     [
      "twin",
      "qqp$jged#",
-     36,
+     61,
      0,
      30
     ],
     [
      "leap",
      "sqp$jged#",
-     36,
+     61,
      0,
      30
     ],
     [
      "slip",
      "dqp$jged#",
-     36,
+     61,
      0,
      30
     ],
     [
      "whisper",
      "tqp$jged#",
-     36,
+     61,
      0,
      30
     ],
     [
      "upend",
      "tbp$jged#",
-     36,
+     61,
      0,
      30
     ],
     [
      "revowel",
      "tbp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "recast",
      "abp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "back",
      "zbp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "echo",
      "bbp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "sprout",
      "bebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "double",
      "bbebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "respell",
      "cbebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "mimic",
      "bbebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "soften",
      "abebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "scribble",
      "aeebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "lunge",
      "deebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "recoil",
      "aeebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "triplicate",
      "aaaeebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "kin",
      "aaaeebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "bloom",
      "aaaaeebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "dial",
      "zaaaeebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "spin",
      "saaaeebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "plural",
      "ssaaaeebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "wye",
      "sseaaeebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "resound",
      "ssaaaeebp$jgad#",
-     36,
+     61,
      0,
      30
     ],
     [
      "inkwell",
      "ssaaaeebp$jgad#e",
-     36,
+     61,
      0,
      30
     ],
     [
      "pouch",
      "ssaaaeebp$jgad#eo",
-     36,
+     61,
      0,
      30
     ],
     [
      "lucky",
      "ssaaaeebp$jgad#eol",
-     36,
+     61,
      0,
      30
     ],
     [
      "polish",
      "esaaaeebp$jgad#eol",
-     36,
+     61,
      0,
      30
     ],
     [
      "ember",
      "e^saaaeebp$jgad#eol",
-     36,
+     61,
      0,
      30
     ],
     [
      "suffix",
      "e^saaaeebp$jgad#eolly",
-     36,
+     61,
      0,
      30
     ],
     [
      "prefix",
      "e^saaaeebp$jgad#eollyre",
-     36,
+     61,
      0,
      30
     ],
     [
      "gild",
      "e$saaaeebp$jgad#eollyre",
-     36,
+     61,
      0,
      30
     ],
     [
      "grabbag",
      "e$saaaeebp$jgad#eollyresea",
-     36,
+     61,
      0,
      30
     ],
     [
      "exchange",
      "saaeebp$jgad#eollyeseafiga",
-     32,
+     57,
      0,
      30
     ],
     [
      "glyph",
      "aeebjgad#eollyeseafiga",
-     8,
+     33,
      0,
      30
     ],
     [
      "hyphen",
      "aeebjgad#eollyeseafigaed",
-     8,
+     33,
      0,
      30
     ],
     [
      "nudge",
-     "jise#nr",
-     8,
+     "jise#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "flip",
-     "qise#nr",
-     8,
+     "qise#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "twin",
-     "qqise#nr",
-     8,
+     "qqise#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "leap",
-     "sqise#nr",
-     8,
+     "sqise#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "slip",
-     "dqise#nr",
-     8,
+     "dqise#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "whisper",
-     "tqise#nr",
-     8,
+     "tqise#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "upend",
-     "tbise#nr",
-     8,
+     "tbise#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "revowel",
-     "tbase#nr",
-     8,
+     "tbase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "back",
-     "sbase#nr",
-     8,
+     "sbase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "echo",
-     "bbase#nr",
-     8,
+     "bbase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "sprout",
-     "bebase#nr",
-     8,
+     "bebase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "double",
-     "bbebase#nr",
-     8,
+     "bbebase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "respell",
-     "cbebase#nr",
-     8,
+     "cbebase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "mimic",
-     "bbebase#nr",
-     8,
+     "bbebase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "soften",
-     "abebase#nr",
-     8,
+     "abebase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "scribble",
-     "aeebase#nr",
-     8,
+     "aeebase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "lunge",
-     "deebase#nr",
-     8,
+     "deebase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "recoil",
-     "aeebase#nr",
-     8,
+     "aeebase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "kin",
-     "eeebase#nr",
-     8,
+     "eeebase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "bloom",
-     "eeeebase#nr",
-     8,
+     "eeeebase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "dial",
-     "deeebase#nr",
-     8,
+     "deeebase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "spin",
-     "beeebase#nr",
-     8,
+     "beeebase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "plural",
-     "bseeebase#nr",
-     8,
+     "bseeebase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "wye",
-     "bsaeebase#nr",
-     8,
+     "bsaeebase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "resound",
-     "bseeebase#nr",
-     8,
+     "bseeebase#nrd#s",
+     33,
      0,
-     23
+     20
     ],
     [
      "inkwell",
-     "bseeebase#nre",
-     8,
+     "bseeebase#nrd#se",
+     33,
      0,
-     23
+     20
     ],
     [
      "pouch",
-     "bseeebase#nrea",
-     8,
+     "bseeebase#nrd#sea",
+     33,
      0,
-     23
+     20
     ],
     [
      "lucky",
-     "bseeebase#nreat",
-     8,
+     "bseeebase#nrd#seat",
+     33,
      0,
-     23
+     20
     ],
     [
      "polish",
-     "hseeebase#nreat",
-     8,
+     "hseeebase#nrd#seat",
+     33,
      0,
-     23
+     20
     ],
     [
      "ember",
-     "h^seeebase#nreat",
-     8,
+     "h^seeebase#nrd#seat",
+     33,
      0,
-     23
+     20
     ],
     [
      "gild",
-     "h$seeebase#nreat",
-     8,
+     "h$seeebase#nrd#seat",
+     33,
      0,
-     23
+     20
     ],
     [
      "exchange",
-     "eebase#nreatxniy",
-     6,
+     "eebase#nrd#seatxniy",
+     25,
      0,
-     23
+     20
     ],
     [
      "glyph",
-     "nw$eru+p",
-     37,
+     "ebse#nd#seatxniy",
+     16,
      0,
-     29
+     20
     ],
     [
      "hyphen",
-     "nw$eru+pde",
-     37,
+     "ebse#nd#seatxniyre",
+     16,
      0,
-     29
+     20
     ]
    ]
   }
  ],
- "rules_hash": "153f6531f457"
+ "tricks_note": "Every trick in the lab kit used once in kit order on the first tile (pair, or 3-letter word) that takes it, for two turns: [trick, hand (^ fire, # steel, $ gold, + leaf, * crossed), foe hp, block, hp].",
+ "rules_hash": "1d89e6394c79",
+ "sword_note": "Sword days with preset runes; the word goes in at slot (turn mod 4). trail = [word, foe index, your hp, your block, foe hps, letters back from the bag] after each turn.",
+ "deep_note": "Endless descent, scripted the same way with foe attacks off and foe HP x0.5 so it goes deep; trail is [word, foe index, foe hp]. deep_foes = deepFoe(3,4,5,6,9) at the normal HP scale.",
+ "offers_fingerprint": {
+  "note": "hseed of the offers table for 9 seeds x d 0..30 x two kits, page vs sim, 2026-11-20",
+  "value": 2169297970
+ }
 }
