@@ -14,7 +14,7 @@ Needs Python 3.10+, nothing else. Runs on every core but one (`-j` to change).
 | `py tools/scrawl_sim.py report -n 2000` | The whole health check: three bots, third-trick sweeps, a foe-HP scan, and findings written by rules → `sim-out/report.md` |
 | `py tools/scrawl_sim.py trial --round N` | One evolution round: tests the tricks in `ideas/rN.py` against the live ones and records the results in `evolution/history.json` |
 | `py tools/scrawl_sim.py publish` | Rebuilds the Lab (`../scrawl-lab/`, on the site at /scrawl-lab/): the report index and the evolution page. `trial` and `report` do this for you. |
-| `py tools/scrawl_sim.py compare -n 2000` | Notools vs smart vs eager on the same seeds (`--deep` for endless descents: how far each bot gets) |
+| `py tools/scrawl_sim.py compare -n 2000` | Notools vs smart vs eager on the same seeds (`--deep` for endless descents: how far each bot gets), with how often each foe ends a run |
 | `py tools/scrawl_sim.py replay scrawl-2026-11-20 --bot smart` | One run, turn by turn |
 
 ## The bots
@@ -81,6 +81,23 @@ Tiles go in any slot; a word is one unbroken row, and the planner tries each wor
 
 Experiments (all commands): `--runes pommel:2,parry` (fixed runes), `--bag-cap N`, `--bag-policy auto|high|first`, `--no-blade` (the 1.6.0 rules), `--rune-per '{"pommel":[2,3,4]}'`, `--blade-json '{"foeHp":2.2}'`.
 
+## Foes
+
+Every foe has a three- or four-move cycle shown one turn ahead. From the 27 Nov daily (endless and lab runs straight away) a
+daily's first foe comes from `EARLY` (the old five plus seven easy new ones), its second from `MIDDLE` (the old five plus eight),
+and The Editor is always third. The five deep foes (`kerning`, `mirror`, `abridger`, `rex`, `cluster`) only turn up down the
+endless descent, where any foe but The Editor can appear. Dailies before 27 Nov keep the old five.
+
+A new foe's trick lands on your next turn and sits in `S.hex` (`Game.hex` here) for that turn: hand tricks (`ban`, `steal`,
+`pied`, `smudge`, `censor`, `silver`, `dogear`, `hang`, `cluster`, `diph`) act when the hand is drawn, with the turn's trick dice;
+scoring tricks (`caps`, `ellipsis`, `kern`, `pedant`, `abridge`, `rex`, `reflect`, `stammer`, `fine`, `lock`) change how words
+score that turn. `foeHex` / `foe_hex` and the end of `wordHit` / `hex_post` are the whole of it.
+
+From 27 Nov every new foe meets the sword, so the tricks follow the word wherever it sits: Dog-ear folds a free slot among the
+first four (none if the sword's squares fill them), Ellipsis zeroes the word's own last letter, and Tight Kerning keeps words
+inside the first four slots. Foe tricks act on the fresh draw only; the bag's tiles are safe, as from the Editor's red pen.
+`capture_fixtures.js` also plays each new foe for nine turns and scores fixed words under every scoring trick.
+
 ## Asset stamps
 
 Pages load every local script and stylesheet as `file.js?v=<hash of the file>`. Run `py tools/stamp_assets.py` before committing, or turn on the hook once with `git config core.hooksPath tools/hooks` and it runs on every commit. `--check` exits 1 if any stamp is stale. Nobody bumps version numbers by hand.
@@ -96,6 +113,7 @@ Pages load every local script and stylesheet as `file.js?v=<hash of the file>`. 
 
 ## Changelog
 
+* **1.9.0** (2026-11-25): 20 new foes from the 27 Nov daily (endless straight away): Smudge, Pied Type, Ellipsis, Dog-Ear, Diphthong, Silverfish, The Stammer (first-foe pool); Lipogram, The Plagiarist, Small Caps, The Pedant, Hangman, Overdue Fine, Writer's Block, The Censor (second-foe pool); Tight Kerning, Mirror Writing, The Abridger, Thesaurus Rex, Consonant Cluster (descent only). The descent ramps faster on those seeds: +3 HP a floor and +0.15 attack every three floors (was +2 and +0.1). `HARD_HP` / `HARD_ATK` multiply foe health and attack on the same seeds; they stay at 1 because the sword's ×2.4 already lifts foe health from that day (`compare --hard H,A` scans them). The planner scores every foe trick, and `compare` reports how often each foe ends a run. (1.8.0 is left for an open PR.)
 * **1.7.0** (2026-11-24): from the 27 Nov daily the Spellblade is a sword (`scrawl-blade.js`): hilt (1 block a letter), crossguard DL, tip DW in place of the rolled bonus squares, and tiles go in any slot. Eight runes for the sword, one on offer at each Armoury beside the tricks (3 sockets, 3 levels). A holdover bag keeps 2 unused tiles for the next turn. Foes get ×2.4 health on sword days in place of ×1.27 (no-tricks win rate back to about 2 in 3). Fixtures are captured with `tools/capture_fixtures.js` and include sword cases with preset runes.
 * **1.6.0** (2026-11-22): from the 23 Nov daily: blade bonus squares (DL / TL / DW), foes get 27% more health on bonus days (no-tricks win rate 67.6%, as before), and 12 new tools join the roster (Soften, Scribble, Lunge, Recoil, Triplicate, Kin, Bloom, Dial, Spin, Plural, Wye, Resound; 27 in all). New grammar: choose options by `steps`. The planner scores each word by its letter order.
 * **1.5.0** (2026-11-20): items as data. Every trick is read from `scrawl-items.js`, the same file the page uses, and the rules fingerprint covers it. Behaviour is fingerprinted identical to 1.4.0 on both page and sim.

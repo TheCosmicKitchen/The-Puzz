@@ -105,6 +105,8 @@ h1{font:800 34px/1 var(--display);margin:0;letter-spacing:-.01em}h1 span{color:v
 .offer.t-rune{border-color:color-mix(in srgb,var(--block) 55%,var(--rule));background:color-mix(in srgb,var(--block) 7%,var(--card))}.offer.t-rune .tag{color:var(--block)}
 .bagline{font-size:12.5px;color:var(--muted);text-align:center;min-height:0}.bagline b{color:var(--ink)}
 .tile i.bagmark{position:absolute;left:3px;bottom:3px;width:7px;height:7px;border-radius:50%;background:#8A5A2E;box-shadow:0 0 0 1.5px #F3E2BC}
+.wordrow .slot.b-x{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--muted) 22%,transparent) 0 6px,transparent 6px 12px);border-color:var(--muted);border-style:solid}
+.wordrow .slot.kerned{border-style:solid;border-color:transparent;background:color-mix(in srgb,var(--ink) 10%,transparent);cursor:default}
 .wordrow .slot .blab{font:800 11px var(--body);letter-spacing:.06em;color:var(--ink);opacity:.8}.blkon{color:var(--block)}
 .coach{display:flex;gap:10px;align-items:center;background:color-mix(in srgb,var(--gold) 18%,var(--paper));border:1.5px solid color-mix(in srgb,var(--gold) 55%,transparent);border-radius:12px;padding:8px 10px 8px 12px;font-size:13.5px;line-height:1.35}
 .coach b{color:var(--ink)}.coach span{flex:1}
@@ -246,7 +248,7 @@ details p{margin:8px 0;font-size:14px}
     <p>Tricks come in three tiers from the Scrawl Lab's bot trials: <b>common</b>, <b>uncommon</b> and <b>rare</b>. Rare ones turn up less often, and more often the deeper you go. Some let you <b>pick the letter</b>; some take <b>two tiles</b> (tap the one to change, then the one to copy).</p>
     <p>Your kit holds four cards: <b>Quill</b>, which flicks a single consonant for its points, and three letter tricks. You start with <b>Nudge</b> (B→C) and <b>Flip</b> (A↔Z) and pick a third before the first foe. After each win you stop at the <b>Armoury</b>: take a new trick in place of one of yours, or keep your kit. Want to try every trick? <a href="#lab" onclick="setTimeout(()=>location.reload())">Open the tool lab</a>.</p>
     <p><b>Enchanted tiles</b> turn up now and then and keep their enchantment through every trick: 🔥 <b>Flaming</b> adds 4 damage, 🛡 <b>Steel</b> gives you 6 block when you use it, ✨ <b>Gilded</b> is worth double, and 🌿 <b>Leaf</b> heals you 3.</p>
-    <p>Watch what the foe will do next: attacks, and tricks like <b>Jumble</b> (one of your next tiles changes), <b>Nibble</b> (one fewer tile) and <b>Muffle</b> (vowels worth nothing).</p>
+    <p>Watch what the foe will do next: attacks, and tricks like <b>Jumble</b> (one of your next tiles changes), <b>Nibble</b> (one fewer tile) and <b>Muffle</b> (vowels worth nothing). Every foe has its own trick, said under its name; it lands on your next turn, and the chips above your cards say what's in force.</p>
   </details>
 </div>
 <script src="puzz-core.js?v=42c25c62"></script>
@@ -305,8 +307,8 @@ const ROSTER=Object.keys(TOOLS).filter(k=>TOOLS[k].tier),TIER_NAME={common:'Comm
 // a tool with a "from" date joins the dailies on that day (endless and lab runs get it straight away)
 const rosterNow=()=>{const d=/^scrawl-(\d{4}-\d{2}-\d{2})$/.exec(S.seed);return ROSTER.filter(k=>!TOOLS[k].from||!d||d[1]>=TOOLS[k].from)};
 const TIERS_FROM='2026-11-21',tiered=()=>!/^scrawl-\d{4}-\d{2}-\d{2}$/.test(S.seed)||S.seed.slice(7)>=TIERS_FROM;
-const usesLeft=k=>TOOLS[k].perFight?(S.fightUses[k]??0):(S.uses[k]??0);
-const usesLabel=k=>{const T=TOOLS[k],n=usesLeft(k);if(!n)return 'used';if(T.perFight)return 'once a foe';return n>1?'×'+n:'ready'};
+const usesLeft=k=>k!=='quill'&&S.hex&&S.hex.lock?0:TOOLS[k].perFight?(S.fightUses[k]??0):(S.uses[k]??0);
+const usesLabel=k=>{const T=TOOLS[k],n=usesLeft(k);if(!n)return k!=='quill'&&S.hex&&S.hex.lock?'locked':'used';if(T.perFight)return 'once a foe';return n>1?'×'+n:'ready'};
 
 // ---- the Spellblade's edge: one bonus a day, the same for everyone ----
 // test(w) says whether a word earns it; the bonus is a multiplier, a flat add, or a stun.
@@ -326,7 +328,42 @@ const FOES={
   hush:{name:'Silent E',about:'Takes the voice out of your vowels.',hp:22,col:'#5D7FC2',eye:'#fff',glyph:'e',moves:[{muffle:1,atk:5},{atk:12},{atk:7}]},
   jacket:{name:'Dust Jacket',about:'Wraps itself in armour.',hp:23,col:'#9A8A6A',eye:'#fff',glyph:'J',moves:[{armor:8,atk:5},{atk:12},{armor:6,atk:7}]},
   splice:{name:'Comma Splice',about:'Hits twice, joined together badly.',hp:22,col:'#C24F7A',eye:'#fff',glyph:',',moves:[{atk:6,twice:1},{atk:9},{atk:6,twice:1}]},
-  editor:{name:'The Editor',about:'Crosses out what you write. Last foe of the day.',hp:32,col:'#B33A3A',eye:'#fff',glyph:'✎',moves:[{atk:12},{redpen:2,atk:6},{atk:14},{armor:8,atk:6}]}};
+  editor:{name:'The Editor',about:'Crosses out what you write. Last foe of the day.',hp:32,col:'#B33A3A',eye:'#fff',glyph:'✎',moves:[{atk:12},{redpen:2,atk:6},{atk:14},{armor:8,atk:6}]},
+  // From the 27 Nov daily (endless and lab runs straight away). Each has one trick that lands on your next turn, like Muffle.
+  // Easy: can be the first foe of a daily.
+  smudge:{name:'The Smudge',about:'Smears two of your tiles into blanks.',hp:21,col:'#6E6A7C',eye:'#fff',glyph:'~',moves:[{smudge:2,atk:6},{atk:10},{atk:8}]},
+  pied:{name:'Pied Type',about:'Knocks the type case over: your vowels come back as other vowels.',hp:21,col:'#D08A3C',eye:'#fff',glyph:'¿',moves:[{pied:1,atk:6},{atk:11},{pied:1,atk:6}]},
+  ellipsis:{name:'Ellipsis',about:'Trails off… the last letter of each word scores nothing.',hp:22,col:'#5E8C8A',eye:'#fff',glyph:'…',moves:[{ellipsis:1,atk:7},{atk:10},{ellipsis:1,atk:6}]},
+  dogear:{name:'Dog-Ear',about:'Folds a Spellblade slot: a letter there scores nothing.',hp:22,col:'#B79B5B',eye:'#fff',glyph:'◸',moves:[{dogear:1,atk:6},{atk:11},{dogear:1,atk:7}]},
+  diphthong:{name:'Diphthong',about:'Glides your next hand into four vowels.',hp:21,col:'#4F9BC2',eye:'#fff',glyph:'æ',moves:[{diph:1,atk:6},{atk:11},{atk:8}]},
+  silverfish:{name:'Silverfish',about:'Eats your enchantments and heals 3 for each.',hp:22,col:'#8E9AAB',eye:'#fff',glyph:'∫',moves:[{silver:1,atk:7},{atk:10},{silver:1,atk:6}]},
+  stammer:{name:'The Stammer',about:'Every letter you repeat in a word gives it 4 block.',hp:22,col:'#A3667E',eye:'#fff',glyph:'ss',moves:[{stammer:4,atk:6},{atk:10},{stammer:4,atk:7}]},
+  // Middling: can be the second foe of a daily.
+  lipogram:{name:'Lipogram',about:'Writes without a letter: bans one of your vowels.',hp:22,col:'#7A5FB0',eye:'#fff',glyph:'Ø',moves:[{ban:1,atk:6},{atk:11},{ban:1,atk:7}]},
+  plagiarist:{name:'The Plagiarist',about:'Steals your best tile.',hp:22,col:'#5B6B3A',eye:'#fff',glyph:'©',moves:[{steal:1,atk:7},{atk:10},{steal:1,atk:6}]},
+  smallcaps:{name:'Small Caps',about:'Cuts every letter down to size: all worth 1.',hp:20,col:'#C25A5A',eye:'#fff',glyph:'ᴀ',moves:[{caps:1,atk:6},{atk:12},{atk:8}]},
+  pedant:{name:'The Pedant',about:'Sniffs at short words: three letters do nothing.',hp:22,col:'#5A6FA0',eye:'#fff',glyph:'§',moves:[{pedant:1,atk:7},{atk:11},{pedant:1,atk:6}]},
+  hangman:{name:'Hangman',about:'Picks one of your letters: words without it deal half.',hp:22,col:'#6B5A4A',eye:'#fff',glyph:'_',moves:[{hang:1,atk:6},{atk:11},{hang:1,atk:7}]},
+  overdue:{name:'Overdue Fine',about:'Every tile you keep at the end of your turn costs 2 HP.',hp:23,col:'#C79A2E',eye:'#fff',glyph:'¢',moves:[{fine:2,atk:5},{atk:10},{fine:2,atk:6}]},
+  writersblock:{name:'Writer\'s Block',about:'Locks your tricks for a turn.',hp:22,col:'#4A4A5C',eye:'#fff',glyph:'■',moves:[{lock:1,atk:7},{atk:11},{lock:1,atk:6}]},
+  censor:{name:'The Censor',about:'Bleeps your big letters: tiles worth 4 or more are crossed out.',hp:22,col:'#2F2F3A',eye:'#fff',glyph:'*',moves:[{censor:1,atk:6},{atk:11},{censor:1,atk:6}]},
+  // Deep: only down the endless descent.
+  kerning:{name:'Tight Kerning',about:'Squeezes the Spellblade to four letters.',hp:24,col:'#3F8F6B',eye:'#fff',glyph:'AV',moves:[{kern:1,atk:7},{atk:12},{kern:1,atk:7}]},
+  mirror:{name:'Mirror Writing',about:'Long words (5+) bounce half their damage back at you.',hp:24,col:'#7FA0C8',eye:'#fff',glyph:'Я',moves:[{reflect:1,atk:6},{atk:12},{reflect:1,atk:8}]},
+  abridger:{name:'The Abridger',about:'Cuts you short: only your first word each turn lands in full.',hp:24,col:'#B0503A',eye:'#fff',glyph:'✂',moves:[{abridge:1,atk:7},{atk:12},{abridge:1,atk:7}]},
+  rex:{name:'Thesaurus Rex',about:'Wants bigger words: each must be longer than your last, or it deals half.',hp:26,col:'#5F8F3A',eye:'#fff',glyph:'≈',moves:[{rex:1,atk:8},{atk:14},{rex:1,atk:6}]},
+  cluster:{name:'Consonant Cluster',about:'Crams your next hand with consonants: one vowel.',hp:24,col:'#8A4F7A',eye:'#fff',glyph:'str',moves:[{cluster:1,atk:7},{atk:12},{cluster:1,atk:7}]}};
+// Foe tricks that land on your next turn (with Jumble, Nibble, Muffle and Red pen). They sit in S.hex for that turn.
+const HEX=['ban','steal','pied','smudge','censor','silver','dogear','hang','cluster','diph','caps','ellipsis','kern','pedant','abridge','rex','reflect','stammer','fine','lock'];
+const hx=()=>(S&&S.hex)||{};
+// New foes join the dailies on 27 Nov: the first foe comes from EARLY, the second from MIDDLE, the deep ones only down the descent.
+const OLD_KINDS=['gremlin','worm','hush','jacket','splice'],FOES_FROM='2026-11-27';
+const newFoes=seed=>!/^scrawl-\d{4}-\d{2}-\d{2}$/.test(seed)||seed.slice(7)>=FOES_FROM;
+const EARLY=[...OLD_KINDS,'smudge','pied','ellipsis','dogear','diphthong','silverfish','stammer'];
+const MIDDLE=[...OLD_KINDS,'lipogram','plagiarist','smallcaps','pedant','hangman','overdue','writersblock','censor'];
+const DEEP_ALL=[...new Set([...EARLY,...MIDDLE]),'kerning','mirror','abridger','rex','cluster'];
+function dailyTwo(r,seed){if(!newFoes(seed))return shuffle(r,OLD_KINDS).slice(0,2);
+  const a=EARLY[Math.floor(r()*EARLY.length)],m=MIDDLE.filter(k=>k!==a);return[a,m[Math.floor(r()*m.length)]]}
 let FOE_HP_SCALE=1.22,FOE_ATK_SCALE=1;   // tuned so a greedy bot with only Quill, Nudge and Flip (unused) wins about half its runs
 // Bonus squares hit harder, so foes on bonus days (from 22 Nov, and all endless runs) get 27% more health:
 // tuned so a bot that never uses tricks still wins about two runs in three, as before.
@@ -335,12 +372,31 @@ let FOE_HP_SCALE=1.22,FOE_ATK_SCALE=1;   // tuned so a greedy bot with only Quil
 const BL=SCRAWL_BLADE,RUNES=Object.fromEntries(BL.runes.map(r=>[r.id,r])),RUNE_IDS=BL.runes.map(r=>r.id);
 const bladeOn=seed=>!/^scrawl-\d{4}-\d{2}-\d{2}$/.test(seed)||seed.slice(7)>=BL.from,sword=()=>bladeOn(S.seed);
 const HP_BOOST=1.27,hpBoost=seed=>bladeOn(seed)?BL.foeHp:!/^scrawl-\d{4}-\d{2}-\d{2}$/.test(seed)||seed.slice(7)>='2026-11-22'?HP_BOOST:1;
+// Harder from the 27 Nov daily (and every endless, lab or Freeplay run now) if HARD_HP / HARD_ATK are raised; the sword's foeHp
+// already lifts foe health from that day, so they stay at 1 until measured. Down the descent each floor adds 3 HP and every
+// three floors +DEEP_STEP attack.
+const HARD_HP=1,HARD_ATK=1,DEEP_STEP=.15,hardMul=seed=>newFoes(seed)?HARD_HP:1;
 const atkOf=m=>Math.round((m.atk||0)*FOE_ATK_SCALE*((S&&S.foes&&foe().ax)||1));
 // Endless descent: after the first three foes, more keep coming. Every third is The Editor; each set of three hits 10% harder.
 const DEEP_KINDS=['gremlin','worm','hush','jacket','splice'];
-function deepFoe(i){const r=mulberry(hseed(S.seed+'-deep-'+i)),k=i%3===2?'editor':DEEP_KINDS[Math.floor(r()*DEEP_KINDS.length)],hp=Math.round((FOES[k].hp+i*2)*FOE_HP_SCALE*hpBoost(S.seed));
-  return{k,hp,max:hp,block:0,mi:Math.floor(r()*FOES[k].moves.length),ax:+(1+0.1*Math.floor(i/3)).toFixed(2)}}
-const moveText=m=>{const p=[];if(m.atk)p.push(`⚔ ${atkOf(m)}${m.twice?' ×2':''}`);if(m.armor)p.push(`🛡 ${m.armor}`);if(m.jumble)p.push('Jumble');if(m.nibble)p.push('Nibble');if(m.muffle)p.push('Muffle');if(m.redpen)p.push(`Red pen ×${m.redpen}`);return p.join(' · ')};
+function deepFoe(i){const r=mulberry(hseed(S.seed+'-deep-'+i)),K=newFoes(S.seed)?DEEP_ALL:DEEP_KINDS,k=i%3===2?'editor':K[Math.floor(r()*K.length)],hard=newFoes(S.seed),hp=Math.round((FOES[k].hp+i*(hard?3:2))*FOE_HP_SCALE*hpBoost(S.seed)*hardMul(S.seed));
+  return{k,hp,max:hp,block:0,mi:Math.floor(r()*FOES[k].moves.length),ax:+(hard?HARD_ATK+DEEP_STEP*Math.floor(i/3):1+0.1*Math.floor(i/3)).toFixed(2)}}
+const moveText=m=>{const p=[];if(m.atk)p.push(`⚔ ${atkOf(m)}${m.twice?' ×2':''}`);if(m.armor)p.push(`🛡 ${m.armor}`);if(m.jumble)p.push('Jumble');if(m.nibble)p.push('Nibble');if(m.muffle)p.push('Muffle');if(m.redpen)p.push(`Red pen ×${m.redpen}`);
+  for(const k of HEX)if(m[k])p.push(HEX_SAY[k](m[k]));return p.join(' · ')};
+// what each foe trick is called in the intent, and what it says on your turn while it's in force
+const HEX_SAY={ban:()=>'Ban a vowel',steal:()=>'Steal',pied:()=>'Pie vowels',smudge:n=>`Smudge ×${n}`,censor:()=>'Censor',silver:()=>'Eat enchantments',
+  dogear:()=>'Dog-ear',hang:()=>'Hangman',cluster:()=>'One vowel',diph:()=>'Four vowels',caps:()=>'Small caps',ellipsis:()=>'Ellipsis',kern:()=>'Kern to 4',
+  pedant:()=>'No short words',abridge:()=>'Abridge',rex:()=>'Crescendo',reflect:()=>'Mirror',stammer:n=>`Stammer ${n}`,fine:n=>`Fine ${n}/tile`,lock:()=>'Lock tricks'};
+const HEX_DID={ban:c=>`bans ${c.toUpperCase()}`,steal:c=>`steals your ${c.toUpperCase()}`,pied:()=>'pies your vowels',smudge:n=>`smudges ${n} tiles`,censor:n=>n?`censors ${n} big letter${n>1?'s':''}`:'finds nothing to censor',
+  silver:n=>n?`eats ${n} enchantment${n>1?'s':''}`:'finds nothing to eat',dogear:()=>'folds a blade slot',hang:c=>`hangs on ${c.toUpperCase()}`,cluster:()=>'leaves you one vowel',diph:()=>'deals you four vowels',
+  caps:()=>'shrinks your letters',ellipsis:()=>'trails off…',kern:()=>'kerns your blade to 4',pedant:()=>'sniffs at short words',abridge:()=>'abridges you',
+  rex:()=>'roars for longer words',reflect:()=>'turns its mirror on',stammer:()=>'starts to stammer',fine:n=>`charges ${n} a kept tile`,lock:()=>'locks your tricks'};
+const HEX_NOW={ban:c=>`Lipogram: no ${c.toUpperCase()} this turn`,steal:c=>`Stolen: your ${c.toUpperCase()}`,silver:n=>n?`Silverfish ate ${n} enchantment${n>1?'s':''} (+${3*n} HP)`:'',
+  dogear:()=>'Dog-ear: the folded slot scores 0',hang:c=>`Hangman: words without ${c.toUpperCase()} deal half`,caps:()=>'Small caps: every letter worth 1',
+  ellipsis:()=>'Ellipsis: a word\'s last letter scores 0',kern:()=>'Kerned: words of 4 letters at most',pedant:()=>'Pedant: 3-letter words do nothing',
+  abridge:()=>'Abridged: words after your first deal half',rex:()=>'Crescendo: each word must be longer than the last, or it deals half',
+  reflect:()=>'Mirror: words of 5+ letters bounce half back at you',stammer:n=>`Stammer: each repeated letter gives it ${n} block`,
+  fine:n=>`Overdue: each tile you keep costs ${n} HP at the end of the turn`,lock:()=>'Writer\'s block: tricks are locked'};
 function foeSVG(f){return `<svg viewBox="0 0 84 84" aria-hidden="true"><ellipse cx="42" cy="78" rx="26" ry="4" fill="rgba(0,0,0,.15)"/>
   <path d="M14,70 C8,40 20,10 42,10 C64,10 76,40 70,70 Q56,64 42,72 Q28,64 14,70Z" fill="${f.col}"/>
   <circle cx="32" cy="34" r="7" fill="${f.eye}"/><circle cx="52" cy="34" r="7" fill="${f.eye}"/><circle cx="33" cy="35" r="3.2" fill="#1d1a2b"/><circle cx="53" cy="35" r="3.2" fill="#1d1a2b"/>
@@ -350,9 +406,9 @@ function foeSVG(f){return `<svg viewBox="0 0 84 84" aria-hidden="true"><ellipse 
 function dayInfo(on){const d=on?new Date(on+'T12:00'):new Date(),t=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=new Date(2026,9,25);
   const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
   return{num:Math.round((t-s)/864e5)+1,iso,label:t.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}}
-function newRun(seed,lab,deep){const r=mulberry(hseed(seed));const two=shuffle(r,['gremlin','worm','hush','jacket','splice']).slice(0,2);
+function newRun(seed,lab,deep){const r=mulberry(hseed(seed));const two=dailyTwo(r,seed);
   const er=mulberry(hseed(seed+'-edge')),ek=Object.keys(EDGES);
-  return{v:2,seed,lab:!!lab,deep:!!deep,foes:[...two,'editor'].map((k,i)=>{const hp=Math.round((FOES[k].hp+i*2)*FOE_HP_SCALE*hpBoost(seed));return{k,hp,max:hp,block:0,mi:Math.floor(r()*FOES[k].moves.length)}}),
+  return{v:2,seed,lab:!!lab,deep:!!deep,foes:[...two,'editor'].map((k,i)=>{const hp=Math.round((FOES[k].hp+i*2)*FOE_HP_SCALE*hpBoost(seed)*hardMul(seed)),f={k,hp,max:hp,block:0,mi:Math.floor(r()*FOES[k].moves.length)};if(newFoes(seed))f.ax=HARD_ATK;return f}),
     fi:0,turn:0,turns:0,hp:HP,block:0,hand:[],spell:[],uses:{},fightUses:{},pending:{},muffle:false,best:null,over:null,log:'',
     kit:lab?['quill',...ROSTER]:START.slice(),edge:ek[Math.floor(er()*ek.length)],dayLetter:'bcdfghklmnprstw'[Math.floor(er()*15)],
     draft:lab?null:0,picks:[],made:0,charge:0,charged:false,lastWord:null,stun:false,swapIn:null,runes:{},bag:[],strikes:0,wordsTurn:0}}
@@ -400,7 +456,8 @@ const BAG_V=[...BAG].filter(c=>VOW.has(c)),BAG_C=[...BAG].filter(c=>!VOW.has(c))
 // Earlier dailies keep the old draw so a day's crawl never changes once it's out.
 const HARD_L=new Set('jqxz'),AWK_L=new Set('fkvwy'),FAIR_FROM='2026-11-21';
 const fairDraw=()=>!/^scrawl-\d{4}-\d{2}-\d{2}$/.test(S.seed)||S.seed.slice(7)>=FAIR_FROM;
-function drawTiles(n){const r=mulberry(hseed(S.seed+'-hand-'+S.fi+'-'+S.turn)),nv=Math.min(n-1,r()<.55?2:3),out=[],fair=fairDraw();
+// vow: a foe's Consonant Cluster (1 vowel) or Diphthong (4) sets the number of vowels instead
+function drawTiles(n,vow){const r=mulberry(hseed(S.seed+'-hand-'+S.fi+'-'+S.turn)),nv0=Math.min(n-1,r()<.55?2:3),nv=vow?Math.min(n-1,vow):nv0,out=[],fair=fairDraw();
   for(let k=0;k<n;k++){let pool=k<nv?BAG_V:BAG_C;
     if(fair&&k>=nv){pool=pool.filter(c=>!out.some(t=>t.ch===c));if(out.some(t=>HARD_L.has(t.ch)))pool=pool.filter(c=>!HARD_L.has(c));if(out.some(t=>AWK_L.has(t.ch)))pool=pool.filter(c=>!AWK_L.has(c))}
     out.push({id:S.fi+'-'+S.turn+'-'+k,ch:pool[Math.floor(r()*pool.length)]})}
@@ -417,19 +474,32 @@ function rollBonus(){const b=[null,null,null,null,null,null];
   const x=r(),t=x<.6?'dl':x<.75?'tl':'dw',i=t==='dw'?2+Math.floor(r()*4):Math.floor(r()*6);b[i]=t;
   if(r()<.35){const j=Math.floor(r()*6);if(!b[j])b[j]=r()<.75?'dl':'tl'}
   return b}
-const slotMul=i=>S.bonus&&S.bonus[i]==='dl'?2:S.bonus&&S.bonus[i]==='tl'?3:1;
+const slotMul=i=>S.bonus&&S.bonus[i]==='dl'?2:S.bonus&&S.bonus[i]==='tl'?3:S.bonus&&S.bonus[i]==='x'?0:1;   // x: Dog-ear's folded slot
+const maxWord=()=>hx().kern?4:MAXWORD;
 function startTurn(){
   S.turn++;S.turns++;S.uses={};S.kit.forEach(k=>{if(TOOLS[k].uses)S.uses[k]=TOOLS[k].uses});S.spell=[];S.block=Math.min(S.block||0,rper('bastion'));S.swapPick=null;S.pairCard=null;S.choosing=null;
-  const p=S.pending;S.muffle=!!p.muffle;
-  S.hand=drawTiles(HAND-(p.nibble||0));S.bonus=rollBonus();
+  const p=S.pending;S.muffle=!!p.muffle;S.lenTurn=0;
+  S.hand=drawTiles(HAND-(p.nibble||0),p.cluster?1:p.diph?4:0);S.bonus=rollBonus();
   const r=mulberry(hseed(S.seed+'-trick-'+S.fi+'-'+S.turn));
   if(p.jumble){const t=S.hand[Math.floor(r()*S.hand.length)];t.ch='qxzjkvwy'[Math.floor(r()*8)];t.fresh=true}
   if(p.redpen){shuffle(r,S.hand.map((_,i)=>i)).slice(0,p.redpen).forEach(i=>S.hand[i].crossed=true)}
+  S.hex=foeHex(p,r);   // the foe's trick lands on the fresh draw; the bag's tiles are safe from it too
   S.hand.push(...(S.bag||[]));S.bag=[];S.wordsTurn=0;   // the bag's tiles come back, safe from the foe's tricks
   S.pending={};sel=null}
+// the new foes' tricks, in this order, with the turn's trick dice
+function foeHex(p,r){const H={};for(const k of HEX)if(p[k])H[k]=p[k];const live=t=>!t.crossed&&t.ch!==BLANK;
+  if(H.ban){const v=S.hand.filter(t=>live(t)&&VOW.has(t.ch));if(v.length){const c=v[Math.floor(r()*v.length)].ch;H.ban=c;S.hand.forEach(t=>{if(t.ch===c)t.crossed=true})}else delete H.ban}
+  if(H.steal){let b=null;for(const t of S.hand)if(t.ch!==BLANK&&(!b||VAL[t.ch]>VAL[b.ch]))b=t;if(b){S.hand=S.hand.filter(t=>t!==b);H.steal=b.ch}else delete H.steal}
+  if(H.pied)S.hand.forEach(t=>{if(VOW.has(t.ch)){const o=[...'aeiou'].filter(c=>c!==t.ch);t.ch=o[Math.floor(r()*4)];t.fresh=true}});
+  if(H.smudge)shuffle(r,S.hand.map((_,i)=>i)).slice(0,H.smudge).forEach(i=>{S.hand[i].ch=BLANK;S.hand[i].fresh=true});
+  if(H.censor){const big=S.hand.filter(t=>!t.crossed&&t.ch!==BLANK&&VAL[t.ch]>=4);big.forEach(t=>t.crossed=true);H.censor=big.length}
+  if(H.silver){const n=S.hand.filter(t=>t.fx).length;S.hand.forEach(t=>delete t.fx);const f=foe();f.hp=Math.min(f.max,f.hp+3*n);H.silver=n}
+  if(H.dogear){const free=[0,1,2,3].filter(i=>!S.bonus[i]);if(free.length)S.bonus[free[Math.floor(r()*free.length)]]='x';else delete H.dogear}
+  if(H.hang){let c=S.hand.filter(t=>live(t)&&!VOW.has(t.ch));if(!c.length)c=S.hand.filter(live);if(c.length)H.hang=c[Math.floor(r()*c.length)].ch;else delete H.hang}
+  return H}
 function startFight(){S.bag=[];S.strikes=0;S.fightUses={};S.kit.forEach(k=>{if(TOOLS[k].perFight)S.fightUses[k]=TOOLS[k].perFight});S.turn=0;S.pending={};S.charge=0;S.charged=false;S.lastWord=null;S.stun=false;startTurn()}
 const foe=()=>S.foes[S.fi],F=()=>FOES[foe().k],nextMove=()=>F().moves[foe().mi%F().moves.length];
-const pts=t=>t.ch===BLANK?0:(S.muffle&&VOW.has(t.ch)?0:VAL[t.ch])*(t.fx==='gold'?2:1);
+const pts=t=>t.ch===BLANK?0:(S.muffle&&VOW.has(t.ch)?0:S.hex&&S.hex.caps?1:VAL[t.ch])*(t.fx==='gold'?2:1);
 const fireOf=ts=>ts.filter(t=>t.fx==='fire').length*4;
 const steelOf=ts=>ts.filter(t=>t.fx==='steel').length*6;
 // leaf tiles heal and steel tiles armour you when they're used, whatever they're used for
@@ -521,8 +591,8 @@ function preview(k,t){const T=TOOLS[k];if(!t||t.crossed||!usesLeft(k))return nul
   return null}
 function useOn(card){
   if(S.over||S.draft!=null||!sel)return;const t=byId(sel);if(!t||t.crossed){say('That tile is crossed out.');return}
-  if(card==='spell'){if(!putInBlade(t.id,slotTo)){say(`The Spellblade holds ${MAXWORD} letters.`);return}sel=null;render();return}
-  const T=TOOLS[card];if(!T)return;if(!usesLeft(card)){say(`${T.name} is used up${T.perFight?' for this foe':' this turn'}.`);return}
+  if(card==='spell'){if(!putInBlade(t.id,slotTo)){say(`The Spellblade holds ${maxWord()} letters${hx().kern?' this turn':''}.`);return}sel=null;render();return}
+  const T=TOOLS[card];if(!T)return;if(!usesLeft(card)){say(hx().lock?`${T.name} is locked this turn (Writer's Block).`:`${T.name} is used up${T.perFight?' for this foe':' this turn'}.`);return}
   const okv=T.ok?T.ok(t):true;if(okv!==true){say(`${T.name}: ${okv}.`);return}
   const L=c=>c===BLANK?'a blank':c.toUpperCase(),c=t.ch;
   switch(T.kind){
@@ -551,8 +621,9 @@ function removeTile(t){S.hand=S.hand.filter(x=>x!==t);S.spell=sword()?S.spell.ma
 // slots, and they must be one unbroken row. at = the slot it starts in.
 let slotTo=null;   // the slot a tap or drop aimed at, if any
 function putInBlade(id,at){const sp=S.spell;
-  if(!sword()||at==null){const i=sword()?(()=>{const last=sp.reduce((m,x,j)=>x?j:m,-1);for(let j=last+1;j<MAXWORD;j++)if(!sp[j])return j;for(let j=0;j<MAXWORD;j++)if(!sp[j])return j;return -1})():sp.length<MAXWORD?sp.length:-1;
+  if(!sword()||at==null){const N=maxWord(),i=sword()?(()=>{const last=sp.reduce((m,x,j)=>x?j:m,-1);for(let j=last+1;j<N;j++)if(!sp[j])return j;for(let j=0;j<N;j++)if(!sp[j])return j;return -1})():sp.length<N?sp.length:-1;
     if(i<0)return false;at=i}
+  if(at>=maxWord())return false;   // Tight Kerning squeezes the blade
   while(sp.length<at)sp.push(null);sp[at]=id;return true}
 function bladeWord(){const sp=S.spell,at=sp.findIndex(x=>x);if(at<0)return{at:0,ids:[],gap:false};let e=at;while(e<sp.length&&sp[e])e++;
   return{at,ids:sp.slice(at,e),gap:sp.slice(e).some(x=>x)}}
@@ -563,14 +634,19 @@ function spellWord(){if(bladeWord().gap)return null;const w=spellRaw();if(w.leng
   const tryFill=(arr,k)=>{if(k===holes.length){const s=arr.join('');return WORDS.has(s)?s:null}for(const ch of A){arr[holes[k]]=ch;const r=tryFill(arr,k+1);if(r)return r}return null};
   return tryFill([...w],0)}
 // damage, and whether today's edge kicks in
-// letters (with the squares they sit on) + length bonus + fire + runes, x2 on a double word, then the edge.
+// letters (with the squares they sit on) + length bonus + fire + runes, x2 on a double word, then the edge, then the foe's trick.
 // On the sword a word on the hilt also gives block for every letter.
-function wordHit(w){const B=bladeWord(),at=B.at,ts=B.ids.map(byId),E=EDGES[S.edge],rh=sword()?runeHit(ts.length):{dmg:0,heal:0};
-  let dmg=ts.reduce((s,t,i)=>s+pts(t)*slotMul(at+i),0)+(WORD_BONUS[ts.length]??0)+fireOf(ts)+rh.dmg;
+function wordHit(w){const B=bladeWord(),at=B.at,ts=B.ids.map(byId),E=EDGES[S.edge],rh=sword()?runeHit(ts.length):{dmg:0,heal:0},H=hx(),n=ts.length;
+  let dmg=ts.reduce((s,t,i)=>s+(H.ellipsis&&i===n-1?0:pts(t)*slotMul(at+i)),0)+(WORD_BONUS[n]??0)+fireOf(ts)+rh.dmg;
   const dw=ts.some((_,i)=>S.bonus&&S.bonus[at+i]==='dw');if(dw)dmg*=2;
   const on=!!E.test(w);if(on){if(E.mult)dmg*=E.mult;if(E.add)dmg+=E.add}
+  const cut=[];if(H.pedant&&n<4){dmg=0;cut.push('too short for the Pedant')}
+  if(H.hang&&!w.includes(H.hang)){dmg=Math.floor(dmg/2);cut.push(`no ${H.hang.toUpperCase()}: half`)}
+  if(H.abridge&&S.wordsTurn>0){dmg=Math.floor(dmg/2);cut.push('abridged: half')}
+  if(H.rex&&n<=(S.lenTurn||0)){dmg=Math.floor(dmg/2);cut.push('not longer: half')}
+  const gain=H.stammer?H.stammer*(n-new Set(w).size):0,back=H.reflect&&n>=5?Math.floor(dmg/2):0;
   const hilt=at===0&&S.bonus&&S.bonus[0]==='hilt'?hiltPer()*ts.length:0;
-  return{dmg,on,stun:on&&!!E.stun,fire:fireOf(ts),blk:steelOf(ts)+hilt,hilt,rune:rh.dmg,heal:rh.heal,dw,at,ts}}
+  return{dmg,on,stun:on&&!!E.stun,fire:fireOf(ts),blk:steelOf(ts)+hilt,hilt,rune:rh.dmg,heal:rh.heal,dw,at,ts,cut,gain,back}}
 function strike(){
   const w=spellWord();if(!w||S.draft!=null||S.over)return;const h=wordHit(w),E=EDGES[S.edge];
   if(!S.best||h.dmg>S.best.dmg)S.best={w,dmg:h.dmg};
@@ -581,8 +657,11 @@ function strike(){
   S.strikes=(S.strikes||0)+1;S.wordsTurn=(S.wordsTurn||0)+1;
   if(S.edge==='longsent'){if(S.charged)S.charged=false;S.charge+=w.length;if(S.charge>=12){S.charge-=12;S.charged=true}}
   if(h.stun)S.stun=true;S.lastWord=w;if(h.on)fxq.push({t:'edge',name:E.name});
+  S.lenTurn=w.length;if(h.gain){foe().block+=h.gain;fxq.push({t:'foeTurn',armor:h.gain})}
   hitFoe(h.dmg,`Spellblade: <b>${w.toUpperCase()}</b>${h.fire?' 🔥':''}${h.on?` (${E.name}!${h.stun?' stunned':''})`:''}`,from,!!h.fire);
-  if(u.heal)S.log+=` 🌿 +${u.heal} HP.`;if(u.blk)S.log+=` 🛡 +${u.blk} block.`;afterAction()}
+  if(u.heal)S.log+=` 🌿 +${u.heal} HP.`;if(u.blk)S.log+=` 🛡 +${u.blk} block.`;
+  if(h.gain)S.log+=` It stammers up ${h.gain} block.`;if(h.back){const was=S.hp;S.hp=Math.max(1,S.hp-h.back);if(S.hp<was){S.log+=` The mirror bounces <b>${was-S.hp}</b> back at you.`;fxq.push({t:'foeTurn',dmg:was-S.hp})}}
+  afterAction()}
 function hitFoe(n,what,from,fire){const f=foe(),soak=Math.min(f.block,n);f.block-=soak;f.hp=Math.max(0,f.hp-(n-soak));fxq.push({t:'hit',n:n-soak,blocked:soak,from:from||[],fire});
   say(`${what} hits for <b>${n-soak}</b>${soak?` (${soak} blocked)`:''}.`);flash='foe'}
 function afterAction(){
@@ -602,13 +681,14 @@ function endTurn(){
   // stunned: the foe loses its move
   const m=S.stun?{}:m0;
   if(m.armor)f.block+=m.armor;
+  const fine=hx().fine?hx().fine*S.hand.filter(t=>!t.crossed).length:0;S.hp=Math.max(0,S.hp-fine);   // Overdue Fine: kept tiles cost HP
   let dmg=0,blocked=0;const a=atkOf(m);if(a)for(let k=0;k<(m.twice?2:1);k++){const soak=Math.min(S.block,a);S.block-=soak;blocked+=soak;dmg+=a-soak}
-  fxq.push({t:'foeTurn',atk:!!a,dmg,blocked,armor:m.armor});dealNext=true;
-  S.hp=Math.max(0,S.hp-dmg);S.pending={jumble:m.jumble,nibble:m.nibble,muffle:m.muffle,redpen:m.redpen};f.mi++;
-  const bits=[];if(parry)bits.push(`meets your parry (🛡 ${parry})`);if(S.stun)bits.push('is stunned and does nothing');if(a)bits.push(`hits you for <b>${dmg}</b>${blocked?` (${blocked} blocked)`:''}`);if(m.armor)bits.push(`armours up (${m.armor})`);if(m.jumble)bits.push('jumbles a tile');if(m.nibble)bits.push('nibbles a tile');if(m.muffle)bits.push('muffles your vowels');if(m.redpen)bits.push(`crosses out ${m.redpen} tiles`);
+  fxq.push({t:'foeTurn',atk:!!a,dmg:dmg+fine,blocked,armor:m.armor});dealNext=true;
+  S.hp=Math.max(0,S.hp-dmg);S.pending={jumble:m.jumble,nibble:m.nibble,muffle:m.muffle,redpen:m.redpen};for(const k of HEX)if(m[k])S.pending[k]=m[k];f.mi++;
+  const bits=[];if(parry)bits.push(`meets your parry (🛡 ${parry})`);if(S.stun)bits.push('is stunned and does nothing');if(a)bits.push(`hits you for <b>${dmg}</b>${blocked?` (${blocked} blocked)`:''}`);if(m.armor)bits.push(`armours up (${m.armor})`);if(m.jumble)bits.push('jumbles a tile');if(m.nibble)bits.push('nibbles a tile');if(m.muffle)bits.push('muffles your vowels');if(m.redpen)bits.push(`crosses out ${m.redpen} tiles`);if(fine)bits.unshift(`fines you <b>${fine}</b> for kept tiles`);
   S.stun=false;
   if(S.hp<=0){S.over='lost';persist();render();showResult();return}
-  startTurn();say(`<b>${F().name}</b> ${bits.join(', ')||'waits'}.${kept.length?` Your bag brings back ${kept.map(t=>`<b>${t.ch===BLANK?'a blank':t.ch.toUpperCase()}</b>`).join(' and ')}.`:''}`);persist();render()}
+  startTurn();for(const k of HEX)if(S.hex[k]!=null)bits.push(HEX_DID[k](S.hex[k]));say(`<b>${F().name}</b> ${bits.join(', ')||'waits'}.${kept.length?` Your bag brings back ${kept.map(t=>`<b>${t.ch===BLANK?'a blank':t.ch.toUpperCase()}</b>`).join(' and ')}.`:''}`);persist();render()}
 
 // ---- drawing ----
 const runeChips=()=>{const ks=Object.keys(S.runes||{});return ks.map(k=>`<span class="rune" title="${runeDesc(k,rl(k)).replace(/"/g,'&quot;')}">${RUNES[k].name}${rl(k)>1?' '+ROMAN[rl(k)]:''}: ${runeDesc(k,rl(k))}</span>`).join('')+
@@ -624,7 +704,8 @@ function render(){
   flash='';
   $('youBar').querySelector('i').style.width=(S.hp/HP*100)+'%';$('youBar').querySelector('b').textContent=`${S.hp} / ${HP}`;
   $('youBlock').textContent=S.block?`🛡 ${S.block}`:'';
-  const st=[];if(S.muffle)st.push('Muffled: vowels worth 0');if(S.hand.some(t=>t.crossed))st.push('Red pen: crossed tiles can\'t be used');
+  const st=[],H=hx();if(S.muffle)st.push('Muffled: vowels worth 0');if(S.hand.some(t=>t.crossed)&&!H.ban)st.push(`${H.censor?'Censored':'Red pen'}: crossed tiles can't be used`);
+  for(const k of HEX)if(H[k]!=null&&HEX_NOW[k]){const x=HEX_NOW[k](H[k]);if(x)st.push(x)}
   $('status').innerHTML=st.map(x=>`<span>${x}</span>`).join('');
   // draft: a third trick before the first foe; after a win, a new trick in place of an old one, or keep your kit
   const drafting=S.draft!=null&&!S.over;$('draft').hidden=!drafting;$('cards').hidden=drafting;
@@ -643,9 +724,9 @@ function render(){
   const card=(k,title,uses,desc,wide,can)=>`<div class="cardx ${wide?'wide':''} ${uses==='used'?'spent':''} ${can?'can':''}" data-card="${k}"><h3>${title}<small>${uses}</small></h3><p>${desc}</p>`;
   const edgeChip=`<div class="edges"><span class="edge ${hit&&hit.on?'on':''}" title="${E.desc}">Today's edge: <b>${E.name}</b>${S.edge==='letter'?` (<b>${S.dayLetter.toUpperCase()}</b>)`:''}${S.edge==='longsent'?` <i class="meter"><i style="width:${S.charged?100:S.charge/12*100}%"></i></i>${S.charged?' ready':''}`:''}${S.lastWord&&(S.edge==='rhyme'||S.edge==='allit')?` · last word ${S.lastWord.toUpperCase()}`:''}</span><span class="edgedesc">${E.desc.replace("today's letter",`<b>${S.dayLetter.toUpperCase()}</b>`)}</span></div>`;
   const sw=sword(),SW=['hilt','guard','blade','blade','blade','tip'];
-  let blade=card('spell','Spellblade','any time',sw?`A real word, 3 to ${MAXWORD} letters, in one unbroken row: its points, plus a bonus for length. Put a tile in any slot.`:`A real word, 3 to ${MAXWORD} letters: its points, plus a bonus for length. Spell as many words as your tiles allow.`,true,!!T)+(sw?`<div class="runes">${runeChips()}</div>`:'')+edgeChip+
-    `<div class="wordrow ${sw?'sword':''}"><div class="slots">${[...Array(MAXWORD)].map((_,i)=>{const t=S.spell[i]&&byId(S.spell[i]);const bq=S.bonus&&S.bonus[i],BQ={dl:'double letter',tl:'triple letter',dw:'double word',hilt:'hilt: block for every letter'};
-      const lab=bq==='hilt'?'🛡':bq?bq.toUpperCase():'';return `<button class="slot ${t?'full':''} ${bq?'b-'+bq:''} ${sw?'s-'+SW[i]:''}" data-spell="${i}" aria-label="${t?'Letter '+(t.ch===BLANK?'blank':t.ch.toUpperCase())+', tap to take back':'Empty word slot'}${bq?', '+BQ[bq]:''}">${t?tileHTML(t):lab?`<span class="blab">${lab}</span>`:''}</button>`}).join('')}</div>
+  let blade=card('spell','Spellblade','any time',sw?`A real word, 3 to ${maxWord()} letters${hx().kern?' this turn':''}, in one unbroken row: its points, plus a bonus for length. Put a tile in any slot.`:`A real word, 3 to ${maxWord()} letters${hx().kern?' this turn':''}: its points, plus a bonus for length. Spell as many words as your tiles allow.`,true,!!T)+(sw?`<div class="runes">${runeChips()}</div>`:'')+edgeChip+
+    `<div class="wordrow ${sw?'sword':''}"><div class="slots">${[...Array(MAXWORD)].map((_,i)=>{const t=S.spell[i]&&byId(S.spell[i]);if(i>=maxWord())return `<span class="slot kerned" aria-label="Squeezed out by Tight Kerning"></span>`;const bq=S.bonus&&S.bonus[i],BQ={dl:'double letter',tl:'triple letter',dw:'double word',hilt:'hilt: block for every letter',x:'folded: scores 0'};
+      const lab=bq==='hilt'?'🛡':bq==='x'?'0':bq?bq.toUpperCase():'';return `<button class="slot ${t?'full':''} ${bq?'b-'+bq:''} ${sw?'s-'+SW[i]:''}" data-spell="${i}" aria-label="${t?'Letter '+(t.ch===BLANK?'blank':t.ch.toUpperCase())+', tap to take back':'Empty word slot'}${bq?', '+BQ[bq]:''}">${t?tileHTML(t):lab?`<span class="blab">${lab}</span>`:''}</button>`}).join('')}</div>
     </div>${sw?`<div class="swordkey"><b>Hilt</b> +${hiltPer()} 🛡 a letter · <b>Crossguard</b> double letter · <b>Tip</b> double word</div>`:''}
     <div class="strikerow"><div class="wordinfo">${raw.length?(bladeWord().gap?'<span class="bad">Close the gap: a word is one unbroken row.</span>':raw.length<3?'Three letters or more.':w?`<b>${w.toUpperCase()}</b>${raw.includes(BLANK)?' (blank filled)':''} · <b>${hit.dmg} damage</b>${hit.on?` · <b class="edgeon">${E.name}!</b>`:''}${hit.blk?` · <b class="blkon">🛡 +${hit.blk} block</b>`:''}${hit.heal?` · <b>❤ +${hit.heal}</b>`:''}<br><small>${breakdown(hit)}</small>`:`<span class="bad">${raw.replace(/\?/g,'_').toUpperCase()} isn't in the word list</span>`):'Tap tiles to spell into the blade.'}</div><button class="btn primary" id="strikeBtn" ${w?'':'disabled'}>Strike</button></div></div>`;
   let h='';
@@ -702,9 +783,10 @@ document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||!S||S
   else if(e.key==='Backspace'){S.spell.pop();while(S.spell.length&&!S.spell[S.spell.length-1])S.spell.pop();render();e.preventDefault()}
   else if(e.key==='Enter'){strike();e.preventDefault()}});
 // where a word's damage comes from: letters + length bonus (+ fire), then today's edge
-function breakdown(hit){const ts=hit.ts,at=hit.at,n=ts.length,E=EDGES[S.edge],letters=ts.reduce((a,t,i)=>a+pts(t)*slotMul(at+i),0),boosted=ts.some((_,i)=>slotMul(at+i)>1),bits=[`letters ${letters}${boosted?' (bonus squares)':''}`];
+function breakdown(hit){const ts=hit.ts,at=hit.at,n=ts.length,E=EDGES[S.edge],letters=ts.reduce((a,t,i)=>a+(hx().ellipsis&&i===n-1?0:pts(t)*slotMul(at+i)),0),boosted=ts.some((_,i)=>slotMul(at+i)>1),bits=[`letters ${letters}${boosted?' (bonus squares)':''}`];
   if(WORD_BONUS[n])bits.push(`${n}-letter bonus ${WORD_BONUS[n]}`);if(hit.fire)bits.push(`🔥 ${hit.fire}`);if(hit.rune)bits.push(`runes ${hit.rune}`);
-  let txt=bits.join(' + ');if(hit.dw)txt=`(${txt}) × 2 ${sword()?'tip':'double word'}`;if(hit.on&&E.mult)txt=`(${txt}) × ${E.mult} ${E.name}`;if(hit.on&&E.add)txt+=` + ${E.add} ${E.name}`;if(hit.stun)txt+=' · stuns';return txt}
+  let txt=bits.join(' + ');if(hit.dw)txt=`(${txt}) × 2 ${sword()?'tip':'double word'}`;if(hit.on&&E.mult)txt=`(${txt}) × ${E.mult} ${E.name}`;if(hit.on&&E.add)txt+=` + ${E.add} ${E.name}`;if(hit.stun)txt+=' · stuns';
+  if(hit.cut.length)txt+=' · '+hit.cut.join(' · ');if(hit.gain)txt+=` · it gains ${hit.gain} block`;if(hit.back)txt+=` · ${hit.back} bounces back`;return txt}
 // Undo: take back the last trick, Quill or Strike this turn. Gone once the turn ends or a foe falls (no peeking at the next fight).
 let undoStack=[];
 function undoable(fn){return function(...a){if(!S||S.over||S.draft!=null)return fn.apply(this,a);
