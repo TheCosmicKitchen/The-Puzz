@@ -57,5 +57,31 @@
             S.hand=[...w].map((ch,i)=>({id:'h'+i,ch,fx:i===1?'fire':undefined}));S.spell=S.hand.map(t=>t.id);
             const h=wordHit(w);out.hits.push([H,w,b.map(x=>x||'-'),nt,lt,h.dmg,h.gain,h.back])}
     out.hits_note='wordHit on fixed words from the first slot (2nd tile on fire, edge Haiku, no runes) under each foe trick: [trick, word, blade squares, words already struck this turn, last length, damage, block it gains, damage bounced back].';
+    // every trick (scrawl/trick-families): the lab kit, used once each, for two turns; the hand after each use, compact
+    FOE_HP_SCALE=keepHP;FOE_ATK_SCALE=keepATK;
+    const FXM = { fire: '^', steel: '#', gold: '$', leaf: '+' }, compact = () => S.hand.map(t => t.ch + (FXM[t.fx] || '') + (t.crossed ? '*' : '')).join('');
+    const tricks = [], TRICK_SEEDS = ['endless-trk01', 'endless-trk02', 'endless-trk03'];
+    // every trick: the lab kit, each used once in kit order on the first tile (or pair, or 3-letter word) that takes it
+    for (const seed of TRICK_SEEDS) {
+      S = newRun(seed, true, false); startFight(); const log = [];
+      for (let turn = 0; turn < 2 && !S.over; turn++) {
+        for (const k of S.kit) {
+          const T = TOOLS[k]; if (k === 'quill' || !usesLeft(k) || S.over) continue;
+          const free = S.hand.filter(t => !t.crossed && !busyIds().has(t.id)), okT = free.filter(t => T.ok(t) === true);
+          if (T.notile) { fireTrick(k); if (S.affixing) chooseAffix(S.affixing.opts[0]) }
+          else if (T.kind === 'socket') {
+            let w = null;
+            for (const a of okT) for (const b of okT) for (const c of okT) if (!w && a !== b && b !== c && a !== c && WORDS.has(a.ch + b.ch + c.ch)) w = [a, b, c];
+            if (!w) continue; for (const t of w) { sel = t.id; useOn(k) } setSocket(k) }
+          else if (T.kind === 'pair') {
+            const a = okT[0], b = a && okT.find(t => t !== a && T.pair(a, t)); if (!b) continue;
+            sel = a.id; useOn(k); sel = b.id; useOn(k) }
+          else { const t = okT[0]; if (!t) continue; sel = t.id; useOn(k);
+            if (T.kind === 'choose') chooseLetter(T.options(t).find(c => c !== t.ch)) }
+          log.push([k, compact(), foe().hp, S.block, S.hp]) }
+        if (!S.over) endTurn() }
+      tricks.push({ seed, log }) }
+    out.tricks=tricks;
+    out.tricks_note='Every trick in the lab kit used once in kit order on the first tile (pair, or 3-letter word) that takes it, for two turns: [trick, hand (^ fire, # steel, $ gold, + leaf, * crossed), foe hp, block, hp].';
   }finally{FOE_HP_SCALE=keepHP;FOE_ATK_SCALE=keepATK;S=keepS;mode=keepMode;render()}
   return JSON.stringify(out)})()

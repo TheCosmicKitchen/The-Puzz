@@ -642,6 +642,220 @@ window.SCRAWL_ITEMS={
     }
    },
    "from": "2026-11-22"
+  },
+  {
+   "id": "inkwell",
+   "name": "Inkwell",
+   "tier": "common",
+   "kind": "draw",
+   "uses": 1,
+   "desc": "Draw a tile.",
+   "effect": {
+    "draw": {
+     "n": 1,
+     "pool": "any"
+    }
+   },
+   "from": "2026-11-27"
+  },
+  {
+   "id": "pouch",
+   "name": "Vowel Pouch",
+   "tier": "common",
+   "kind": "draw",
+   "uses": 1,
+   "desc": "Draw a vowel.",
+   "effect": {
+    "draw": {
+     "n": 1,
+     "pool": "vowel"
+    }
+   },
+   "from": "2026-11-27"
+  },
+  {
+   "id": "lucky",
+   "name": "Lucky Letter",
+   "tier": "common",
+   "kind": "draw",
+   "uses": 1,
+   "desc": "Draw one of R S T L N E.",
+   "effect": {
+    "draw": {
+     "n": 1,
+     "pool": "rstlne"
+    }
+   },
+   "from": "2026-11-27"
+  },
+  {
+   "id": "polish",
+   "name": "Polish",
+   "tier": "common",
+   "kind": "reroll",
+   "uses": 2,
+   "desc": "Reroll a tile into one of E T A O I N S R H L, twice a turn.",
+   "target": {
+    "type": "notBlank",
+    "msg": "Not on a blank"
+   },
+   "effect": {
+    "reroll": {
+     "pool": "etaoinsrhl"
+    }
+   },
+   "from": "2026-11-27"
+  },
+  {
+   "id": "ember",
+   "name": "Ember",
+   "tier": "common",
+   "kind": "morph",
+   "uses": 1,
+   "desc": "A tile catches fire: 🔥 Flaming, +4 damage.",
+   "target": {
+    "type": "notBlank",
+    "msg": "Not on a blank"
+   },
+   "effect": {
+    "fx": "fire"
+   },
+   "from": "2026-11-27"
+  },
+  {
+   "id": "suffix",
+   "name": "Suffix",
+   "tier": "uncommon",
+   "kind": "affix",
+   "perFight": 1,
+   "desc": "Pop a random suffix as new tiles, once a foe: -ING, -ED, -ER, -EST or -LY.",
+   "effect": {
+    "affix": {
+     "list": [
+      "ing",
+      "ed",
+      "er",
+      "est",
+      "ly"
+     ]
+    }
+   },
+   "from": "2026-11-27"
+  },
+  {
+   "id": "prefix",
+   "name": "Prefix",
+   "tier": "uncommon",
+   "kind": "affix",
+   "perFight": 1,
+   "desc": "Pop a random prefix as new tiles, once a foe: RE-, UN-, DE-, IN- or PRE-.",
+   "effect": {
+    "affix": {
+     "list": [
+      "re",
+      "un",
+      "de",
+      "in",
+      "pre"
+     ]
+    }
+   },
+   "from": "2026-11-27"
+  },
+  {
+   "id": "gild",
+   "name": "Gild",
+   "tier": "uncommon",
+   "kind": "morph",
+   "perFight": 2,
+   "desc": "A tile turns ✨ Gilded, worth double, twice a foe.",
+   "target": {
+    "type": "notBlank",
+    "msg": "Not on a blank"
+   },
+   "effect": {
+    "fx": "gold"
+   },
+   "from": "2026-11-27"
+  },
+  {
+   "id": "grabbag",
+   "name": "Grab Bag",
+   "tier": "uncommon",
+   "kind": "affix",
+   "perFight": 1,
+   "desc": "Pop a random 3-letter word as new tiles, once a foe.",
+   "effect": {
+    "affix": {
+     "list": [
+      "art",
+      "ore",
+      "tea",
+      "sea",
+      "ear",
+      "eat",
+      "rat",
+      "tan",
+      "net",
+      "toe"
+     ]
+    }
+   },
+   "from": "2026-11-27"
+  },
+  {
+   "id": "exchange",
+   "name": "Exchange",
+   "tier": "uncommon",
+   "kind": "socket",
+   "uses": 1,
+   "desc": "Socket: set a 3-letter word in it. It deals its points and you draw 4 tiles.",
+   "effect": {
+    "socket": {
+     "len": 3,
+     "dmg": 1,
+     "draw": 4
+    }
+   },
+   "from": "2026-11-27"
+  },
+  {
+   "id": "glyph",
+   "name": "Glyph",
+   "tier": "rare",
+   "kind": "socket",
+   "uses": 1,
+   "desc": "Socket: set a 3-letter word in it. It deals triple its points.",
+   "effect": {
+    "socket": {
+     "len": 3,
+     "dmg": 3
+    }
+   },
+   "from": "2026-11-27"
+  },
+  {
+   "id": "hyphen",
+   "name": "Hyphen",
+   "tier": "rare",
+   "kind": "affix",
+   "uses": 1,
+   "desc": "Two random affixes on offer; pick one to pop as new tiles: RE- UN- DE- -ING -ED -ER -ES.",
+   "effect": {
+    "affix": {
+     "list": [
+      "re",
+      "un",
+      "de",
+      "ing",
+      "ed",
+      "er",
+      "es"
+     ],
+     "offer": 2
+    }
+   },
+   "from": "2026-11-27"
   }
  ]
 };

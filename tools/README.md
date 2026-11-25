@@ -11,6 +11,7 @@ Needs Python 3.10+, nothing else. Runs on every core but one (`-j` to change).
 | | |
 |---|---|
 | `py tools/scrawl_sim.py selftest` | Replays reference runs captured from the page. Run it after any change to the page or the sim. |
+| `py tools/scrawl_sim.py fixtures capture.json` | Stamps a capture from `capture_fixtures.js` with the rules fingerprint and saves it as `sim_fixtures.json`. |
 | `py tools/scrawl_sim.py report -n 2000` | The whole health check: three bots, third-trick sweeps, a foe-HP scan, and findings written by rules → `sim-out/report.md` |
 | `py tools/scrawl_sim.py trial --round N` | One evolution round: tests the tricks in `ideas/rN.py` against the live ones and records the results in `evolution/history.json` |
 | `py tools/scrawl_sim.py publish` | Rebuilds the Lab (`../scrawl-lab/`, on the site at /scrawl-lab/): the report index and the evolution page. `trial` and `report` do this for you. |
@@ -31,8 +32,11 @@ stronger than people: read the results as *how much a trick is worth*, not *how 
 
 1. **Ideate**: write `ideas/rN.py` with `IDEAS` (the new tricks), `PARENTS` (which trick each one evolved from),
    `NOTE` (what the round is testing) and `TEST` (the tricks to trial, with live and earlier ones as controls).
-   Trick kinds: `morph` (tile → letter), `choose` (tile → a letter from `options`), `make` (tile → tiles), `pair` (two tiles → two letters).
-2. **Trial**: run `py tools/scrawl_sim.py trial --round N` (600 seeds per trick by default, `-n` to change).
+   Write ideas as `RECORDS = [...]` in the item grammar below (they can be pasted into the roster as they are, and their trial runs are cached),
+   or as `IDEAS = {name: tool dict}` in Python for mechanics the grammar can't say yet. An idea can't reuse a live item's id.
+2. **Trial**: run `py tools/scrawl_sim.py trial --round N` (`-n` seeds per trick; `--quick` for the heuristic bots, `--base ''` to trial a trick alone).
+   Runs are deterministic, so every run of a live trick or a record idea is cached in `sim-out/run-cache-*.pkl` (keyed by the
+   sim's rules and planner code, the page's rules and the foe HP scale): a round only plays its new ideas.
    The kit is Quill + Nudge + Flip + the trick, and foe HP is ×2.5 so the strong tricks don't all hit 100% wins.
 3. **Evolve**: read the verdicts (keeper / niche / weak / dud / overpowered, plus trap), then write the next round from them.
 4. The trial saves itself to the Lab (`scrawl-lab/reports/`) with its version, commit and command. Commit and push to put it on the site.
@@ -52,7 +56,7 @@ Every trick except Quill lives in `../scrawl-items.js`, which both the page and 
 
 | Field | Values |
 |---|---|
-| `kind` | `morph` (change the tile), `choose` (the player picks the new letter), `make` (one tile becomes several), `pair` (two tiles), `swap` |
+| `kind` | `morph` (change the tile), `choose` (the player picks the new letter), `make` (one tile becomes several), `pair` (two tiles), `swap`, `draw` (new tiles), `reroll` (random letters), `affix` (pop a prefix or suffix), `socket` (spell a word into it) |
 | `uses` / `perFight` | charges per turn / per foe |
 | `tier` | `common`, `uncommon`, `rare`. No tier means retired: never offered, kept for old dailies |
 | `from` | optional date: the tool joins dailies from that day (endless and lab runs get it straight away) |
@@ -61,6 +65,16 @@ Every trick except Quill lives in `../scrawl-items.js`, which both the page and 
 | choose `effect` | `{"options": {"letters": "aeiou"}}`, `{"options": {"groups": ["bdpq", "nu"]}}` (the tile's own group) or `{"options": {"steps": [-1, 1]}}` (steps from the tile) |
 | make `effect` | `{"make": [{"self": true}, {"copy": true}, {"letter": "e"}]}`. `self` keeps the enchantment, `copy` and `letter` don't |
 | pair `effect` | `{"copyFrom": true, "sameKind": true}`: the first tile takes the second's letter |
+| morph `{"fx": ...}` | `{"fx": "fire"}` (or `steel`, `gold`, `leaf`): the tile keeps its letter and takes that enchantment |
+| draw `effect` | `{"draw": {"n": 2, "pool": "vowel"}}`: no tile needed, a button on the card. `pool`: `any`, `vowel`, `consonant` (weighted like the bag) or a string of letters (even odds) |
+| reroll `effect` | `{"reroll": {"pool": "same"}}`: the tile gets a random other letter (`same` = its own kind). With `"hand": true` no tile is needed and every tile the `target` allows rerolls |
+| affix `effect` | `{"affix": {"list": ["re", "ing"], "offer": 2}}`: no tile needed; pops one entry as new tiles at random, or rolls `offer` of them for the player to pick |
+| socket `effect` | `{"socket": {"len": 3, "dmg": 2, "block": 1, "heal": 0, "draw": 0}}`: the player drops `len` tiles that spell a word into the card and presses Set. Deals `dmg` × (points + 🔥), gives `block` × points, heals `heal`, draws `draw` |
+
+**Random tricks** (draw, reroll, affix, and a socket that draws) roll `mulberry(hseed(seed-roll-<foe>-<turn>-<n>))`, where n counts
+the random uses this turn. Everyone rolls the same on a daily, and Undo puts the counter back, so it can't reroll. The bots
+never peek: they value a random trick by 8 outcomes from a separate stream (`-plan-`), use it if that average beats the
+turn they have, then plan the rest of the turn after seeing the real roll.
 
 The file's order matters: it sets the roster order, which the seeded Armoury rolls depend on. Add new items at the end.
 
@@ -109,10 +123,14 @@ Pages load every local script and stylesheet as `file.js?v=<hash of the file>`. 
   are never mixed up silently.
 * Each version is tagged in git as `scrawl-sim-v<version>`. A report names its tag and command, so `git checkout <tag>` then the command reproduces it exactly.
 * `sim_fixtures.json` holds reference runs captured from the page. `selftest` must pass before a trial means anything.
-  If the page's rules change, port the change, recapture the fixtures in the browser (run `capture_fixtures.js` in the console on scrawl.html), and bump the version.
+  If the page's rules change, port the change, recapture the fixtures in the browser, and bump the version. To recapture,
+  open `scrawl.html#lab`, run `capture_fixtures.js` in the console, save the string it returns and run
+  `py tools/scrawl_sim.py fixtures that-file.json`. Besides the scripted runs it plays every trick in the lab kit on three
+  seeds, so random tricks, affixes and sockets are checked use by use.
 
 ## Changelog
 
+* **2.0.0** (2026-11-25): new trick kinds: `draw`, `reroll`, `affix` (random prefixes and suffixes), `socket` (spell a 3-letter word into the trick) and enchanting morphs (`{"fx": ...}`), on page and sim. Random tricks roll a seeded stream per use; bots value them from 8 imagined outcomes and replan after the real roll. Hands over 8 tiles plan with their 50 best words. Trials no longer let an old idea shadow a live item with the same id (rounds 1 to 3 had swapped old prototypes in for Recast, Respell, Back and others as controls), and cache their runs. `capture_fixtures.js` and the `fixtures` command; the fixtures now play every trick in the lab kit. Bots: `quick` and `qeager`, heuristic versions of smart and eager (greedy word order, the 5 most promising single-tile changes per trick by a one-pass word index, 4 imagined rolls); `trial --quick` uses them, `--base ''` trials each trick alone over no tricks, `--bar` sets a floor for keepers. 12 new tricks join the roster from the 27 Nov daily (Inkwell, Vowel Pouch, Lucky Letter, Polish, Ember, Suffix, Prefix, Gild, Grab Bag, Exchange, Glyph, Hyphen), tiered by hand from one 40-seed pilot; no evolution rounds were run (round 4 and 5 idea files are written, untrialled). Past dailies replay exactly as before.
 * **1.9.0** (2026-11-25): 20 new foes from the 27 Nov daily (endless straight away): Smudge, Pied Type, Ellipsis, Dog-Ear, Diphthong, Silverfish, The Stammer (first-foe pool); Lipogram, The Plagiarist, Small Caps, The Pedant, Hangman, Overdue Fine, Writer's Block, The Censor (second-foe pool); Tight Kerning, Mirror Writing, The Abridger, Thesaurus Rex, Consonant Cluster (descent only). The descent ramps faster on those seeds: +3 HP a floor and +0.15 attack every three floors (was +2 and +0.1). `HARD_HP` / `HARD_ATK` multiply foe health and attack on the same seeds; they stay at 1 because the sword's ×2.4 already lifts foe health from that day (`compare --hard H,A` scans them). The planner scores every foe trick, and `compare` reports how often each foe ends a run. (1.8.0 is left for an open PR.)
 * **1.7.0** (2026-11-24): from the 27 Nov daily the Spellblade is a sword (`scrawl-blade.js`): hilt (1 block a letter), crossguard DL, tip DW in place of the rolled bonus squares, and tiles go in any slot. Eight runes for the sword, one on offer at each Armoury beside the tricks (3 sockets, 3 levels). A holdover bag keeps 2 unused tiles for the next turn. Foes get ×2.4 health on sword days in place of ×1.27 (no-tricks win rate back to about 2 in 3). Fixtures are captured with `tools/capture_fixtures.js` and include sword cases with preset runes.
 * **1.6.0** (2026-11-22): from the 23 Nov daily: blade bonus squares (DL / TL / DW), foes get 27% more health on bonus days (no-tricks win rate 67.6%, as before), and 12 new tools join the roster (Soften, Scribble, Lunge, Recoil, Triplicate, Kin, Bloom, Dial, Spin, Plural, Wye, Resound; 27 in all). New grammar: choose options by `steps`. The planner scores each word by its letter order.

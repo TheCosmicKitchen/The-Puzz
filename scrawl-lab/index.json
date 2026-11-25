@@ -1,7 +1,31 @@
 {
- "sim_version": "1.5.0",
- "built": "2026-11-20 20:36",
+ "sim_version": "2.0.0",
+ "built": "2026-11-24 21:11",
  "changelog": [
+  {
+   "version": "2.0.0",
+   "date": "2026-11-25",
+   "note": "New trick kinds: draw, reroll, affix (random prefixes and suffixes), socket (spell a 3-letter word into the trick) and enchanting morphs. Random tricks roll a seeded stream per use; bots plan them from 8 imagined outcomes and replan after the real roll. Hands over 8 tiles plan with their 50 best words. Heuristic quick / qeager bots; trial --quick, --base, --bar. Old idea ids no longer shadow live items in trials; trial runs are cached. 12 new tricks from the 27 Nov daily, tiered by hand (no rounds run).",
+   "tag": "scrawl-sim-v2.0.0"
+  },
+  {
+   "version": "1.9.0",
+   "date": "2026-11-25",
+   "note": "20 new foes from the 27 Nov daily (endless straight away), each with a trick on your next turn: a daily draws its first foe from an easy pool and its second from a middling one; five deep foes only appear down the descent, which ramps faster (+3 HP a floor, +0.15 attack per three floors). HARD_HP / HARD_ATK levers (1 for now: the sword already raises foe HP). compare reports how often each foe ends a run. (1.8.0 left for an open PR.)",
+   "tag": "scrawl-sim-v1.9.0"
+  },
+  {
+   "version": "1.7.0",
+   "date": "2026-11-24",
+   "note": "From the 27 Nov daily the Spellblade is a sword (scrawl-blade.js): hilt (block per letter), crossguard DL, tip DW, tiles in any slot; 8 runes offered at the Armoury beside the tricks (3 sockets, 3 levels); a holdover bag of 2; foe HP x2.4 on sword days in place of x1.27. Planner places each word on the hilt or where it hits hardest; drafts: tools / blade / runes.",
+   "tag": "scrawl-sim-v1.7.0"
+  },
+  {
+   "version": "1.6.0",
+   "date": "2026-11-22",
+   "note": "Blade bonus squares (DL / TL / DW) from the 22 Nov daily; five new tools (Soften, Scribble, Lunge, Recoil, Triplicate) join the roster that day; planner scores each word by its letter order.",
+   "tag": "scrawl-sim-v1.6.0"
+  },
   {
    "version": "1.5.0",
    "date": "2026-11-20",
