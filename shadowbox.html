@@ -69,7 +69,7 @@ h1 span{color:var(--f1)}
 .cnt.done{opacity:.45}
 .pin{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}
 .nope .base{stroke:var(--bad);stroke-width:3}
-@media (prefers-reduced-motion:no-preference){.pop{animation:pop .16s ease-out;transform-box:fill-box;transform-origin:center}@keyframes pop{from{transform:scale(.65)}to{transform:scale(1)}}}
+@media (prefers-reduced-motion:no-preference){.pop{animation:pop .22s ease-out;transform-box:fill-box;transform-origin:center}@keyframes pop{0%{transform:scale(.7)}55%{transform:scale(1.1)}80%{transform:scale(.97)}100%{transform:scale(1)}}}
 .patchbox{background:var(--surface);border-radius:18px;padding:10px 14px;display:flex;flex-direction:column;gap:8px}
 .ph{font:600 12px var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .patches{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-start}
@@ -98,7 +98,7 @@ details li svg{flex:none;width:44px;height:44px}
 </style>
 
 <link rel="stylesheet" href="puzz-feel.css?v=afefd904">
-<script src="puzz-feel.js?v=091fdaf9"></script>
+<script src="puzz-feel.js?v=c51d13d4"></script>
 </head>
 <body>
 <div class="wrap">
@@ -399,18 +399,18 @@ function render(){
       if(!up)d.push(`M${x0},${y0}H${x1}`);if(!dn)d.push(`M${x0},${y1}H${x1}`);if(!lf)d.push(`M${x0},${y0}V${y1}`);if(!rt)d.push(`M${x1},${y0}V${y1}`)});
     s+=`<path class="cage${bad}" d="${d.join('')}" pointer-events="none"/>`;
     const sh=[];c.need.forEach((k,j)=>{for(let t=0;t<k;t++)sh.push(j)});const top=Math.min(...c.cells),[tx,ty]=xy(top),w=sh.length*13+6;
-    s+=`<g class="tag${bad}" transform="translate(${tx+3},${ty-6})" pointer-events="none"><rect width="${w}" height="15" rx="7.5"/>${sh.map((j,k)=>`<g transform="translate(${9.5+k*13},7.5)">${glyph(j,4.3,'ink')}</g>`).join('')}</g>`});
+    s+=`<g class="tag${bad}" data-k="${P.clues.indexOf(c)}" transform="translate(${tx+3},${ty-6})" pointer-events="none"><rect width="${w}" height="15" rx="7.5"/>${sh.map((j,k)=>`<g transform="translate(${9.5+k*13},7.5)">${glyph(j,4.3,'ink')}</g>`).join('')}</g>`});
   // links
   P.clues.filter(c=>c.t==='l').forEach(c=>{const[ax,ay]=xy(c.a),[bx,by]=xy(c.b),cx=(ax+bx)/2+Z/2,cy=(ay+by)/2+Z/2,bad=status(c)==='bad'?' bad':'';
     const bd=c.prop==='c'?`<circle class="bd" r="9"/>${[0,1,2,3].map(k=>{const a0=k*Math.PI/2-Math.PI/2,a1=a0+Math.PI/2,R=9;return `<path d="M${(R*Math.cos(a0)).toFixed(2)},${(R*Math.sin(a0)).toFixed(2)}A${R},${R} 0 0 1 ${(R*Math.cos(a1)).toFixed(2)},${(R*Math.sin(a1)).toFixed(2)}" fill="none" class="s${k}" stroke-width="2.6"/>`}).join('')}`
       :`<rect class="bd" x="-7.5" y="-7.5" width="15" height="15" transform="rotate(45)"/>`;
-    s+=`<g class="lk${bad}" transform="translate(${cx},${cy})" pointer-events="none">${bd}<text>${c.same?'=':'≠'}</text></g>`});
+    s+=`<g class="lk${bad}" data-k="${P.clues.indexOf(c)}" transform="translate(${cx},${cy})" pointer-events="none">${bd}<text>${c.same?'=':'≠'}</text></g>`});
   // tallies
   const chip=(c,x,y)=>{const stt=status(c);const ic=c.prop==='c'?`<circle r="6" class="c${c.val}"/>`:glyph(c.val,5.2,'ink');
-    return `<g class="cnt ${stt==='bad'?'bad':stt==='ok'?'done':''}" transform="translate(${x},${y})"><rect x="0" y="-11" width="34" height="22" rx="11"/><g transform="translate(11,0)">${ic}</g><text x="25" y="0.5">${c.k}</text></g>`};
+    return `<g class="cnt ${stt==='bad'?'bad':stt==='ok'?'done':''}" data-k="${P.clues.indexOf(c)}" transform="translate(${x},${y})"><rect x="0" y="-11" width="34" height="22" rx="11"/><g transform="translate(11,0)">${ic}</g><text x="25" y="0.5">${c.k}</text></g>`};
   lines[0].forEach((arr,r)=>arr.forEach((c,k)=>{s+=chip(c,N*Z+6+k*37,r*Z+Z/2)}));
   lines[1].forEach((arr,cl)=>arr.forEach((c,k)=>{s+=chip(c,cl*Z+Z/2-17,N*Z+16+k*26)}));
-  const svg=$('svg');svg.setAttribute('viewBox',`-4 -10 ${W+4} ${H+10}`);svg.innerHTML=s;last=-1;
+  const svg=$('svg');svg.setAttribute('viewBox',`-4 -10 ${W+4} ${H+10}`);svg.innerHTML=s;feelBoard();last=-1;
   patchPanel();
   const rem=remaining();
   const inPlay=p=>!P.U||(p>>2)<P.N&&(p&3)<P.N;$('basket').style.gridTemplateColumns=`repeat(${P.U?P.N:4},1fr)`;
@@ -440,6 +440,16 @@ function fragSVG(c,stt){const z=24,h=Math.max(...c.cells.map(o=>o.r))+1,w=Math.m
   const label=c.cells.map(sp=>[sp.col!==undefined?CN[sp.col]:'',sp.s!==undefined?SN[sp.s]:'any shape'].join(' ').trim()).join(', ');
   return `<span class="frag ${stt}" aria-label="Fragment: ${label}"><svg viewBox="0 0 ${w*z} ${h*z}" width="${w*z}" height="${h*z}">${s}</svg></span>`}
 
+// ---- feel: a placed piece settles (CSS .pop) with a tick, a clue that's met pops, one that breaks flashes red
+// once, a solved box sweeps in reading order (never part of the puzzle) ----
+let feel={key:null,clues:'',solved:false};
+function feelBoard(){const svg=$('svg'),key=P.label,same=feel.key===key,cl=P.clues.map(c=>c.t==='f'?'f':status(c)||'-');
+  if(same&&last>=0)Puzz.tick();
+  if(same)cl.forEach((s,k)=>{if(s===feel.clues[k])return;const el=svg.querySelector(`[data-k="${k}"]`);if(!el)return;
+    if(s==='ok')Puzz.pop(el);else if(s==='bad')Puzz.flash(el.querySelector('rect,circle')||el)});
+  // on the next frame: winning redraws the board more than once in the same tick
+  if(same&&st.solved&&!feel.solved&&!st.revealed){requestAnimationFrame(()=>Puzz.sweep([...$('svg').querySelectorAll('.cell')],{stagger:24}));Puzz.thud()}
+  feel={key,clues:cl,solved:st.solved}}
 function placeAt(i){
   if(st.solved)return;if(P.pinned[i]){flash(i);return}
   const cur=st.board[i];

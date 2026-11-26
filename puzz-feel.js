@@ -30,9 +30,44 @@
       if (b) try { navigator.vibrate(6) } catch (err) {} }, {passive: true});
   }
 
-  // Games can call Puzz.tick() / Puzz.thud() for their own moments (a word lands, a puzzle is solved).
+  // ---- Motion helpers (from the site-wide polish; only the ones games use so far). Web Animations on scale and
+  // filter, which compose with a game's own transform. Each is a no-op with reduced motion and never holds the final
+  // state: the element is already in its end state, the animation only plays the way there.
+  const buzz = () => !reduced && navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive);
+  const EASE = 'cubic-bezier(.2,.8,.2,1)', SPRING = 'cubic-bezier(.3,1.5,.6,1)';
+  const isSvg = el => el instanceof SVGElement && !(el instanceof SVGSVGElement);
+  const prep = el => {
+    if (isSvg(el)) { el.style.transformBox = 'fill-box'; el.style.transformOrigin = 'center' }
+    else if (getComputedStyle(el).display === 'inline') el.style.display = 'inline-block';  // transforms skip inline boxes
+  };
+  const anim = (el, kf, o) => {
+    if (reduced || !el || !el.animate) return null;
+    try { prep(el); return el.animate(kf, Object.assign({duration: 200, easing: EASE}, o)) } catch (e) { return null }
+  };
+  const list = els => !els ? [] : (els.length !== undefined && !(els instanceof Element)) ? Array.from(els) : [els];
+  const done = a => a ? a.finished.catch(() => {}) : Promise.resolve();
+
   window.Puzz = Object.assign(window.Puzz || {}, {
-    tick(){ if (!reduced && navigator.vibrate) try { navigator.vibrate(8) } catch (e) {} },
-    thud(){ if (!reduced && navigator.vibrate) try { navigator.vibrate([14, 40, 22]) } catch (e) {} },
+    // Haptics: tick for small confirmations (a piece placed), thud for big moments (a solve).
+    // Chrome refuses (and logs an error) before the first tap, so wait for one.
+    tick(){ if (buzz()) try { navigator.vibrate(8) } catch (e) {} },
+    thud(){ if (buzz()) try { navigator.vibrate([14, 40, 22]) } catch (e) {} },
+    // Something was met (a clue, a number changed): pop it. With a value, sets the text first and only pops on a change.
+    pop(el, value){
+      if (!el) return null;
+      if (value !== undefined) { const t = String(value); if (el.textContent === t) return null; el.textContent = t }
+      return anim(el, [{scale: 1}, {scale: 1.22, offset: .35}, {scale: 1}], {duration: 240, easing: SPRING});
+    },
+    // A conflict flashes red once. Colour is paint-only; the shape never moves.
+    flash(el, color = '#D2453A'){
+      if (!el) return null;
+      return anim(el, isSvg(el) ? [{fill: color, stroke: color}, {}] : [{boxShadow: `inset 0 0 0 999px ${color}`, color: '#fff'}, {}],
+        {duration: 360, easing: 'ease-out'});
+    },
+    // A solved board: a highlight sweeps across in reading order.
+    sweep(els, {stagger = 30} = {}){
+      return Promise.all(list(els).map((el, i) => done(anim(el, [{scale: 1, filter: 'brightness(1)'}, {scale: 1.1, filter: 'brightness(1.3)', offset: .4}, {scale: 1, filter: 'brightness(1)'}],
+        {duration: 300, delay: i * stagger}))));
+    },
   });
 })();
