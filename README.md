@@ -9,17 +9,11 @@ Free daily puzzles, served as plain static pages on GitHub Pages. No build step 
 - `shadowbox.html`: colour-and-shape pieces. Every colour patch is shown off the board as a loose shape to fit in your head; fences, tallies and links settle the shapes.
 - `joannagrams.html`: crochet anagrams. The goal is the day's hidden word: chain letters into words, unpick the marked stitches, and rearrange them to join the blanket (a Jumble-style meta). Finishing the granny square is an optional extra, and each finished square uncovers a tile of a weekly pixel-art picture, in a shuffled order fixed per week (three tile scenes, then 30 single pictures from `blankets.js` uncovered two rows at a time, rotate week to week; earlier days of the week stay playable). Made for Joanna. Hand-drawn weekly pictures go in `joannagrams-art/`: a PNG plus a line in `art.js` (see its README, and `preview.html` to try one).
 - `whistlestop.html`: train-themed route puzzle in the spirit of The Witness. A 40-stop journey teaches one sign per chapter by experimentation and fills in a sign book; finishing it unlocks endless lines. There is also a daily line.
-- `hanko.html` (prototype): daily kanji. Build today's kanji from its parts, find the hub kanji that makes four real words, then a spaced-repetition recall round from your stamp book. Grades 1–2 (240 kanji). Data: KANJIDIC2 / JMdict (EDRDG, CC BY-SA 4.0), KanjiVG (CC BY-SA 3.0).
+- `typeset.html`: one-play word game. Everyone gets the same 11 × 11 sheet with words already on it and the same seven tiles; make one play and compare your score with the day's record (the best play using everyday words, found by a built-in solver). Practice mode gives fresh sheets. Word list: SCOWL by Kevin Atkinson (`typeset-words.js`, licence in `typeset-words-LICENSE.txt`).
+- `strike.html`: Sumplete-style number grid; strike numbers so every row and column hits its target. Unique solutions.
+- `tally.html`: six numbers, + − × ÷, exact target guaranteed, par = fewest steps.
 
 Every puzzle is generated in the browser from a seed. The daily seed is the date, so everyone gets the same puzzle. Endless mode uses a random seed, which appears in the URL hash so a puzzle can be shared. A built-in solver checks that each puzzle has exactly one solution before showing it.
-
-## Prototypes
-- `typeset.html`: one-play word game. Everyone gets the same 11 × 11 sheet with words already on it and the same seven tiles; make one play and compare your score with the day's record (the best play using everyday words, found by a built-in solver). Practice mode gives fresh sheets. Word list: SCOWL by Kevin Atkinson (`typeset-words.js`, licence in `typeset-words-LICENSE.txt`).
-- `crosslight.html`: six five-letter words in a waffle grid, shared pool of 15 guesses; green / yellow / blue (letter is in a crossing word).
-- `strike.html`: Sumplete-style number grid; strike numbers so every row and column hits its target. Unique solutions.
-- `sampler.html`: nonogram stitched as cross-stitch; every pattern is solvable by line logic alone.
-- `tally.html`: six numbers, + − × ÷, exact target guaranteed, par = fewest steps.
-- `ladder.html`: four-letter word ladders with par and hints.
 
 ## Streaks
 
