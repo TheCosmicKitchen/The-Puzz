@@ -79,7 +79,7 @@ h1 span{color:var(--f1)}
 .frag{display:inline-flex;padding:5px;border-radius:9px;border:1.5px solid var(--felt);background:var(--bg)}
 .frag.ok{opacity:.35;border-color:var(--ok)}.frag.bad{border-color:var(--bad);border-width:2.5px}
 .fe{fill:none;stroke:var(--line);stroke-width:1.2;stroke-dasharray:2 3}
-.fn{fill:var(--felt)}
+.fn{fill:none;stroke:var(--ink);stroke-width:1.4}
 .basket{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--surface);border-radius:18px;padding:10px}
 .pc{position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:1;max-width:100%;border:2px solid transparent;border-radius:12px;background:var(--bg);cursor:pointer;padding:0}
 .pc svg{width:70%;height:70%}
@@ -115,7 +115,7 @@ details li svg{flex:none;width:44px;height:44px}
   </header>
   <div class="bar">
     <div class="row" id="endlessCtl" hidden>
-      <select class="btn" id="size" aria-label="Board size"><option value="4">4 × 4</option><option value="5" selected>5 × 5</option></select>
+      <select class="btn" id="size" aria-label="Board size"><option value="3" selected>3 × 3</option><option value="4">4 × 4</option></select>
       <button class="btn" id="newBtn">New puzzle</button>
       <span>seed <b id="seedTxt"></b></span>
     </div>
@@ -136,7 +136,7 @@ details li svg{flex:none;width:44px;height:44px}
   <details id="rules">
     <summary>How to play</summary>
     <ul>
-      <li><svg viewBox="-24 -24 48 48" id="r1"></svg><span>Place every piece from the tray. Each piece has a colour and a shape. Together the patches and the clues allow exactly one answer.</span></li>
+      <li><svg viewBox="-24 -24 48 48" id="r1"></svg><span>Place every piece from the tray. Each piece has a colour and a shape, and each one appears exactly once. Together the patches and the clues allow exactly one answer.</span></li>
       <li><svg viewBox="-24 -24 48 48" id="r2"></svg><span><b>Patches.</b> The shapes beside the board are every colour patch in the finished box, as they’ll look on the board (no rotating). Squares of the same colour that touch belong to the same patch, so two patches of one colour never touch. Work out where each one fits. Finished patches fade out.</span></li>
       <li><svg viewBox="-24 -24 48 48" id="r7"></svg><span><b>Fragments.</b> A small snapshot of the finished box, the right way up. Each filled square shows a shape, a colour, or both, and dotted squares can hold anything. That exact arrangement appears somewhere in the box.</span></li>
       <li><svg viewBox="-24 -24 48 48" id="r3"></svg><span><b>Sets.</b> A dashed area on the board holds exactly the shapes on its tag, in any order.</span></li>
@@ -263,8 +263,14 @@ function solve(P,limit,maxNodes=40000){
   return{count:sols.length,sols,nodes,layouts:L.list.length};
 }
 
-function tryGen(rand,N){
+function tryGen(rand,N,U){
   const ri=k=>Math.floor(rand()*k),pick=a=>a[ri(a.length)],n=N*N;
+  let cols,sol;
+  if(U){   // one of each: N colours x N shapes, every piece exactly once, in a random arrangement
+    sol=[];for(let c=0;c<N;c++)for(let k=0;k<N;k++)sol.push(c*4+k);
+    for(let i=n-1;i>0;i--){const j=ri(i+1),t=sol[i];sol[i]=sol[j];sol[j]=t}
+    cols=sol.map(colOf)}
+  else{
   // 1. carve the board into regions of 1-5 squares
   const reg=new Array(n).fill(-1);let R=0;
   const sizes=[1,2,2,3,3,3,4,4,4,5,5];
@@ -274,10 +280,11 @@ function tryGen(rand,N){
   const adj=Array.from({length:R},()=>new Set());for(let i=0;i<n;i++)for(const j of nbOf(i,N))if(reg[i]!==reg[j])adj[reg[i]].add(reg[j]);
   const rc=new Array(R).fill(-1);
   for(let r=0;r<R;r++){const bad=new Set([...adj[r]].map(x=>rc[x]));const opts=[0,1,2,3].filter(c=>!bad.has(c));if(!opts.length)return null;rc[r]=pick(opts)}
-  const cols=reg.map(r=>rc[r]);
+  cols=reg.map(r=>rc[r]);
   if(new Set(cols).size<4)return null;
-  const sol=cols.map(c=>c*4+ri(NS));
-  if(new Set(sol.map(shpOf)).size<4)return null;
+  sol=cols.map(c=>c*4+ri(NS));
+  if(new Set(sol.map(shpOf)).size<4)return null}
+  const NV=U?N:4;   // colours and shapes in play
   const tray=new Array(NP).fill(0);sol.forEach(p=>tray[p]++);
   const patches=patchesOf(cols,N);
   if(patches.filter(p=>p.shape.length===1).length>Math.ceil(n/8))return null;
@@ -286,7 +293,7 @@ function tryGen(rand,N){
   const grow=(start,max)=>{const s=[start];while(s.length<max){const fr=[];s.forEach(i=>nbOf(i,N).forEach(j=>{if(!s.includes(j))fr.push(j)}));if(!fr.length)break;s.push(pick(fr))}return s.sort((a,b)=>a-b)};
   for(let i=0;i<n;i++)for(let rep=0;rep<2;rep++){const g=grow(i,2+ri(2));const need=[0,0,0,0];g.forEach(j=>need[shpOf(sol[j])]++);pool.push({t:'g',cells:g,need})}
   for(const line of ['r','c'])for(let idx=0;idx<N;idx++){const cells=Array.from({length:N},(_,k)=>line==='r'?idx*N+k:k*N+idx);
-    for(const prop of ['c','s'])for(let val=0;val<4;val++){const k=cells.filter(i=>propOf(sol[i],prop)===val).length;pool.push({t:'n',line,idx,cells,prop,val,k})}}
+    for(const prop of ['c','s'])for(let val=0;val<NV;val++){const k=cells.filter(i=>propOf(sol[i],prop)===val).length;pool.push({t:'n',line,idx,cells,prop,val,k})}}
   for(let i=0;i<n;i++)for(let rep=0;rep<4;rep++){
     const k=rand()<0.6?2:3,cells=[{r:0,c:0,i}];let guard=0;
     while(cells.length<k&&guard++<30){const r=Math.floor(i/N)+ri(3),c=i%N+ri(5)-2;if(r>=N||c<0||c>=N)continue;const j=r*N+c;if(cells.some(o=>o.i===j))continue;cells.push({r:r-Math.floor(i/N),c:c-i%N,i:j})}
@@ -298,7 +305,7 @@ function tryGen(rand,N){
     const key=JSON.stringify(spec);if(pool.some(c=>c.key===key))continue;
     pool.push({t:'r',cells:spec,pl:fragPlacements(spec,N),key})}
   const W={g:3,n:2,r:6};
-  const P={N,sol,tray,patches,clues:[]};
+  const P={N,U:!!U,sol,tray,patches,clues:[]};
   const conflicts=c=>{
     if(c.t==='g')return P.clues.some(o=>o.t==='g'&&o.cells.some(i=>c.cells.includes(i)));
     if(c.t==='n')return P.clues.filter(o=>o.t==='n'&&o.line===c.line&&o.idx===c.idx).length>=2;
@@ -323,7 +330,7 @@ function tryGen(rand,N){
   const fin=solve(P,2);P.nodes=fin.nodes;P.layoutCount=fin.layouts;
   return P;
 }
-function generate(seed,N){for(let a=0;a<300;a++){const P=tryGen(mulberry(hseed(seed+'#'+a)),N);if(P){P.seed=seed;return P}}return null}
+function generate(seed,N,U){for(let a=0;a<300;a++){const P=tryGen(mulberry(hseed(seed+'#'+a)),N,U);if(P){P.seed=seed;return P}}return null}
 
 </script>
 <script>
@@ -338,18 +345,20 @@ function glyph(s,r,cls){ // shape glyph centred at 0,0
 const piece=(p,sz=Z-12)=>`<rect x="${-sz/2}" y="${-sz/2}" width="${sz}" height="${sz}" rx="${sz*.18}" class="c${p>>2}"/>${glyph(p&3,sz*.24,'gly')}`;
 
 let P,st,mode='daily',sel=0,timerInt=null,last=-1,nope=-1;
-function dayInfo(on){const D=puzzDay(on);return{num:D.num,iso:D.iso,N:D.weekend?5:4,label:D.label}}   // puzzDay is in puzz-core.js
+// from ONE_FROM every daily is a 3 x 3 box with one of each piece; before it, 4 x 4 weekdays and 5 x 5 weekends
+const ONE_FROM='2026-11-26';
+function dayInfo(on){const D=puzzDay(on),U=D.iso>=ONE_FROM;return{num:D.num,iso:D.iso,U,N:U?3:D.weekend?5:4,label:D.label}}   // puzzDay is in puzz-core.js
 
 function load(m,seedOverride){
   // 'day' is a daily from a shared link (#d2026-11-20): that day's box, played as a one-off (no save, no streak)
   mode=m;$('tDaily').setAttribute('aria-pressed',m==='daily');$('tEndless').setAttribute('aria-pressed',m==='endless');
   $('endlessCtl').hidden=m!=='endless';$('dailyInfo').hidden=m==='endless';let saved=null;
-  if(m==='daily'||m==='day'){const d=dayInfo(m==='day'?seedOverride:null);P=generate('shadowbox3-'+d.iso,d.N);P.label=`#${d.num} · ${d.label}`;P.iso=d.iso;
-    $('sub').textContent=m==='day'?`Shared daily ${P.label} · just for fun, not your streak`:'Daily '+P.label;$('dailyInfo').textContent=d.N===5?'Weekend box · 5 × 5':'Weekday box · 4 × 4';
+  if(m==='daily'||m==='day'){const d=dayInfo(m==='day'?seedOverride:null);P=generate('shadowbox3-'+d.iso,d.N,d.U);P.label=`#${d.num} · ${d.label}`;P.iso=d.iso;
+    $('sub').textContent=m==='day'?`Shared daily ${P.label} · just for fun, not your streak`:'Daily '+P.label;$('dailyInfo').textContent=d.U?'3 × 3 · one of each piece':d.N===5?'Weekend box · 5 × 5':'Weekday box · 4 × 4';
     if(m==='daily'){saved=store.get('shadowbox-daily-v3');if(saved&&saved.iso!==d.iso)saved=null;
       try{if(location.hash)history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
     else try{history.replaceState(null,'','#d'+d.iso)}catch(e){}}
-  else{const N=+$('size').value,seed=seedOverride||Math.random().toString(36).slice(2,7);P=generate('sb3-endless-'+seed+'-'+N,N);
+  else{const N=+$('size').value,seed=seedOverride||Math.random().toString(36).slice(2,7);P=generate('sb4-endless-'+seed+'-'+N,N,true);
     P.code=seed+N;P.label='Endless · '+P.code;$('seedTxt').textContent=P.code;$('sub').textContent='Endless mode · a new box every time';
     try{history.replaceState(null,'','#'+P.code)}catch(e){}}
   P.n=P.N*P.N;P.pinned=new Array(P.n).fill(false);P.clues.forEach(c=>{if(c.t==='f')P.pinned[c.i]=true});
@@ -403,7 +412,8 @@ function render(){
   const svg=$('svg');svg.setAttribute('viewBox',`-4 -10 ${W+4} ${H+10}`);svg.innerHTML=s;last=-1;
   patchPanel();
   const rem=remaining();
-  $('basket').innerHTML=Array.from({length:16},(_,p)=>`<button class="pc" data-p="${p}" aria-pressed="${sel===p}" ${rem[p]<=0?'disabled':''} aria-label="${CN[p>>2]} ${SN[p&3]}, ${rem[p]} left"><svg viewBox="-26 -26 52 52">${piece(p,46)}</svg><span class="n">${rem[p]>0?rem[p]:''}</span></button>`).join('');
+  const inPlay=p=>!P.U||(p>>2)<P.N&&(p&3)<P.N;$('basket').style.gridTemplateColumns=`repeat(${P.U?P.N:4},1fr)`;
+  $('basket').innerHTML=Array.from({length:16},(_,p)=>p).filter(inPlay).map(p=>`<button class="pc" data-p="${p}" aria-pressed="${sel===p}" ${rem[p]<=0?'disabled':''} aria-label="${CN[p>>2]} ${SN[p&3]}, ${rem[p]} left"><svg viewBox="-26 -26 52 52">${piece(p,46)}</svg><span class="n">${rem[p]>0&&!P.U?rem[p]:''}</span></button>`).join('');
   $('peekN').textContent=st.peeks.length?`(${st.peeks.length})`:'';
   const empty=st.board.filter(v=>v<0).length;
   $('hint').textContent=st.solved?'':empty?`${empty} squares to fill · tap a placed piece to take it back`:(P&&P.clues.some(c=>c.t!=='f'&&status(c)==='bad')?'The box is full, but a clue is broken. Look for red.':'The box is full, but the colour patches don’t match the set beside the board.');
@@ -490,7 +500,7 @@ $('r6').innerHTML=piece(9,40)+`<circle class="pin" cx="13" cy="-13" r="4"/>`;
 
 (function boot(){const h=(location.hash||'').slice(1),day=/^d(\d{4}-\d{2}-\d{2})$/.exec(h);
   if(day&&day[1]<dayInfo().iso){load('day',day[1]);return}
-  if(/^[a-z0-9]{5}[45]$/.test(h)){$('size').value=h[5];load('endless',h.slice(0,5))}
+  if(/^[a-z0-9]{5}[34]$/.test(h)){$('size').value=h[5];load('endless',h.slice(0,5))}
   else{load('daily');if(!store.get('shadowbox-daily-seen')){$('rules').open=true;store.set('shadowbox-daily-seen',1)}if(st.started&&!st.solved)startTimer()}})();
 </script>
 
