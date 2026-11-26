@@ -12,6 +12,7 @@ Free daily puzzles, served as plain static pages on GitHub Pages. No build step 
 - `typeset.html`: one-play word game. Everyone gets the same 11 × 11 sheet with words already on it and the same seven tiles; make one play and compare your score with the day's record (the best play using everyday words, found by a built-in solver). Practice mode gives fresh sheets. Word list: SCOWL by Kevin Atkinson (`typeset-words.js`, licence in `typeset-words-LICENSE.txt`).
 - `strike.html`: Sumplete-style number grid; strike numbers so every row and column hits its target. Unique solutions.
 - `tally.html`: six numbers, + − × ÷, exact target guaranteed, par = fewest steps.
+- `numberweave.html`: a crossword of little sums (A op B = C). Easy is a fixed square of four sums with + −; Medium, Hard and Expert grow free-form crosswords and add × ÷, then ^ (power) and mod, decoy tiles, and on Expert missing operators. Any filling that makes every sum true counts, so it doesn't check for a unique solution. Not in streaks yet.
 
 Every puzzle is generated in the browser from a seed. The daily seed is the date, so everyone gets the same puzzle. Endless mode uses a random seed, which appears in the URL hash so a puzzle can be shared. A built-in solver checks that each puzzle has exactly one solution before showing it.
 

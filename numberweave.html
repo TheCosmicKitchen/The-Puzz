@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>*{box-sizing:border-box}:root{color-scheme:light;padding-block:env(safe-area-inset-top,0px) env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}a.eyebrow{display:block;text-decoration:none}a.eyebrow:hover{color:var(--ink)}</style>
+<title>Numberweave</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* The Puzz shared prototype tokens and chrome */
+:root{
+  --bg:#E6EBEE; --surface:#F6F8F9; --ink:#1C2530; --muted:#5A6772; --felt:#D3DADF; --line:#A9B5BE;
+  --ok:#2C7A4C; --bad:#C2372A; --hit:#2C7A4C; --near:#C98A12; --cross:#3F6FB5; --miss:#8E9AA4; --paper:#FBF8F2;
+  --a0:#B5432F; --a1:#2C4B88; --a2:#D69720; --a3:#4D8257;
+  --display:"Fredoka",ui-rounded,"Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121820; --surface:#1A222B; --ink:#E4EAEE; --muted:#93A1AC; --felt:#26323C; --line:#3B4954;
+  --ok:#62C38A; --bad:#FF6D5C; --hit:#3E9A63; --near:#C9962E; --cross:#4F7FCB; --miss:#4A5865; --paper:#20262E;
+  --a0:#D2583F; --a1:#4C70C4; --a2:#E7AE3A; --a3:#66A271; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121820; --surface:#1A222B; --ink:#E4EAEE; --muted:#93A1AC; --felt:#26323C; --line:#3B4954;
+  --ok:#62C38A; --bad:#FF6D5C; --hit:#3E9A63; --near:#C9962E; --cross:#4F7FCB; --miss:#4A5865; --paper:#20262E;
+  --a0:#D2583F; --a1:#4C70C4; --a2:#E7AE3A; --a3:#66A271; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.eyebrow{font:600 12px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+h1{font-family:var(--display);font-weight:600;font-size:34px;line-height:1;margin:0;letter-spacing:-.01em}
+h1 span{color:var(--accent,var(--a0))}
+.sub{color:var(--muted);font-size:13px;margin-top:4px}
+.tabs{display:flex;background:var(--felt);border-radius:999px;padding:3px}
+.tabs button{font:600 14px var(--display);border:0;background:none;color:var(--muted);padding:6px 14px;border-radius:999px;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--surface);color:var(--ink)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{font:600 13px var(--display);border:1.5px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 12px;border-radius:10px;cursor:pointer}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:default}
+.chip{font:600 13px var(--display);border:1.5px solid var(--line);background:var(--surface);color:var(--muted);padding:5px 12px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
+:focus-visible{outline:2.5px solid var(--a1);outline-offset:2px}
+.timer{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink);font-size:15px}
+.card{background:var(--surface);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.hint{font-size:13px;color:var(--muted);text-align:center;min-height:1.5em}
+.hint.bad{color:var(--bad)}.hint.good{color:var(--ok)}
+.win{background:var(--surface);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;border:2px solid var(--ok)}
+.win h2{font:600 22px var(--display);margin:0}
+.win pre{font-family:var(--body);margin:0;white-space:pre-wrap;background:var(--bg);padding:10px 12px;border-radius:10px;font-size:15px;line-height:1.4;user-select:all}
+details.rules{background:var(--surface);border-radius:14px;padding:12px 16px}
+details.rules summary{font:600 15px var(--display);cursor:pointer}
+details.rules p{margin:8px 0 0;max-width:62ch}
+.proto-tag{font:600 11px var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border:1.5px solid var(--line);border-radius:999px;padding:2px 8px;vertical-align:middle;margin-left:6px}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){.shake{animation:none}}
+
+
+/* Numberweave: a crossword of little sums. Board cells sized to fit, tile bank underneath. */
+:root{--accent:var(--a3)}
+.diffs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.diffs .chip .tick{color:var(--ok);margin-left:4px}
+.boardwrap{width:100%;display:flex;justify-content:center;overflow-x:auto;padding:4px 0}
+.board{display:grid;--cell:48px}
+.cell{width:var(--cell);height:var(--cell);display:flex;align-items:center;justify-content:center;font:600 calc(var(--cell)*.46)/1 var(--display);font-variant-numeric:tabular-nums;border:1.5px solid var(--line);margin:-.75px;user-select:none;position:relative}
+.cell.n3{font-size:calc(var(--cell)*.36)}.cell.n4{font-size:calc(var(--cell)*.28)}
+.cell.num{background:var(--paper)}
+.cell.op,.cell.eq{background:var(--felt);color:var(--muted)}
+.cell.word{font-size:calc(var(--cell)*.3)}
+.cell.blank{background:var(--bg);cursor:pointer;color:var(--a1)}
+.cell.blank:empty::after{content:"";position:absolute;inset:22%;border:2px dashed var(--line);border-radius:6px}
+.cell.sel{outline:3px solid var(--a1);outline-offset:-3px;z-index:2}
+.cell.ok{background:color-mix(in srgb,var(--ok) 22%,var(--paper))}
+.cell.bad{background:color-mix(in srgb,var(--bad) 22%,var(--paper))}
+.bank{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:56px}
+.tile{min-width:56px;height:56px;padding:0 8px;border-radius:12px;border:2px solid var(--line);background:var(--paper);font:600 24px var(--display);color:var(--ink);cursor:pointer;font-variant-numeric:tabular-nums}
+.tile.optile{background:var(--felt)}
+.tile.word{font-size:17px}
+.tile.sel{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.prog{font:600 14px var(--display);color:var(--muted)}
+</style>
+<link rel="stylesheet" href="puzz-feel.css?v=afefd904">
+<script src="puzz-feel.js?v=091fdaf9"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><a class="eyebrow" href="./">← The Puzz</a><h1>Number<span>weave</span></h1><div class="sub" id="sub"></div></div>
+    <div class="tabs" role="group" aria-label="Mode"><button data-mode="daily" aria-pressed="true">Daily</button><button data-mode="endless" aria-pressed="false">Endless</button></div>
+  </header>
+  <div class="diffs" id="diffs"></div>
+  <div class="bar"><div class="row"><span class="prog" id="prog"></span><button class="btn" id="newBtn" hidden>New puzzle</button></div><div class="row"><button class="btn" id="undoBtn">Undo</button><button class="btn" id="resetBtn">Start over</button><span class="timer" id="timer">0:00</span></div></div>
+  <section class="card">
+    <div class="boardwrap"><div class="board" id="board"></div></div>
+    <div class="bank" id="bank"></div>
+    <div class="hint" id="hint"></div>
+    <button class="btn" id="hintBtn">Hint</button>
+  </section>
+  <section class="win" id="win" hidden></section>
+  <details class="rules" id="rules"><summary>How to play</summary>
+    <p>Every line is a little sum, read left to right or top to bottom. Fill the empty squares with the tiles so every sum is true. Sums cross, so one number can belong to two of them.</p>
+    <p><b>^</b> is a power: 2 ^ 3 = 8. <b>mod</b> is the remainder after dividing: 17 mod 5 = 2.</p>
+    <p>Easy is a single square of four sums with + and −. Medium, Hard and Expert grow bigger crosswords and bring in ×, ÷, ^ and mod. Harder levels slip in a few tiles you won't need, and on Expert some operators are missing too. Any way of filling it that makes every sum true counts.</p>
+  </details>
+</div>
+<script src="puzz-core.js?v=42c25c62"></script>
+<script src="streak.js?v=b548c2ec"></script>
+<script>
+// shared helpers (hseed, mulberry, store, dayInfo, esc, fmt, Timer, wireCopy, setTabs, $) come from puzz-core.js
+
+// ---- operators. A and B are the ranges a free operand is drawn from; f returns NaN when not allowed.
+const OPS={
+  '+':{sym:'+',  A:[1,60], B:[1,60], f:(a,b)=>a+b},
+  '-':{sym:'−',  A:[2,120],B:[1,60], f:(a,b)=>a-b},
+  '*':{sym:'×',  A:[2,15], B:[2,15], f:(a,b)=>b>1&&a>1?a*b:NaN},
+  '/':{sym:'÷',  A:[4,144],B:[2,12], f:(a,b)=>b>1&&a%b===0?a/b:NaN},
+  '^':{sym:'^',  A:[2,12], B:[2,4],  f:(a,b)=>a>1&&b>1&&b<=6?a**b:NaN},
+  '%':{sym:'mod',A:[3,60], B:[2,12], f:(a,b)=>b>1&&a>b?a%b:NaN},
+};
+const MAXV=999;
+const evalOp=(op,a,b)=>{const v=OPS[op].f(a,b);return Number.isInteger(v)?v:NaN};
+
+// ---- levels. Easy is a fixed square: four sums [row, col, horizontal?] sharing their corners.
+// The rest grow a free-form crossword of `free` sums.
+const SQUARE=[[0,0,1],[0,0,0],[0,4,0],[4,0,1]];
+const DIFFS={
+  easy:  {name:'Easy',  shape:SQUARE,ops:['+','-'],                 hide:.5, decoys:0,hideOps:false},
+  medium:{name:'Medium',free:5, size:9,ops:['+','-','*','/'],         hide:.55,decoys:1,hideOps:false},
+  hard:  {name:'Hard',  free:8, size:9,ops:['+','-','*','/','^'],     hide:.65,decoys:2,hideOps:false},
+  expert:{name:'Expert',free:10,size:10,ops:['+','-','*','/','^','%'], hide:.75,decoys:3,hideOps:true},
+};
+const ORDER=['easy','medium','hard','expert'];
+const K=(r,c)=>r+','+c;
+const shuffle=(a,r)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const rpick=(a,r)=>a[Math.floor(r()*a.length)];
+const range=(lo,hi)=>{const o=[];for(let i=lo;i<=hi;i++)o.push(i);return o};
+
+// One sum A op B = C with some slots already fixed ({0:A, 2:B, 4:C}).
+function genEq(fixed,ops,r){
+  const nf=Object.keys(fixed).length;
+  for(const op of shuffle(ops,r)){const o=OPS[op];
+    const As=0 in fixed?[fixed[0]]:range(...(nf>=2?[1,MAXV]:o.A)), Bs=2 in fixed?[fixed[2]]:range(...(nf>=2?[1,MAXV]:o.B));
+    const out=[];
+    for(const a of As)for(const b of Bs){const c=evalOp(op,a,b);if(!(c>=1&&c<=MAXV))continue;if(4 in fixed&&c!==fixed[4])continue;out.push([a,op,b,c])}
+    if(out.length)return rpick(out,r)}
+  return null}
+
+// Lays an equation's five squares onto the cell map and writes its values.
+function lay(cells,eqs,r0,c0,h,e){const keys=[];
+  for(let i=0;i<5;i++){const r=r0+(h?0:i),c=c0+(h?i:0),k=K(r,c);
+    if(!cells.has(k))cells.set(k,{r,c,kind:i%2?(i===1?'op':'eq'):'num',val:i===3?'=':null,eqs:[]});
+    cells.get(k).eqs.push(eqs.length);keys.push(k)}
+  eqs.push({h,keys});if(e)fill(cells,keys,e);return keys}
+function fill(cells,ks,e){cells.get(ks[0]).val=e[0];cells.get(ks[1]).val=e[1];cells.get(ks[2]).val=e[2];cells.get(ks[4]).val=e[3]}
+
+// The square: fill sums one at a time, always one that already has the most numbers set.
+function genShape(cfg,r){
+  for(let t=0;t<400;t++){const cells=new Map(),eqs=[];
+    for(const [r0,c0,h] of cfg.shape)lay(cells,eqs,r0,c0,!!h,null);
+    const fixedOf=i=>{const f={};[0,2,4].forEach(p=>{const v=cells.get(eqs[i].keys[p]).val;if(v!=null)f[p]=v});return f};
+    const left=new Set(eqs.map((_,i)=>i));let ok=true;
+    while(left.size){const cand=[...left],n=i=>Object.keys(fixedOf(i)).length,best=Math.max(...cand.map(n));
+      const i=rpick(cand.filter(i=>n(i)===best),r),e=genEq(fixedOf(i),cfg.ops,r);
+      if(!e){ok=false;break}fill(cells,eqs[i].keys,e);left.delete(i)}
+    if(ok)return{cells,eqs}}
+  return null}
+
+// Free-form: grow a crossword by crossing a number that is only in one sum so far.
+function genFree(cfg,r){const LIMIT=cfg.size;
+  for(let t=0;t<40;t++){const cells=new Map(),eqs=[];
+    lay(cells,eqs,0,0,true,genEq({},cfg.ops,r));
+    let tries=0;
+    while(eqs.length<cfg.free&&tries++<3000){
+      const open=[...cells.values()].filter(c=>c.kind==='num'&&c.eqs.length===1);if(!open.length)break;
+      const cell=rpick(open,r),h=!eqs[cell.eqs[0]].h,pos=rpick([0,2,4],r);
+      const r0=cell.r-(h?0:pos),c0=cell.c-(h?pos:0);
+      if(!fits(cells,r0,c0,h,pos,LIMIT))continue;
+      const e=genEq({[pos]:cell.val},cfg.ops,r);if(!e)continue;
+      lay(cells,eqs,r0,c0,h,e)}
+    if(eqs.length>=cfg.free)return{cells,eqs}}
+  return null}
+function fits(cells,r0,c0,h,pos,LIMIT){const dr=h?0:1,dc=h?1:0,empty=(r,c)=>!cells.has(K(r,c));
+  if(!empty(r0-dr,c0-dc)||!empty(r0+5*dr,c0+5*dc))return false;
+  for(let i=0;i<5;i++){if(i===pos)continue;const r=r0+i*dr,c=c0+i*dc;
+    if(!empty(r,c)||!empty(r+dc,c+dr)||!empty(r-dc,c-dr))return false}
+  let a=r0,b=r0+4*dr,x=c0,y=c0+4*dc;for(const c of cells.values()){a=Math.min(a,c.r);b=Math.max(b,c.r);x=Math.min(x,c.c);y=Math.max(y,c.c)}
+  return b-a<LIMIT&&y-x<LIMIT}
+
+// Blanks: hide squares while every sum keeps at least two of its four slots showing.
+function gen(seed,diff){const cfg=DIFFS[diff];let P=null;
+  // a seed whose board can't be built just moves on to the next seed
+  for(let n=0;!P;n++){const r=mulberry(hseed(n?seed+'~'+n:seed));P=cfg.free?genFree(cfg,r):genShape(cfg,r);if(P)P.r=r}
+  const r=P.r;
+  const {cells,eqs}=P;
+  const pool=shuffle([...cells.values()].filter(c=>c.kind==='num'||(cfg.hideOps&&c.kind==='op')),r);
+  const target=Math.round(pool.length*cfg.hide);let hidden=0;
+  const vis=e=>[0,1,2,4].filter(i=>!cells.get(e.keys[i]).hidden).length;
+  for(const c of pool){if(hidden>=target)break;if(c.eqs.every(i=>vis(eqs[i])>2)){c.hidden=true;hidden++}}
+  let tiles=[...cells.values()].filter(c=>c.hidden).map(c=>({kind:c.kind,val:c.val}));
+  const nums=tiles.filter(t=>t.kind==='num').map(t=>t.val);
+  for(let i=0;i<cfg.decoys&&nums.length;i++){const v=rpick(nums,r)+rpick([-3,-2,-1,1,2,3,10],r);tiles.push({kind:'num',val:Math.max(1,v)})}
+  tiles=tiles.sort((a,b)=>a.kind!==b.kind?(a.kind==='op'?1:-1):a.kind==='num'?a.val-b.val:0).map((t,id)=>({...t,id}));
+  return{cells,eqs,tiles,diff}}
+
+// ---- state
+let mode='daily',diff='easy',Pz=null,st=null,selTile=null,selCell=null,undoStack=[];
+const SAVE='numberweave-daily',HELP='Tap a tile, then an empty square (or the other way round). Tap a filled square to take its tile back.';
+function dailySaves(iso){const s=store.get(SAVE);return s&&s.iso===iso?s:{iso,st:{},by:{}}}
+function load(m,d,code){mode=m;diff=d||diff;setTabs(m);$('newBtn').hidden=m!=='endless';$('win').hidden=true;Timer.stop();
+  selTile=selCell=null;undoStack=[];let saved=null;
+  if(m==='daily'){const day=dayInfo();Pz=gen('numberweave-'+diff+'-'+day.iso,diff);Pz.label=`#${day.num} · ${day.label}`;Pz.iso=day.iso;saved=dailySaves(day.iso).by[diff]||null;try{history.replaceState(null,'',location.pathname)}catch(e){}}
+  else{const c=code||newCode();Pz=gen('numberweave-e-'+diff+'-'+c,diff);Pz.label='Endless · '+c;try{history.replaceState(null,'','#'+diff+'-'+c)}catch(e){}}
+  $('sub').textContent=(m==='daily'?'Daily · ':'')+Pz.label;
+  st=saved||{place:{},elapsed:0,started:false,done:false,hints:0};
+  $('timer').textContent=fmt(st.elapsed);hint(HELP);
+  render();if(st.done)showWin();else if(st.started)Timer.start(st,$('timer'))}
+// The top-level st is what the home page reads: done once any level is solved today.
+function persist(){if(mode!=='daily')return;const s=dailySaves(Pz.iso);s.by[diff]=st;
+  s.st={done:ORDER.some(d=>s.by[d]&&s.by[d].done),started:ORDER.some(d=>s.by[d]&&s.by[d].started)};store.set(SAVE,s)}
+const valueAt=k=>{const c=Pz.cells.get(k);if(!c.hidden)return c.val;const t=st.place[k];return t==null?null:Pz.tiles[t].val};
+function eqState(e){const [a,op,b,,c]=e.keys.map(valueAt);if([a,op,b,c].some(v=>v==null))return'open';return evalOp(op,a,b)===c?'ok':'bad'}
+function hint(t,c=''){$('hint').textContent=t;$('hint').className='hint '+c}
+function move(fn){undoStack.push(JSON.stringify(st.place));fn();selTile=selCell=null;hint(HELP);
+  if(!st.started){st.started=true;Timer.start(st,$('timer'))}
+  if(Pz.eqs.every(e=>eqState(e)==='ok')){st.done=true;Timer.stop();persist();render();if(window.Puzz)Puzz.thud();showWin();return}
+  persist();render()}
+function put(tid,k){move(()=>{for(const ck in st.place)if(st.place[ck]===tid)delete st.place[ck];st.place[k]=tid})}
+
+$('board').addEventListener('click',e=>{const el=e.target.closest('[data-k]');if(!el||st.done)return;const k=el.dataset.k,c=Pz.cells.get(k);if(!c.hidden)return;
+  if(selTile!=null&&Pz.tiles[selTile].kind===c.kind)return put(selTile,k);
+  if(selTile!=null){hint(c.kind==='op'?'That square needs an operator tile.':'That square needs a number tile.','bad');return}
+  if(st.place[k]!=null)return move(()=>delete st.place[k]);
+  selCell=selCell===k?null:k;render()});
+$('bank').addEventListener('click',e=>{const el=e.target.closest('[data-t]');if(!el||st.done)return;const t=+el.dataset.t;
+  if(selCell&&Pz.cells.get(selCell).kind===Pz.tiles[t].kind)return put(t,selCell);
+  selTile=selTile===t?null:t;render()});
+$('undoBtn').onclick=()=>{if(st.done||!undoStack.length)return;st.place=JSON.parse(undoStack.pop());selTile=selCell=null;persist();render()};
+$('resetBtn').onclick=()=>{if(st.done)return;move(()=>st.place={})};
+// Hint: put the right tile on one square that is empty or wrong.
+$('hintBtn').onclick=()=>{if(st.done)return;
+  const wrong=[...Pz.cells.entries()].filter(([k,c])=>c.hidden&&valueAt(k)!==c.val);if(!wrong.length)return;
+  const [k,c]=wrong[0],used=new Set(Object.values(st.place)),same=t=>t.kind===c.kind&&t.val===c.val;
+  const t=Pz.tiles.find(t=>same(t)&&!used.has(t.id))||Pz.tiles.find(t=>same(t)&&Object.entries(st.place).some(([pk,id])=>id===t.id&&valueAt(pk)!==Pz.cells.get(pk).val))||Pz.tiles.find(same);
+  st.hints++;put(t.id,k)};
+
+// ---- drawing
+const label=v=>OPS[v]?OPS[v].sym:String(v);
+function render(){
+  const today=mode==='daily'?dailySaves(Pz.iso).by:{};
+  $('diffs').innerHTML=ORDER.map(d=>`<button class="chip" data-d="${d}" aria-pressed="${d===diff}">${DIFFS[d].name}${today[d]&&today[d].done?'<span class="tick">✓</span>':''}</button>`).join('');
+  let a=1e9,b=-1e9,x=1e9,y=-1e9;for(const c of Pz.cells.values()){a=Math.min(a,c.r);b=Math.max(b,c.r);x=Math.min(x,c.c);y=Math.max(y,c.c)}
+  const w=y-x+1,h=b-a+1,avail=Math.min(528,innerWidth-60),size=Math.max(26,Math.min(52,Math.floor(avail/w)));
+  const bd=$('board');bd.style.setProperty('--cell',size+'px');bd.style.gridTemplateColumns=`repeat(${w},var(--cell))`;bd.style.gridTemplateRows=`repeat(${h},var(--cell))`;
+  const mark=new Map();for(const e of Pz.eqs){const s=eqState(e);if(s==='open')continue;for(const k of e.keys)if(mark.get(k)!=='bad')mark.set(k,s)}
+  bd.innerHTML=[...Pz.cells.entries()].map(([k,c])=>{const v=valueAt(k),txt=v==null?'':label(v);
+    const cls=['cell',c.kind,c.hidden?'blank':'',txt.length===3?(c.kind==='op'?'word':'n3'):txt.length>3?'n4':'',mark.get(k)||'',selCell===k?'sel':''].join(' ');
+    return`<div class="${cls}" data-k="${k}" style="grid-row:${c.r-a+1};grid-column:${c.c-x+1}"${c.hidden?' role="button" aria-label="empty square"':''}>${esc(txt)}</div>`}).join('');
+  const used=new Set(Object.values(st.place));
+  $('bank').innerHTML=Pz.tiles.filter(t=>!used.has(t.id)).map(t=>{const txt=label(t.val);
+    return`<button class="tile ${t.kind==='op'?'optile':''} ${txt.length>2?'word':''} ${selTile===t.id?'sel':''}" data-t="${t.id}">${esc(txt)}</button>`}).join('')||'<span class="sub">All tiles placed.</span>';
+  $('prog').textContent=`${Pz.eqs.filter(e=>eqState(e)==='ok').length} / ${Pz.eqs.length} sums`}
+$('diffs').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(b)load(mode,b.dataset.d)});
+addEventListener('resize',()=>Pz&&render());
+
+function shareText(){return`The Puzz · Numberweave ${Pz.label}\n${DIFFS[diff].name} · ${Pz.eqs.length} sums · ⏱ ${fmt(st.elapsed)}${st.hints?` · 💡${st.hints}`:''}`}
+function showWin(){const w=$('win');w.hidden=false;const nxt=ORDER[ORDER.indexOf(diff)+1];
+  w.innerHTML=`<h2>Woven!</h2><pre id="shareTxt">${esc(shareText())}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${nxt?`<button class="btn" id="upBtn">Try ${DIFFS[nxt].name}</button>`:''}${mode==='endless'?'<button class="btn" id="nextBtn">New puzzle</button>':''}</div>`;
+  wireCopy($('copyBtn'),shareText,'shareTxt');if($('upBtn'))$('upBtn').onclick=()=>load(mode,nxt);if($('nextBtn'))$('nextBtn').onclick=()=>load('endless')}
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>load(b.dataset.mode));$('newBtn').onclick=()=>load('endless');
+(function(){const m=(location.hash||'').slice(1).match(/^(easy|medium|hard|expert)-([a-z0-9]{5})$/);
+  if(m)load('endless',m[1],m[2]);else{load('daily','easy');if(!store.get('numberweave-seen')){$('rules').open=true;store.set('numberweave-seen',1)}}})();
+</script>
+
+</body>
+</html>

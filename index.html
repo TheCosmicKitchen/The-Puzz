@@ -143,6 +143,11 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
       <div><h2>Tally</h2><p>Six numbers, four operations, one target. Every target can be hit exactly.</p></div>
       <span class="pill" id="s-ta">Today</span>
     </a>
+    <a class="card" href="numberweave.html">
+      <svg viewBox="0 0 72 72" aria-hidden="true"><g stroke="var(--line)" stroke-width="1.5"><rect x="6" y="6" width="60" height="12" rx="3" fill="var(--paper)"/><rect x="6" y="6" width="12" height="60" rx="3" fill="var(--paper)"/><rect x="54" y="6" width="12" height="60" rx="3" fill="var(--paper)"/><rect x="6" y="54" width="60" height="12" rx="3" fill="var(--paper)"/></g><g font-family="Fredoka,sans-serif" font-weight="600" font-size="10" text-anchor="middle" fill="var(--ink)"><text x="12" y="15.5">7</text><text x="24" y="15.5" fill="var(--f3)">+</text><text x="36" y="15.5">5</text><text x="60" y="15.5">12</text><text x="12" y="63.5">2</text><text x="60" y="63.5">10</text><text x="12" y="39.5" fill="var(--f3)">−</text><text x="60" y="39.5" fill="var(--f3)">−</text></g><rect x="30" y="56" width="12" height="8" rx="2" fill="none" stroke="var(--f1)" stroke-width="1.5" stroke-dasharray="2 2"/></svg>
+      <div><h2>Numberweave</h2><p>A crossword of little sums. Easy is one square; harder levels grow bigger and bring in powers and mod.</p></div>
+      <span class="pill" id="s-nw">New</span>
+    </a>
   </div>
   <footer>New puzzles at local midnight · progress stays on this device · <a href="lab/" style="color:inherit">The Puzz Lab</a></footer>
 </div>
@@ -155,7 +160,7 @@ const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return nul
   if(s&&s.iso===iso){if(s.st.revealed){el.textContent='Revealed'}else if(s.st.solved||s.st.metaDone){el.textContent='Solved';el.classList.add('done')}else if(s.st.started||(s.st.found&&s.st.found.length))el.textContent='In progress'}});
 {const j=get('whistlestop-journey'),el=document.getElementById('s-ws');const n=j&&j.solved?Object.keys(j.solved).length:0;
   if(n<40&&el&&el.textContent==='Today'){el.textContent=n?`Journey ${n}/40`:'Start the journey'}}
-[['typeset-daily','s-ts'],['strike-daily','s-st'],['tally-daily','s-ta']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
+[['typeset-daily','s-ts'],['strike-daily','s-st'],['tally-daily','s-ta'],['numberweave-daily','s-nw']].forEach(([k,id])=>{const s=get(k),el=document.getElementById(id);
   if(s&&s.iso===iso&&el){if(s.st.done){el.textContent='Done';el.classList.add('done')}else if(s.st.started)el.textContent='In progress'}});
 
 // Dungeon Scrawl keeps its whole run under one key; its seed carries the date.
