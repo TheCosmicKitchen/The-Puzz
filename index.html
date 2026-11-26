@@ -194,5 +194,6 @@ if(window.Kitchen){
     <div class="days">${W.map((d,i)=>`<div class="day ${d.today?'today':''}" aria-label="${d.date.toLocaleDateString(undefined,{weekday:'long'})}: ${d.done?'done':d.future?'still to come':d.today?'not yet':'missed'}">${hex(d,i)}<span>${d.today?'today':d.date.toLocaleDateString(undefined,{weekday:'short'})}</span></div>`).join('')}</div>`;
   el.hidden=false}
 </script>
+<script src="artist.js?v=a319fa11" defer></script>
 </body>
 </html>
