@@ -103,7 +103,7 @@ details.rules p{margin:8px 0 0;max-width:62ch}
 </div>
 <script src="puzz-core.js?v=42c25c62"></script>
 <script src="streak.js?v=b548c2ec"></script>
-<script src="stats.js?v=2a27efc2"></script>
+<script src="stats.js?v=cdecbfbc"></script>
 <script>
 // shared helpers (hseed, mulberry, store, dayInfo, esc, fmt, Timer, wireCopy, setTabs, $) come from puzz-core.js
 // shuffle stays here: its argument order is (array, rng), which differs from some other games
@@ -126,7 +126,7 @@ function gen(seed){const r=mulberry(hseed(seed));for(let a=0;a<50;a++){
     const cand=[...best.entries()].filter(([v,b])=>v>=101&&v<=999&&b.steps>=3).map(([v])=>v);if(!cand.length)continue;
     const t=cand[Math.floor(r()*cand.length)];return{nums,target:t,par:best.get(t).steps,way:best.get(t).path}}}
 let mode='daily',Pz=null,st=null,pick=null,op=null;
-function load(m,code){mode=m;if(m==='daily'&&window.PuzzStats)PuzzStats.play('ta');setTabs(m);$('endCtl').hidden=m!=='endless';$('win').hidden=true;Timer.stop();let saved=null;
+function load(m,code){mode=m;setTabs(m);$('endCtl').hidden=m!=='endless';$('win').hidden=true;Timer.stop();let saved=null;
   if(m==='daily'){const d=dayInfo();Pz=gen('tally-'+d.iso);Pz.label=`#${d.num} · ${d.label}`;Pz.iso=d.iso;$('sub').textContent='Daily numbers '+Pz.label;saved=store.get('tally-daily');if(saved&&saved.iso!==d.iso)saved=null}
   else{const c=code||newCode();Pz=gen('tally-e-'+c);Pz.label='Endless · '+c;$('sub').textContent='Endless · '+c;try{history.replaceState(null,'','#'+c)}catch(e){}}
   st=saved?saved.st:{steps:[],elapsed:0,started:false,done:false,gave:false,closest:null};

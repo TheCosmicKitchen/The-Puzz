@@ -1,74 +1,57 @@
-// Daily stats, shared through Supabase (schema: supabase/migrations/*_puzz_*.sql).
-// Guests send nothing: their progress stays on the device. Only a signed-in player (a Supabase Auth
-// session, stored by supabase-js under AUTH below) sends a 'play' when a daily opens and a 'solve' when
-// it's finished, once per day: the game, the day, the time taken, their Puzz streak and a little
-// per-game `meta` ({ steps: 4 }, { peeks: 1 }...). Pages read totals back through puzz_stats().
-// Everything here is best-effort: offline or blocked, the games carry on exactly as before.
+// Your own puzzle history, kept on this device in IndexedDB (database 'puzz', store 'solves').
+// Each finished daily adds one row: the game, the day, seconds taken, your Puzz streak at the time and a
+// little per-game `meta` ({ steps: 4 }, { peeks: 1 }...). Nothing leaves the device and there are no
+// accounts. Finish screens and the home page read it back as your totals. Best-effort: if IndexedDB
+// isn't available (some private windows), the games carry on exactly as before.
 (function () {
-  const URL = 'https://gbryzpjwsuluwfggdldb.supabase.co/rest/v1/', KEY = 'sb_publishable_q-S2wKZXRdAv0zqKEjs9pQ_4hrO59xE';
-  const HEAD = { apikey: KEY, 'Content-Type': 'application/json' };
   const d = new Date(), DAY = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  const SENT = 'puzz-stats-sent', AUTH = 'sb-gbryzpjwsuluwfggdldb-auth-token';
-
-  // The signed-in session's access token, or null for a guest (or an expired session).
-  function token() {
-    try {
-      const s = JSON.parse(localStorage.getItem(AUTH));
-      return s && s.access_token && s.expires_at * 1000 > Date.now() ? s.access_token : null;
-    } catch (e) { return null; }
-  }
-
-  // Once per game, kind and day on this device, so reloading a finished puzzle doesn't count it twice.
-  function once(game, kind) {
-    try {
-      const s = JSON.parse(localStorage.getItem(SENT)) || {};
-      const k = `${game}:${kind}`;
-      if (s.day !== DAY) { s.day = DAY; s.k = []; }
-      if (s.k.includes(k)) return false;
-      s.k.push(k); localStorage.setItem(SENT, JSON.stringify(s)); return true;
-    } catch (e) { return false; }
-  }
-  function send(row, t) {
-    return fetch(URL + 'puzz_events', { method: 'POST', headers: { ...HEAD, Authorization: `Bearer ${t}`, Prefer: 'return=minimal' }, body: JSON.stringify(row), keepalive: true })
-      .catch(() => {});
-  }
-
-  let stats = null;
-  function load(fresh) {
-    if (!stats || fresh) stats = fetch(URL + 'rpc/puzz_stats', { method: 'POST', headers: HEAD, body: JSON.stringify({ p_day: DAY }) })
-      .then(r => r.ok ? r.json() : null).catch(() => null);
-    return stats;
-  }
+  let db;
+  const open = () => db || (db = new Promise((res, rej) => {
+    const r = indexedDB.open('puzz', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('solves', { keyPath: 'key' });
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  }));
+  const run = async (mode, fn) => {
+    const x = await open();
+    return new Promise((res, rej) => {
+      const t = x.transaction('solves', mode), req = fn(t.objectStore('solves'));
+      t.oncomplete = () => res(req.result); t.onerror = () => rej(t.error);
+    });
+  };
+  // Every solve on this device, oldest first.
+  const all = () => run('readonly', s => s.getAll()).catch(() => []);
 
   const mmss = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-  const plural = (n, w) => `${n.toLocaleString()} ${w}${n === 1 ? '' : 's'}`;
-  // One line for a finish screen, e.g. "Today: 41 solves from 58 plays · median 3:12 · longest streak 9 days".
-  function line(g) {
-    if (!g || !g.solved) return '';
-    const bits = [`Today: ${plural(g.solved, 'solve')}${g.plays ? ` from ${plural(g.plays, 'play')}` : ''}`];
-    if (g.median_seconds != null) bits.push(`median ${mmss(g.median_seconds)}`);
-    if (g.longest_streak > 1) bits.push(`longest streak ${g.longest_streak} days`);
+  // { solved, best, median } for one game's rows; best and median only when the game is timed.
+  function summary(rows) {
+    const t = rows.map(r => r.seconds).filter(Number.isFinite).sort((a, b) => a - b);
+    return { solved: rows.length, best: t.length ? t[0] : null, median: t.length ? t[(t.length - 1) >> 1] : null };
+  }
+  // e.g. "12 solved · best 0:58 · median 1:40"
+  function line(s) {
+    if (!s || !s.solved) return '';
+    const bits = [`${s.solved.toLocaleString()} solved`];
+    if (s.best != null) bits.push(`best ${mmss(s.best)}`);
+    if (s.median != null && s.solved > 2) bits.push(`median ${mmss(s.median)}`);
     return bits.join(' · ');
   }
 
-  // Today's daily opened.
-  function play(game) { const t = token(); if (t && once(game, 'play')) send({ game, day: DAY, kind: 'play' }, t); }
-
-  // Today's daily finished. `el` is the finish panel: a line of everyone's totals is added to it.
+  // Today's daily finished. `el` is the finish panel: a line of your totals for this game is added to it.
   async function solve(game, { seconds, meta } = {}, el) {
-    const t = token();
-    if (t && once(game, 'solve')) {
-      const streak = window.Kitchen ? Kitchen.streak('puzz').current : null;
-      await send({ game, day: DAY, kind: 'solve', seconds: Number.isFinite(seconds) ? Math.round(seconds) : null, streak, meta: meta || {} }, t);
-      load(true);
-    }
+    const key = `${DAY}:${game}`;
+    try {
+      const had = await run('readonly', s => s.get(key));
+      if (!had) await run('readwrite', s => s.put({ key, day: DAY, game, at: Date.now(),
+        seconds: Number.isFinite(seconds) ? Math.round(seconds) : null,
+        streak: window.Kitchen ? Kitchen.streak('puzz').current : null, meta: meta || {} }));
+    } catch (e) { return; }
     if (!el) return;
-    const s = await load(), text = s && line(s.games[game]);
+    const text = line(summary((await all()).filter(r => r.game === game)));
     if (!text || !el.isConnected) return;
     let p = el.querySelector('.puzz-stats');
     if (!p) { p = document.createElement('p'); p.className = 'puzz-stats sub'; el.append(p); }
-    p.textContent = text + '.';
+    p.textContent = `Your record on this device: ${text}.`;
   }
 
-  window.PuzzStats = { play, solve, load, line, DAY };
+  window.PuzzStats = { solve, all, summary, line, DAY };
 })();

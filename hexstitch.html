@@ -167,7 +167,7 @@ details li svg{flex:none;width:38px;height:38px}
 
 <script src="puzz-core.js?v=42c25c62"></script>
 <script src="streak.js?v=b548c2ec"></script>
-<script src="stats.js?v=2a27efc2"></script>
+<script src="stats.js?v=cdecbfbc"></script>
 <script>
 // ---- Hexstitch engine: seeded generator + uniqueness solver ----
 const DIRS = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
@@ -309,7 +309,7 @@ let P=null, st=null, mode='daily', sel='s0', focusGoal=-1, timerInt=null, lastPl
 
 function dayInfo(on){const D=puzzDay(on);return{num:D.num,iso:D.iso,n:D.weekend?4:3,label:D.label}}   // puzzDay is in puzz-core.js
 
-function load(newMode,seedOverride){if(newMode==='daily'&&window.PuzzStats)PuzzStats.play('hex');
+function load(newMode,seedOverride){
   // 'day' is a daily from a shared link (#d2026-11-20): that day's quilt, played as a one-off (no save, no streak)
   mode=newMode; $('tDaily').setAttribute('aria-pressed',mode==='daily');$('tEndless').setAttribute('aria-pressed',mode==='endless');
   $('endlessCtl').hidden=mode!=='endless'; $('dailyInfo').hidden=mode==='endless';

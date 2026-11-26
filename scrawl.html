@@ -256,7 +256,7 @@ details p{margin:8px 0;font-size:14px}
 <script src="scrawl-blade.js?v=7123c75e"></script>
 <script src="typeset-words.js?v=4cb3d273"></script>
 <script src="streak.js?v=b548c2ec"></script>
-<script src="stats.js?v=2a27efc2"></script>
+<script src="stats.js?v=cdecbfbc"></script>
 <script>
 const shuffle=(r,a)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 function decode(s){const out=[];let prev='';for(const m of s.match(/[A-K][a-z]*/g)){const w=prev.slice(0,m.charCodeAt(0)-65)+m.slice(1);out.push(w);prev=w}return out}
@@ -534,7 +534,7 @@ function useUp(ts,from){let heal=0;const blk=steelOf(ts);ts.forEach(t=>{if(t.fx=
   if(heal){const was=S.hp;S.hp=Math.min(HP,S.hp+heal);if(S.hp>was)fxq.push({t:'heal',n:S.hp-was,delay:520});return{heal:S.hp-was,blk}}return{heal:0,blk}}
 
 let S=null,mode='daily',D=null,sel=null,flash='';
-function load(m,arg){if(m==='daily'&&window.PuzzStats)PuzzStats.play('ds');
+function load(m,arg){
   mode=m;D=m==='daily'||m==='day'?dayInfo(m==='day'?arg:null):null;
   // Endless (and Freeplay) with no seed picks up your unfinished run. Freeplay is a 3-foe crawl on an endless seed, so it
   // always has the newest rules; it saves apart from the daily and never counts for the streak.
