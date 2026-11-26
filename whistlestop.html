@@ -183,6 +183,7 @@ h1 span{color:var(--loco)}
 
 <script src="puzz-core.js?v=42c25c62"></script>
 <script src="streak.js?v=b548c2ec"></script>
+<script src="stats.js?v=4774b65f"></script>
 <script>
 // ---- Whistlestop engine: Witness-style route puzzles with railway signs ----
 
@@ -461,7 +462,7 @@ function openJourney(ci,pi){
   renderMap();
   if(!st.solved)hint(jIdx(ci,pi)===0?'Drag the locomotive onto the board and drive it to the buffer stop.':'');
 }
-function loadDaily(dayIso){
+function loadDaily(dayIso){if(!dayIso&&window.PuzzStats)PuzzStats.play('ws');
   setMode(dayIso?'day':'daily');$('loading').hidden=false;$('svg').innerHTML='';
   try{history.replaceState(null,'',dayIso?'#d'+dayIso:location.pathname+location.search)}catch(e){}
   setTimeout(()=>{const d=dayInfo(dayIso);const pz=generate('whistlestop-'+d.iso,d.N,d.N,d.theme);pz.label=`#${d.num} · ${d.label}`;pz.iso=d.iso;
@@ -670,6 +671,7 @@ function showWin(animate){if(window.Kitchen&&!st.revealed&&(mode==="daily"||(mod
   $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected · copy it'};
     try{navigator.clipboard.writeText(shareText()).then(ok,fb)}catch(err){fb()}};
   if($('nextBtn'))$('nextBtn').onclick=()=>loadEndless();
+  if(mode==="daily"&&!st.revealed&&window.PuzzStats&&P.iso===PuzzStats.DAY)PuzzStats.solve('ws',{seconds:st.elapsed,meta:{tries:st.tries.length}},w);
   render();if(animate)runTrain()}
 function startTimer(){stopTimer();const t0=Date.now()-st.elapsed*1000;timerInt=setInterval(()=>{st.elapsed=Math.floor((Date.now()-t0)/1000);tick();if(st.elapsed%5===0)persist()},500)}
 function stopTimer(){clearInterval(timerInt);timerInt=null}

@@ -103,6 +103,7 @@ details.rules p{margin:8px 0 0;max-width:62ch}
 </div>
 <script src="puzz-core.js?v=42c25c62"></script>
 <script src="streak.js?v=b548c2ec"></script>
+<script src="stats.js?v=4774b65f"></script>
 <script>
 // shared helpers (hseed, mulberry, store, dayInfo, esc, fmt, Timer, wireCopy, setTabs, $) come from puzz-core.js
 // shuffle stays here: its argument order is (array, rng), which differs from some other games
@@ -125,7 +126,7 @@ function gen(seed){const r=mulberry(hseed(seed));for(let a=0;a<50;a++){
     const cand=[...best.entries()].filter(([v,b])=>v>=101&&v<=999&&b.steps>=3).map(([v])=>v);if(!cand.length)continue;
     const t=cand[Math.floor(r()*cand.length)];return{nums,target:t,par:best.get(t).steps,way:best.get(t).path}}}
 let mode='daily',Pz=null,st=null,pick=null,op=null;
-function load(m,code){mode=m;setTabs(m);$('endCtl').hidden=m!=='endless';$('win').hidden=true;Timer.stop();let saved=null;
+function load(m,code){mode=m;if(m==='daily'&&window.PuzzStats)PuzzStats.play('ta');setTabs(m);$('endCtl').hidden=m!=='endless';$('win').hidden=true;Timer.stop();let saved=null;
   if(m==='daily'){const d=dayInfo();Pz=gen('tally-'+d.iso);Pz.label=`#${d.num} · ${d.label}`;Pz.iso=d.iso;$('sub').textContent='Daily numbers '+Pz.label;saved=store.get('tally-daily');if(saved&&saved.iso!==d.iso)saved=null}
   else{const c=code||newCode();Pz=gen('tally-e-'+c);Pz.label='Endless · '+c;$('sub').textContent='Endless · '+c;try{history.replaceState(null,'','#'+c)}catch(e){}}
   st=saved?saved.st:{steps:[],elapsed:0,started:false,done:false,gave:false,closest:null};
@@ -155,7 +156,8 @@ function shareText(){const n=st.steps.length,diff=n-Pz.par;
   return `The Puzz · Tally ${Pz.label}\n🎯 ${Pz.target} · ${st.gave?'shown the way':`hit in ${n} step${n>1?'s':''} (par ${Pz.par})`} · ⏱ ${fmt(st.elapsed)}\n${st.gave?'🏳️':diff<=0?'⭐⭐⭐':diff===1?'⭐⭐':'⭐'}`}
 function showWin(){if(mode==="daily"&&window.Kitchen)Kitchen.mark("ta");const w=$('win');w.hidden=false;w.style.borderColor=st.gave?'var(--line)':'var(--ok)';
   w.innerHTML=`<h2>${st.gave?'Here’s one way':st.steps.length<=Pz.par?'Bang on, at par!':'Bang on!'}</h2>${st.gave||st.steps.length>Pz.par?`<div class="work">${Pz.way.map(x=>`<div>${x}</div>`).join('')}</div>`:''}<pre id="shareTxt">${esc(shareText())}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New numbers</button>':'<span class="sub">New numbers at midnight.</span>'}</div>`;
-  wireCopy($('copyBtn'),shareText,'shareTxt');if($('nextBtn'))$('nextBtn').onclick=()=>load('endless')}
+  wireCopy($('copyBtn'),shareText,'shareTxt');if($('nextBtn'))$('nextBtn').onclick=()=>load('endless');
+  if(mode==="daily"&&window.PuzzStats)PuzzStats.solve('ta',{seconds:st.elapsed,meta:{steps:st.steps.length,par:Pz.par,shown:st.gave?1:0}},w)}
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>load(b.dataset.mode));$('newBtn').onclick=()=>load('endless');
 (function(){const h=(location.hash||'').slice(1);if(/^[a-z0-9]{5}$/.test(h))load('endless',h);else{load('daily');if(!store.get('tally-seen')){$('rules').open=true;store.set('tally-seen',1)}}})();
 </script>

@@ -19,3 +19,7 @@ Every puzzle is generated in the browser from a seed. The daily seed is the date
 ## Streaks
 
 Streaks live in `streak.js` (the same file in The Puzz and The Muze; keep both copies identical). It keeps one small cookie, `ck1`, on path `/` so both sites share it: the last 42 days of which dailies you finished, plus each site's best streak. It is only read by the pages themselves, though as a cookie the browser also sends it to GitHub Pages with each request (about 120 bytes, unused there).
+
+## Daily totals (Supabase)
+
+`stats.js` sends anonymous counts to a Supabase project (`puzz-muze`, free plan): one `play` row when today's daily opens and one `solve` row when it's finished, once per device per day. A row holds the game, the day, seconds taken, the player's current Puzz streak and a small `meta` object (moves, peeks, steps...). No account and no device id. Browsers can only insert; row-level security refuses reads, updates and deletes, and pages read totals through the `puzz_stats(day)` function (solves, plays, median time, longest streak, and a median for every numeric `meta` key). Finish screens and the home page show them. The schema is in `supabase/migrations/`.

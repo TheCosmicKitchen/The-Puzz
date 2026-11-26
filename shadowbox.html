@@ -148,6 +148,7 @@ details li svg{flex:none;width:44px;height:44px}
 
 <script src="puzz-core.js?v=42c25c62"></script>
 <script src="streak.js?v=b548c2ec"></script>
+<script src="stats.js?v=4774b65f"></script>
 <script>
 // ---- Shadowbox engine: colour x shape pieces ----
 // Colour layer: every same-colour patch (a maximal connected group) is shown off the board as a loose
@@ -349,7 +350,7 @@ let P,st,mode='daily',sel=0,timerInt=null,last=-1,nope=-1;
 const ONE_FROM='2026-11-26';
 function dayInfo(on){const D=puzzDay(on),U=D.iso>=ONE_FROM;return{num:D.num,iso:D.iso,U,N:U?3:D.weekend?5:4,label:D.label}}   // puzzDay is in puzz-core.js
 
-function load(m,seedOverride){
+function load(m,seedOverride){if(m==='daily'&&window.PuzzStats)PuzzStats.play('sb');
   // 'day' is a daily from a shared link (#d2026-11-20): that day's box, played as a one-off (no save, no streak)
   mode=m;$('tDaily').setAttribute('aria-pressed',m==='daily');$('tEndless').setAttribute('aria-pressed',m==='endless');
   $('endlessCtl').hidden=m!=='endless';$('dailyInfo').hidden=m==='endless';let saved=null;
@@ -476,7 +477,8 @@ function showWin(){if(mode==="daily"&&!st.revealed&&window.Kitchen)Kitchen.mark(
   w.innerHTML=`<h2>${st.revealed?'Here\'s the finished box':'Box solved'}</h2><pre id="shareTxt">${shareText()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">Next puzzle</button>':'<span class="sub">A new box arrives at midnight.</span>'}</div>`;
   $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected · copy it'};
     try{navigator.clipboard.writeText(shareText()).then(ok,fb)}catch(err){fb()}};
-  if($('nextBtn'))$('nextBtn').onclick=()=>load('endless');render()}
+  if($('nextBtn'))$('nextBtn').onclick=()=>load('endless');
+  if(mode==="daily"&&!st.revealed&&window.PuzzStats)PuzzStats.solve('sb',{seconds:st.elapsed,meta:{peeks:st.peeks.length}},w);render()}
 function startTimer(){stopTimer();const t0=Date.now()-st.elapsed*1000;timerInt=setInterval(()=>{st.elapsed=Math.floor((Date.now()-t0)/1000);tick();if(st.elapsed%5===0)persist()},500)}
 function stopTimer(){clearInterval(timerInt);timerInt=null}
 function tick(){$('timer').textContent=fmt(st.elapsed||0)}

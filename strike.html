@@ -101,6 +101,7 @@ button.t:hover{filter:brightness(1.08)}
 </div>
 <script src="puzz-core.js?v=42c25c62"></script>
 <script src="streak.js?v=b548c2ec"></script>
+<script src="stats.js?v=4774b65f"></script>
 <script>
 // shared helpers (hseed, mulberry, store, dayInfo, esc, fmt, Timer, wireCopy, setTabs, $) come from puzz-core.js
 // shuffle stays here: its argument order is (array, rng), which differs from some other games
@@ -122,7 +123,7 @@ function gen(seed,N){for(let a=0;a<500;a++){const r=mulberry(hseed(seed+'#'+a));
     const rt=[...Array(N).keys()].map(rr=>g.slice(rr*N,rr*N+N).reduce((s,v,c)=>s+(keep[rr*N+c]?v:0),0));
     const ct=[...Array(N).keys()].map(c=>[...Array(N).keys()].reduce((s,rr)=>s+(keep[rr*N+c]?g[rr*N+c]:0),0));
     if(countSols(N,g,rt,ct,2)===1)return{N,g,keep,rt,ct}}return null}
-function load(m,code){mode=m;setTabs(m);$('endCtl').hidden=m!=='endless';$('win').hidden=true;Timer.stop();let saved=null;
+function load(m,code){mode=m;if(m==='daily'&&window.PuzzStats)PuzzStats.play('st');setTabs(m);$('endCtl').hidden=m!=='endless';$('win').hidden=true;Timer.stop();let saved=null;
   if(m==='daily'){const d=dayInfo(),N=d.weekend?6:5;Pz=gen('strike-'+d.iso,N);Pz.label=`#${d.num} · ${d.label}`;Pz.iso=d.iso;$('sub').textContent=`Daily ${N}×${N} · ${Pz.label}`;saved=store.get('strike-daily');if(saved&&saved.iso!==d.iso)saved=null}
   else{const c=code||newCode(),N=+$('size').value;Pz=gen('strike-e-'+c+N,N);Pz.label='Endless · '+c+N;$('sub').textContent=`Endless ${N}×${N} · ${c}${N}`;try{history.replaceState(null,'','#'+c+N)}catch(e){}}
   st=saved?saved.st:{mark:new Array(Pz.N*Pz.N).fill(0),elapsed:0,started:false,done:false,checks:0};if(!st.hist)st.hist=[];
@@ -150,7 +151,8 @@ function tap(i){if(st.done)return;if(!st.started){st.started=true;Timer.start(st
 function shareText(){const N=Pz.N,u=st.undos||0;
   return `The Puzz · Strike ${Pz.label}\n${N}×${N} · ⏱ ${fmt(st.elapsed)} · ${u?`${u} undo${u>1?'s':''}`:'no undos'}\n${'🟩'.repeat(N)} every line adds up`}
 function showWin(){if(mode==="daily"&&window.Kitchen)Kitchen.mark("st");const w=$('win');w.hidden=false;w.innerHTML=`<h2>Every line adds up</h2><pre id="shareTxt">${esc(shareText())}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New grid</button>':'<span class="sub">A new grid at midnight.</span>'}</div>`;
-  wireCopy($('copyBtn'),shareText,'shareTxt');if($('nextBtn'))$('nextBtn').onclick=()=>load('endless')}
+  wireCopy($('copyBtn'),shareText,'shareTxt');if($('nextBtn'))$('nextBtn').onclick=()=>load('endless');
+  if(mode==="daily"&&window.PuzzStats)PuzzStats.solve('st',{seconds:st.elapsed},w)}
 // circle every unstruck number in a finished line; if they're all circled already, clear them
 function keepLine(line){if(st.done)return;const N=Pz.N,k=+line.slice(1),cells=[...Array(N).keys()].map(j=>line[0]==='r'?k*N+j:j*N+k).filter(i=>st.mark[i]!==1);
   const v=cells.every(i=>st.mark[i]===2)?0:2;snap();cells.forEach(i=>st.mark[i]=v);render();persist()}

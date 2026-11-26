@@ -40,6 +40,9 @@ a.card:focus-visible{outline:2.5px solid var(--f1);outline-offset:2px}
 .pill{font:600 12px var(--display);letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:var(--felt);color:var(--muted);white-space:nowrap}
 .pill.done{background:var(--ok);color:var(--surface)}
 .soon{display:grid;grid-template-columns:72px 1fr auto;gap:16px;align-items:center;border:2px dashed var(--line);border-radius:18px;padding:14px 16px;color:var(--muted)}
+.who{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.everyone{margin:0;color:#46525C;font-size:14px;text-align:center}
+@media (prefers-color-scheme:dark){.everyone{color:var(--muted)}}
 .soon h2{font:600 20px var(--display);margin:0;color:var(--ink);opacity:.7}
 .soon p{margin:2px 0 0;font-size:14px}
 footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
@@ -69,6 +72,7 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
   </div>
   <p class="tag">A fresh set of puzzles every day, free. Endless mode when one isn't enough.</p>
   <section class="streak" id="streak" aria-label="Your streak" hidden></section>
+  <p class="everyone" id="everyone" hidden></p>
   <div class="cards">
     <a class="card" href="hexstitch.html">
       <svg viewBox="-36 -36 72 72" aria-hidden="true">
@@ -155,9 +159,10 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
       <span class="pill" id="s-nw">New</span>
     </a>
   </div>
-  <footer>New puzzles at local midnight · progress stays on this device · <a href="lab/" style="color:inherit">The Puzz Lab</a></footer>
+  <footer>New puzzles at local midnight · progress stays on this device · finishes are counted anonymously for the daily totals · <a href="lab/" style="color:inherit">The Puzz Lab</a></footer>
 </div>
 <script src="streak.js?v=b548c2ec"></script>
+<script src="stats.js?v=4774b65f"></script>
 <script>
 const t=new Date();document.getElementById('date').textContent=t.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
 const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
@@ -193,6 +198,14 @@ if(window.Kitchen){
       <p class="note">${note}</p></div>${S.best>1?`<span class="best">Best ${S.best}</span>`:''}</div>
     <div class="days">${W.map((d,i)=>`<div class="day ${d.today?'today':''}" aria-label="${d.date.toLocaleDateString(undefined,{weekday:'long'})}: ${d.done?'done':d.future?'still to come':d.today?'not yet':'missed'}">${hex(d,i)}<span>${d.today?'today':d.date.toLocaleDateString(undefined,{weekday:'short'})}</span></div>`).join('')}</div>`;
   el.hidden=false}
+// Everyone's totals for today, from the anonymous counts each daily sends (stats.js).
+if(window.PuzzStats)PuzzStats.load().then(s=>{if(!s)return;const n=x=>Number(x).toLocaleString();
+  const ids={hex:'s-hex',sb:'s-sb',jg:'s-jg',ws:'s-ws',ds:'s-ds',ts:'s-ts',st:'s-st',ta:'s-ta',nw:'s-nw'};
+  Object.entries(s.games||{}).forEach(([g,v])=>{const pill=document.getElementById(ids[g]);if(!pill||!v.solved)return;
+    const w=document.createElement('span');w.className='who';w.textContent=`${n(v.solved)} solved today${v.median_seconds!=null?` · median ${fmtT(v.median_seconds)}`:''}`;pill.previousElementSibling.append(w)});
+  if(!s.solved_all_time)return;const e=document.getElementById('everyone');
+  e.textContent=`Everyone today: ${n(s.solved_today)} puzzle${s.solved_today===1?'':'s'} solved${s.longest_streak_today>1?` · longest streak ${s.longest_streak_today} days`:''} · ${n(s.solved_all_time)} all time`;e.hidden=false});
+function fmtT(x){return`${Math.floor(x/60)}:${String(x%60).padStart(2,'0')}`}
 </script>
 </body>
 </html>

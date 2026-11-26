@@ -184,6 +184,7 @@ details p{margin:8px 0 0;max-width:62ch}
 
 <script src="puzz-core.js?v=42c25c62"></script>
 <script src="streak.js?v=b548c2ec"></script>
+<script src="stats.js?v=4774b65f"></script>
 <script src="blankets.js?v=44a99cce"></script>
 <script src="joannagrams-art/art.js?v=49334e98"></script>
 <script src="joannagrams-art/loader.js?v=0097c800"></script>
@@ -365,7 +366,7 @@ function pickMeta(G){
   }
   return null;
 }
-function load(m,idxOverride,dayIso){
+function load(m,idxOverride,dayIso){if(m==='daily'&&!dayIso&&window.PuzzStats)PuzzStats.play('jg');
   mode=m;$('tDaily').setAttribute('aria-pressed',m==='daily');$('tEndless').setAttribute('aria-pressed',m==='endless');$('endlessCtl').hidden=m!=='endless';
   let saved=null;
   if(m==='day'){const d=dayInfo(dayIso);G=setup(dailyRoot(d.num));G.label=`#${d.num} · ${d.label}`;G.iso=d.iso;
@@ -527,7 +528,8 @@ function showWin(){if(mode==="daily"&&!st.revealed&&window.Kitchen)Kitchen.mark(
   w.innerHTML=`<h2>${st.revealed?'Answers revealed':(G.meta?'Blanket joined':'Pattern word found')+(st.done?', square finished':'')}</h2>${st.done?'':`<p class="sub" style="margin:0">That's the day done. Want more? ${G.answers.length-st.found.length} word${G.answers.length-st.found.length===1?'':'s'} left for the full square.</p>`}<pre id="shareTxt">${fmtShare()}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${mode==='endless'?'<button class="btn" id="nextBtn">New skein</button>':'<span class="sub">A new skein arrives at midnight.</span>'}</div>`;
   $('copyBtn').onclick=e=>{const b=e.currentTarget,ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy result',1500)},fb=()=>{const r=document.createRange();r.selectNodeContents($('shareTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected · copy it'};
     try{navigator.clipboard.writeText(fmtShare()).then(ok,fb)}catch(err){fb()}};
-  if($('nextBtn'))$('nextBtn').onclick=()=>load('endless')}
+  if($('nextBtn'))$('nextBtn').onclick=()=>load('endless');
+  if(mode==="daily"&&!st.revealed&&window.PuzzStats&&G.iso===PuzzStats.DAY)PuzzStats.solve('jg',{meta:{words:st.found.length,square:st.done?1:0}},w)}
 
 // ---- ring input: drag across balls, or tap ----
 const ballAt=(x,y)=>{const el=document.elementFromPoint(x,y);const g=el&&el.closest&&el.closest('[data-b]');return g?+g.dataset.b:-1};
