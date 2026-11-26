@@ -110,6 +110,7 @@ details.rules p{margin:8px 0 0;max-width:62ch}
 </div>
 <script src="puzz-core.js?v=42c25c62"></script>
 <script src="streak.js?v=b548c2ec"></script>
+<script src="stats.js?v=4774b65f"></script>
 <script>
 // shared helpers (hseed, mulberry, store, dayInfo, esc, fmt, Timer, wireCopy, setTabs, $) come from puzz-core.js
 
@@ -211,7 +212,7 @@ function gen(seed,diff){const cfg=DIFFS[diff];let P=null;
 let mode='daily',diff='easy',Pz=null,st=null,selTile=null,selCell=null,undoStack=[];
 const SAVE='numberweave-daily',HELP='Tap a tile, then an empty square (or the other way round). Tap a filled square to take its tile back.';
 function dailySaves(iso){const s=store.get(SAVE);return s&&s.iso===iso?s:{iso,st:{},by:{}}}
-function load(m,d,code){mode=m;diff=d||diff;setTabs(m);$('newBtn').hidden=m!=='endless';$('win').hidden=true;Timer.stop();
+function load(m,d,code){mode=m;if(m==='daily'&&window.PuzzStats)PuzzStats.play('nw');diff=d||diff;setTabs(m);$('newBtn').hidden=m!=='endless';$('win').hidden=true;Timer.stop();
   selTile=selCell=null;undoStack=[];let saved=null;
   if(m==='daily'){const day=dayInfo();Pz=gen('numberweave-'+diff+'-'+day.iso,diff);Pz.label=`#${day.num} · ${day.label}`;Pz.iso=day.iso;saved=dailySaves(day.iso).by[diff]||null;try{history.replaceState(null,'',location.pathname)}catch(e){}}
   else{const c=code||newCode();Pz=gen('numberweave-e-'+diff+'-'+c,diff);Pz.label='Endless · '+c;try{history.replaceState(null,'','#'+diff+'-'+c)}catch(e){}}
@@ -270,7 +271,8 @@ addEventListener('resize',()=>Pz&&render());
 function shareText(){return`The Puzz · Numberweave ${Pz.label}\n${DIFFS[diff].name} · ${Pz.eqs.length} sums · ⏱ ${fmt(st.elapsed)}${st.hints?` · 💡${st.hints}`:''}`}
 function showWin(){const w=$('win');w.hidden=false;const nxt=ORDER[ORDER.indexOf(diff)+1];
   w.innerHTML=`<h2>Woven!</h2><pre id="shareTxt">${esc(shareText())}</pre><div class="row"><button class="btn primary" id="copyBtn">Copy result</button>${nxt?`<button class="btn" id="upBtn">Try ${DIFFS[nxt].name}</button>`:''}${mode==='endless'?'<button class="btn" id="nextBtn">New puzzle</button>':''}</div>`;
-  wireCopy($('copyBtn'),shareText,'shareTxt');if($('upBtn'))$('upBtn').onclick=()=>load(mode,nxt);if($('nextBtn'))$('nextBtn').onclick=()=>load('endless')}
+  wireCopy($('copyBtn'),shareText,'shareTxt');if($('upBtn'))$('upBtn').onclick=()=>load(mode,nxt);if($('nextBtn'))$('nextBtn').onclick=()=>load('endless');
+  if(mode==="daily"&&window.PuzzStats)PuzzStats.solve('nw',{seconds:st.elapsed,meta:{level:ORDER.indexOf(diff),hints:st.hints||0}},w)}
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>load(b.dataset.mode));$('newBtn').onclick=()=>load('endless');
 (function(){const m=(location.hash||'').slice(1).match(/^(easy|medium|hard|expert)-([a-z0-9]{5})$/);
   if(m)load('endless',m[1],m[2]);else{load('daily','easy');if(!store.get('numberweave-seen')){$('rules').open=true;store.set('numberweave-seen',1)}}})();
