@@ -110,7 +110,7 @@ details.rules p{margin:8px 0 0;max-width:62ch}
 </div>
 <script src="puzz-core.js?v=42c25c62"></script>
 <script src="streak.js?v=b548c2ec"></script>
-<script src="stats.js?v=2a27efc2"></script>
+<script src="stats.js?v=cdecbfbc"></script>
 <script>
 // shared helpers (hseed, mulberry, store, dayInfo, esc, fmt, Timer, wireCopy, setTabs, $) come from puzz-core.js
 
@@ -212,7 +212,7 @@ function gen(seed,diff){const cfg=DIFFS[diff];let P=null;
 let mode='daily',diff='easy',Pz=null,st=null,selTile=null,selCell=null,undoStack=[];
 const SAVE='numberweave-daily',HELP='Tap a tile, then an empty square (or the other way round). Tap a filled square to take its tile back.';
 function dailySaves(iso){const s=store.get(SAVE);return s&&s.iso===iso?s:{iso,st:{},by:{}}}
-function load(m,d,code){mode=m;if(m==='daily'&&window.PuzzStats)PuzzStats.play('nw');diff=d||diff;setTabs(m);$('newBtn').hidden=m!=='endless';$('win').hidden=true;Timer.stop();
+function load(m,d,code){mode=m;diff=d||diff;setTabs(m);$('newBtn').hidden=m!=='endless';$('win').hidden=true;Timer.stop();
   selTile=selCell=null;undoStack=[];let saved=null;
   if(m==='daily'){const day=dayInfo();Pz=gen('numberweave-'+diff+'-'+day.iso,diff);Pz.label=`#${day.num} · ${day.label}`;Pz.iso=day.iso;saved=dailySaves(day.iso).by[diff]||null;try{history.replaceState(null,'',location.pathname)}catch(e){}}
   else{const c=code||newCode();Pz=gen('numberweave-e-'+diff+'-'+c,diff);Pz.label='Endless · '+c;try{history.replaceState(null,'','#'+diff+'-'+c)}catch(e){}}

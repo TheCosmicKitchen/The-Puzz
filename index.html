@@ -41,8 +41,8 @@ a.card:focus-visible{outline:2.5px solid var(--f1);outline-offset:2px}
 .pill.done{background:var(--ok);color:var(--surface)}
 .soon{display:grid;grid-template-columns:72px 1fr auto;gap:16px;align-items:center;border:2px dashed var(--line);border-radius:18px;padding:14px 16px;color:var(--muted)}
 .who{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
-.everyone{margin:0;color:#46525C;font-size:14px;text-align:center}
-@media (prefers-color-scheme:dark){.everyone{color:var(--muted)}}
+.mine{margin:0;color:#46525C;font-size:14px;text-align:center}
+@media (prefers-color-scheme:dark){.mine{color:var(--muted)}}
 .soon h2{font:600 20px var(--display);margin:0;color:var(--ink);opacity:.7}
 .soon p{margin:2px 0 0;font-size:14px}
 footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
@@ -72,7 +72,7 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
   </div>
   <p class="tag">A fresh set of puzzles every day, free. Endless mode when one isn't enough.</p>
   <section class="streak" id="streak" aria-label="Your streak" hidden></section>
-  <p class="everyone" id="everyone" hidden></p>
+  <p class="mine" id="mine" hidden></p>
   <div class="cards">
     <a class="card" href="hexstitch.html">
       <svg viewBox="-36 -36 72 72" aria-hidden="true">
@@ -162,7 +162,7 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
   <footer>New puzzles at local midnight · progress stays on this device · <a href="lab/" style="color:inherit">The Puzz Lab</a></footer>
 </div>
 <script src="streak.js?v=b548c2ec"></script>
-<script src="stats.js?v=2a27efc2"></script>
+<script src="stats.js?v=cdecbfbc"></script>
 <script>
 const t=new Date();document.getElementById('date').textContent=t.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
 const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
@@ -198,14 +198,13 @@ if(window.Kitchen){
       <p class="note">${note}</p></div>${S.best>1?`<span class="best">Best ${S.best}</span>`:''}</div>
     <div class="days">${W.map((d,i)=>`<div class="day ${d.today?'today':''}" aria-label="${d.date.toLocaleDateString(undefined,{weekday:'long'})}: ${d.done?'done':d.future?'still to come':d.today?'not yet':'missed'}">${hex(d,i)}<span>${d.today?'today':d.date.toLocaleDateString(undefined,{weekday:'short'})}</span></div>`).join('')}</div>`;
   el.hidden=false}
-// Everyone's totals for today, from signed-in players' finishes (stats.js). Hidden while there are none.
-if(window.PuzzStats)PuzzStats.load().then(s=>{if(!s)return;const n=x=>Number(x).toLocaleString();
+// Your totals on this device, from the solves each daily keeps in IndexedDB (stats.js). Hidden until the first one.
+if(window.PuzzStats)PuzzStats.all().then(rows=>{if(!rows.length)return;
   const ids={hex:'s-hex',sb:'s-sb',jg:'s-jg',ws:'s-ws',ds:'s-ds',ts:'s-ts',st:'s-st',ta:'s-ta',nw:'s-nw'};
-  Object.entries(s.games||{}).forEach(([g,v])=>{const pill=document.getElementById(ids[g]);if(!pill||!v.solved)return;
-    const w=document.createElement('span');w.className='who';w.textContent=`${n(v.solved)} solved today${v.median_seconds!=null?` · median ${fmtT(v.median_seconds)}`:''}`;pill.previousElementSibling.append(w)});
-  if(!s.solved_all_time)return;const e=document.getElementById('everyone');
-  e.textContent=`Everyone today: ${n(s.solved_today)} puzzle${s.solved_today===1?'':'s'} solved${s.longest_streak_today>1?` · longest streak ${s.longest_streak_today} days`:''} · ${n(s.solved_all_time)} all time`;e.hidden=false});
-function fmtT(x){return`${Math.floor(x/60)}:${String(x%60).padStart(2,'0')}`}
+  Object.entries(ids).forEach(([g,id])=>{const pill=document.getElementById(id),text=PuzzStats.line(PuzzStats.summary(rows.filter(r=>r.game===g)));if(!pill||!text)return;
+    const w=document.createElement('span');w.className='who';w.textContent=text;pill.previousElementSibling.append(w)});
+  const e=document.getElementById('mine'),days=new Set(rows.map(r=>r.day)).size;
+  e.textContent=`You've solved ${rows.length.toLocaleString()} dail${rows.length===1?'y':'ies'} on ${days.toLocaleString()} day${days===1?'':'s'}`;e.hidden=false});
 </script>
 <script src="artist.js?v=a319fa11" defer></script>
 </body>

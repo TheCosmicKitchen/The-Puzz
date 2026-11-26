@@ -183,7 +183,7 @@ h1 span{color:var(--loco)}
 
 <script src="puzz-core.js?v=42c25c62"></script>
 <script src="streak.js?v=b548c2ec"></script>
-<script src="stats.js?v=2a27efc2"></script>
+<script src="stats.js?v=cdecbfbc"></script>
 <script>
 // ---- Whistlestop engine: Witness-style route puzzles with railway signs ----
 
@@ -462,7 +462,7 @@ function openJourney(ci,pi){
   renderMap();
   if(!st.solved)hint(jIdx(ci,pi)===0?'Drag the locomotive onto the board and drive it to the buffer stop.':'');
 }
-function loadDaily(dayIso){if(!dayIso&&window.PuzzStats)PuzzStats.play('ws');
+function loadDaily(dayIso){
   setMode(dayIso?'day':'daily');$('loading').hidden=false;$('svg').innerHTML='';
   try{history.replaceState(null,'',dayIso?'#d'+dayIso:location.pathname+location.search)}catch(e){}
   setTimeout(()=>{const d=dayInfo(dayIso);const pz=generate('whistlestop-'+d.iso,d.N,d.N,d.theme);pz.label=`#${d.num} · ${d.label}`;pz.iso=d.iso;

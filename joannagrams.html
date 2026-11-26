@@ -184,7 +184,7 @@ details p{margin:8px 0 0;max-width:62ch}
 
 <script src="puzz-core.js?v=42c25c62"></script>
 <script src="streak.js?v=b548c2ec"></script>
-<script src="stats.js?v=2a27efc2"></script>
+<script src="stats.js?v=cdecbfbc"></script>
 <script src="blankets.js?v=44a99cce"></script>
 <script src="joannagrams-art/art.js?v=49334e98"></script>
 <script src="joannagrams-art/loader.js?v=0097c800"></script>
@@ -366,7 +366,7 @@ function pickMeta(G){
   }
   return null;
 }
-function load(m,idxOverride,dayIso){if(m==='daily'&&!dayIso&&window.PuzzStats)PuzzStats.play('jg');
+function load(m,idxOverride,dayIso){
   mode=m;$('tDaily').setAttribute('aria-pressed',m==='daily');$('tEndless').setAttribute('aria-pressed',m==='endless');$('endlessCtl').hidden=m!=='endless';
   let saved=null;
   if(m==='day'){const d=dayInfo(dayIso);G=setup(dailyRoot(d.num));G.label=`#${d.num} · ${d.label}`;G.iso=d.iso;

@@ -20,8 +20,6 @@ Every puzzle is generated in the browser from a seed. The daily seed is the date
 
 Streaks live in `streak.js` (the same file in The Puzz and The Muze; keep both copies identical). It keeps one small cookie, `ck1`, on path `/` so both sites share it: the last 42 days of which dailies you finished, plus each site's best streak. It is only read by the pages themselves, though as a cookie the browser also sends it to GitHub Pages with each request (about 120 bytes, unused there).
 
-## Daily totals (Supabase)
+## Your history
 
-Guests send nothing: their progress stays on the device. Since `20261126000400_no_guest_writes.sql` only a signed-in user (Supabase Auth) can insert, and `stats.js` only sends when there's a session. The section below describes what a signed-in player's rows look like.
-
-`stats.js` sends anonymous counts to a Supabase project (`puzz-muze`, free plan): one `play` row when today's daily opens and one `solve` row when it's finished, once per device per day. A row holds the game, the day, seconds taken, the player's current Puzz streak and a small `meta` object (moves, peeks, steps...). No account and no device id. Browsers can only insert; row-level security refuses reads, updates and deletes, and pages read totals through the `puzz_stats(day)` function (solves, plays, median time, longest streak, and a median for every numeric `meta` key). Finish screens and the home page show them. The schema is in `supabase/migrations/`.
+`stats.js` keeps every finished daily on the device in IndexedDB (database `puzz`, store `solves`, one row per day and game): the time taken, the Puzz streak at the time, and a small per-game `meta` object (moves, peeks, steps...). Finish screens show your record for that game ("12 solved · best 0:58 · median 1:40") and the home page shows your totals. Nothing leaves the device, and there are no accounts.
