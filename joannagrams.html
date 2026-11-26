@@ -99,10 +99,10 @@ h1 span{color:var(--y0)}
 .ringbox{display:flex;justify-content:center}
 #ring{width:min(300px,82vw);height:auto;touch-action:none;user-select:none;-webkit-user-select:none}
 .ball{cursor:pointer}
-.ball .core{stroke:var(--wrap);stroke-width:1.2}
-.ball .wrapl{fill:none;stroke:var(--wrap);stroke-width:1.6;stroke-linecap:round}
-.ball .gl{fill:var(--shine)}
-.ball text{font:600 25px var(--display);fill:#fff;text-anchor:middle;dominant-baseline:central;text-transform:uppercase;pointer-events:none;paint-order:stroke;stroke:var(--wrap);stroke-width:2.5}
+.ball .core{fill:transparent;stroke:none}
+/* Yarn balls are Pixel Patisserie sprites (32px, eight colourways), drawn at 2x without smoothing. */
+.ball .px{image-rendering:pixelated}
+.ball text{font:600 25px var(--display);fill:#fff;text-anchor:middle;dominant-baseline:central;text-transform:uppercase;pointer-events:none;paint-order:stroke;stroke:rgba(0,0,0,.55);stroke-width:4;stroke-linejoin:round}
 .ball.on .core{stroke:var(--ink);stroke-width:3.2}
 .yarn{fill:none;stroke:var(--y3);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
 .yarn2{fill:none;stroke:var(--shine);stroke-width:2;stroke-dasharray:3 5;stroke-linecap:round}
@@ -473,11 +473,10 @@ function ring(){
   s+=`<path class="hook" d="M-26,26 L22,-22 q8,-8 2,-14 q-5,-4 -9,2"/>`;
   if(chain.length>1){const pts=chain.map(i=>{const p=ballPos(i);return p.x.toFixed(1)+','+p.y.toFixed(1)}).join(' ');
     s+=`<polyline class="yarn" points="${pts}"/><polyline class="yarn2" points="${pts}"/>`}
-  letters.forEach((ch,i)=>{const p=ballPos(i),on=chain.includes(i),col=`var(--y${i%4})`;
+  letters.forEach((ch,i)=>{const p=ballPos(i),on=chain.includes(i);
     s+=`<g class="ball ${on?'on':''}" data-b="${i}" transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)})" role="button" aria-label="Letter ${ch.toUpperCase()}${on?', in chain':''}">
-      <circle class="core" r="31" fill="${col}"/>
-      <path class="wrapl" d="M-24,-14 Q0,-30 24,-14 M-29,0 Q0,-16 29,0 M-24,14 Q0,-2 24,14 M-12,-27 Q-26,0 -12,27"/>
-      <ellipse class="gl" cx="-11" cy="-15" rx="8" ry="4.5" transform="rotate(-30 -11 -15)"/>
+      <image class="px" href="joannagrams-art/yarn-ball-${i%8}.png" x="-32" y="-32" width="64" height="64"/>
+      <circle class="core" r="32"/>
       <text>${ch}</text></g>`});
   $('ring').innerHTML=s;
 }
