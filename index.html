@@ -159,10 +159,10 @@ footer{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
       <span class="pill" id="s-nw">New</span>
     </a>
   </div>
-  <footer>New puzzles at local midnight · progress stays on this device · finishes are counted anonymously for the daily totals · <a href="lab/" style="color:inherit">The Puzz Lab</a></footer>
+  <footer>New puzzles at local midnight · progress stays on this device · <a href="lab/" style="color:inherit">The Puzz Lab</a></footer>
 </div>
 <script src="streak.js?v=b548c2ec"></script>
-<script src="stats.js?v=4774b65f"></script>
+<script src="stats.js?v=2a27efc2"></script>
 <script>
 const t=new Date();document.getElementById('date').textContent=t.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
 const iso=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
@@ -198,7 +198,7 @@ if(window.Kitchen){
       <p class="note">${note}</p></div>${S.best>1?`<span class="best">Best ${S.best}</span>`:''}</div>
     <div class="days">${W.map((d,i)=>`<div class="day ${d.today?'today':''}" aria-label="${d.date.toLocaleDateString(undefined,{weekday:'long'})}: ${d.done?'done':d.future?'still to come':d.today?'not yet':'missed'}">${hex(d,i)}<span>${d.today?'today':d.date.toLocaleDateString(undefined,{weekday:'short'})}</span></div>`).join('')}</div>`;
   el.hidden=false}
-// Everyone's totals for today, from the anonymous counts each daily sends (stats.js).
+// Everyone's totals for today, from signed-in players' finishes (stats.js). Hidden while there are none.
 if(window.PuzzStats)PuzzStats.load().then(s=>{if(!s)return;const n=x=>Number(x).toLocaleString();
   const ids={hex:'s-hex',sb:'s-sb',jg:'s-jg',ws:'s-ws',ds:'s-ds',ts:'s-ts',st:'s-st',ta:'s-ta',nw:'s-nw'};
   Object.entries(s.games||{}).forEach(([g,v])=>{const pill=document.getElementById(ids[g]);if(!pill||!v.solved)return;
